@@ -1,0 +1,54 @@
+name: Deploy web
+
+# Web アプリ(webapp/ のフロントエンド)が変わったときだけ動く
+on:
+  push:
+    branches: [main, deploy-test]
+    paths:
+      - "webapp/src/**"
+      - "webapp/public/**"
+      - "webapp/astro.config.mjs"
+      - "webapp/tsconfig.json"
+      - "webapp/package.json"
+      - "webapp/package-lock.json"
+      - "webapp/amplify/hosting.ts"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # OIDC で AWS のロールを引き受ける
+  contents: read
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-1
+  AMPLIFY_IDENTIFIER: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - run: npm ci
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ホスティング(CloudFront、S3、Lambda)だけをデプロイする
+      # amplify_outputs.json は、デプロイ済みのバックエンドから自動で作られる
+      - run: npx ampx deploy --identifier "$AMPLIFY_IDENTIFIER" --frontend --yes

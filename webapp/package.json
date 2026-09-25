@@ -1,0 +1,43 @@
+{
+  "name": "webapp",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@ag-ui/client": "^0.0.59",
+    "@astrojs/node": "^11.1.6",
+    "@astrojs/react": "^7.0.0",
+    "@aws-amplify/ui-react": "^6.15.6",
+    "@aws-crypto/sha256-js": "^5.2.0",
+    "@aws-sdk/credential-providers": "^3.1140.0",
+    "@copilotkit/react-core": "^1.73.3",
+    "@copilotkit/runtime": "^1.73.3",
+    "@smithy/protocol-http": "^5.6.2",
+    "@smithy/signature-v4": "^5.7.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "astro": "^7.3.5",
+    "aws-amplify": "^6.22.0",
+    "aws-jwt-verify": "^5.2.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.25.1",
+    "@aws-amplify/backend-cli": "^1.10.0",
+    "@aws-amplify/hosting": "^1.0.1",
+    "@copilotkit/aimock": "^1.43.0",
+    "typescript": "^7.0.2"
+  }
+}

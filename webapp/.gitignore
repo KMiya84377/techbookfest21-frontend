@@ -1,0 +1,30 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# Amplify(デプロイで生成される。CI が自動で作る)
+amplify_outputs*
+.amplify/
+.amplify-hosting-deploy.lock
+.hosting/
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/

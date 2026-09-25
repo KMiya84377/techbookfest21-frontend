@@ -1,0 +1,9 @@
+{
+  "port": 4010,
+  "agui": {
+    "path": "/agui",
+    "fixtures": [
+      { "match": { "message": "こんにちは" }, "text": "こんにちは!AG-UI のモックです。" }
+    ]
+  }
+}

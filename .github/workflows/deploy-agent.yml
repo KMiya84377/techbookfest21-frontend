@@ -1,0 +1,54 @@
+name: Deploy agent
+
+# エージェント(agent/)と、バックエンド定義(Cognito、AgentCore)が変わったときだけ動く
+on:
+  push:
+    branches: [main, deploy-test]
+    paths:
+      - "agent/**"
+      - "webapp/amplify/backend.ts"
+      - "webapp/amplify/auth/**"
+      - ".github/workflows/deploy-agent.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # OIDC で AWS のロールを引き受ける
+  contents: read
+
+concurrency:
+  group: deploy-agent
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-1
+  AMPLIFY_IDENTIFIER: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webapp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      # x86 のランナーで、ARM64 の Docker イメージをビルドするため
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - run: npm ci
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # バックエンド(Cognito と AgentCore Runtime)だけをデプロイする
+      - run: npx ampx deploy --identifier "$AMPLIFY_IDENTIFIER" --backend --yes

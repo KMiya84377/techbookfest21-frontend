@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
-import { HttpAgent } from "@ag-ui/client";
 import {
   CopilotRuntime,
   createCopilotRuntimeHandler,
 } from "@copilotkit/runtime/v2";
-import { CognitoJwtVerifier } from "aws-jwt-verify";
-import outputs from "../../../../amplify_outputs.json";
-import { createAgentCoreAgent } from "../../../lib/agentcore";
+import { createAgentCoreAgent, createLocalAgent } from "../../../lib/agentcore";
+import { authenticate } from "../../../lib/auth";
+import { outputs } from "../../../lib/outputs";
+import { userContext } from "../../../lib/userContext";
 
 // リクエストごとにサーバーで動かす(静的ファイルにしない)
 export const prerender = false;
@@ -17,22 +17,14 @@ export const prerender = false;
 //   どちらもなければ AGENT_URL(未設定なら aimock)に、署名なしで接続する
 const env = (name: string): string | undefined =>
   process.env[name] ?? (import.meta.env[name] as string | undefined);
-const outputsArn = (outputs as { custom?: { agentRuntimeArn?: string } }).custom
-  ?.agentRuntimeArn;
 const AGENT_RUNTIME_ARN =
-  env("AGENT_RUNTIME_ARN") ?? (import.meta.env.PROD ? outputsArn : undefined);
+  env("AGENT_RUNTIME_ARN") ??
+  (import.meta.env.PROD ? outputs?.custom?.agentRuntimeArn : undefined);
 const AGENT_URL = env("AGENT_URL") ?? "http://localhost:4010/agui";
 
 const agent = AGENT_RUNTIME_ARN
   ? createAgentCoreAgent(AGENT_RUNTIME_ARN)
-  : new HttpAgent({ url: AGENT_URL });
-
-// Cognito のアクセストークンを検証する
-const verifier = CognitoJwtVerifier.create({
-  userPoolId: outputs.auth.user_pool_id,
-  tokenUse: "access",
-  clientId: outputs.auth.user_pool_client_id,
-});
+  : createLocalAgent(AGENT_URL);
 
 const runtime = new CopilotRuntime({
   agents: { default: agent },
@@ -44,17 +36,15 @@ const handler = createCopilotRuntimeHandler({
   hooks: {
     // 全リクエストで JWT を検証し、失敗したら 401 を返す
     onRequest: async ({ request }) => {
-      const token = request.headers.get("authorization")?.replace(/^Bearer /i, "");
-      if (!token) {
-        throw new Response("Unauthorized", { status: 401 });
-      }
-      try {
-        await verifier.verify(token);
-      } catch {
+      if (!(await authenticate(request))) {
         throw new Response("Unauthorized", { status: 401 });
       }
     },
   },
 });
 
-export const ALL: APIRoute = ({ request }) => handler(request);
+// 検証したユーザー ID を、この処理の間だけ持たせる(エージェントへの送信で、本文に入れる)
+export const ALL: APIRoute = async ({ request }) => {
+  const userId = await authenticate(request);
+  return userId ? userContext.run({ userId }, () => handler(request)) : handler(request);
+};

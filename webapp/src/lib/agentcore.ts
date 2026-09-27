@@ -4,6 +4,7 @@ import { Sha256 } from "@aws-crypto/sha256-js";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { HttpRequest } from "@smithy/protocol-http";
 import { SignatureV4 } from "@smithy/signature-v4";
+import { withUserId } from "./userContext";
 
 // セッション ID の長さの制約(InvokeAgentRuntime の runtimeSessionId)
 const SESSION_ID_MIN_LENGTH = 33;
@@ -34,7 +35,8 @@ const createSigV4Fetch = (region: string): HttpAgentFetchFn => {
 
   return async (url, init) => {
     const target = new URL(url);
-    const body = typeof init.body === "string" ? init.body : "";
+    // 検証済みのユーザー ID を、本文に入れる(署名は、この本文に対して行う)
+    const body = withUserId(typeof init.body === "string" ? init.body : "");
     const threadId = (JSON.parse(body || "{}") as { threadId?: string }).threadId ?? "default";
 
     const request = new HttpRequest({
@@ -70,3 +72,15 @@ export const createAgentCoreAgent = (runtimeArn: string): HttpAgent => {
     `/runtimes/${encodeURIComponent(runtimeArn)}/invocations?qualifier=DEFAULT`;
   return new HttpAgent({ url, fetch: createSigV4Fetch(region) });
 };
+
+// ローカルのエージェント(署名なし)に接続するエージェント
+// AgentCore と同じく、検証済みのユーザー ID を、本文に入れる
+export const createLocalAgent = (url: string): HttpAgent =>
+  new HttpAgent({
+    url,
+    fetch: (target, init) =>
+      fetch(target, {
+        ...init,
+        body: typeof init.body === "string" ? withUserId(init.body) : init.body,
+      }),
+  });

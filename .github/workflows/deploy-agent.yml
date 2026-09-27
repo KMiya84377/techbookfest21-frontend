@@ -1,14 +1,7 @@
 name: Deploy agent
 
-# エージェント(agent/)と、バックエンド定義(Cognito、AgentCore)が変わったときだけ動く
+# 必要なときに、GitHub Actions から手動で実行する
 on:
-  push:
-    branches: [main, deploy-test]
-    paths:
-      - "agent/**"
-      - "webapp/amplify/backend.ts"
-      - "webapp/amplify/auth/**"
-      - ".github/workflows/deploy-agent.yml"
   workflow_dispatch:
 
 permissions:
@@ -50,5 +43,5 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # バックエンド(Cognito と AgentCore Runtime)だけをデプロイする
+      # バックエンド(Cognito、AgentCore Runtime、毎朝の実行の Lambda と Scheduler)だけをデプロイする
       - run: npx ampx deploy --identifier "$AMPLIFY_IDENTIFIER" --backend --yes

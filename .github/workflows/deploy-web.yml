@@ -1,18 +1,7 @@
 name: Deploy web
 
-# Web アプリ(webapp/ のフロントエンド)が変わったときだけ動く
+# 必要なときに、GitHub Actions から手動で実行する
 on:
-  push:
-    branches: [main, deploy-test]
-    paths:
-      - "webapp/src/**"
-      - "webapp/public/**"
-      - "webapp/astro.config.mjs"
-      - "webapp/tsconfig.json"
-      - "webapp/package.json"
-      - "webapp/package-lock.json"
-      - "webapp/amplify/hosting.ts"
-      - ".github/workflows/deploy-web.yml"
   workflow_dispatch:
 
 permissions:

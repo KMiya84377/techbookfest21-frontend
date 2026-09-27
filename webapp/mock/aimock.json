@@ -3,7 +3,319 @@
   "agui": {
     "path": "/agui",
     "fixtures": [
-      { "match": { "message": "こんにちは" }, "text": "こんにちは!AG-UI のモックです。" }
+      {
+        "match": {
+          "toolCallId": "detail-1"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "detail-2"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "detail-3"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "detail-4"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "quiz-1"
+        },
+        "text": "回答を受け取りました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "filter-1"
+        },
+        "text": "ボードを更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "filter-2"
+        },
+        "text": "ボードを更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "filter-3"
+        },
+        "text": "ボードを更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "message": "絞り込み"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "filter-1",
+            "toolCallName": "update_quest_filter"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "filter-1",
+            "delta": "{\"services\": [\"AgentCore\", \"Lambda\"], \"maxMinutes\": 5}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "filter-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "条件を解除"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "filter-2",
+            "toolCallName": "update_quest_filter"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "filter-2",
+            "delta": "{\"reset\": true}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "filter-2"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "一致しない"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "filter-3",
+            "toolCallName": "update_quest_filter"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "filter-3",
+            "delta": "{\"reset\": true, \"services\": [\"EC2\"]}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "filter-3"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "こんにちは"
+        },
+        "text": "こんにちは!AG-UI のモックです。"
+      },
+      {
+        "match": {
+          "message": "理解度チェック"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "quiz-1",
+            "toolCallName": "show_quiz"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "quiz-1",
+            "delta": "{\"questId\": \"agentcore-agui\", \"question\": \"AgentCore Runtime で AG-UI のエージェントを動かすとき、エージェントがリクエストを受け付けるパスはどれですか。\", "
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "quiz-1",
+            "delta": "\"options\": [\"/invocations\", \"/chat\", \"/run\", \"/agent\"], \"answer\": 0, \"explanation\": \"AgentCore Runtime は、コンテナの /invocations でリクエストを受け付け、/ping でヘルスチェックを行います。このアプリのエージェント(agent/main.py)も、同じパスを使っています。\"}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "quiz-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "比較表を更新"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-2",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-2",
+            "delta": "{\"questId\": \"agentcore-agui\", \"sections\": [{\"id\": \"compare-protocol\", \"kind\": \"comparison\", \"title\": \"HTTP と AG-UI の違い(更新)\", \"rows\": [{\"label\": \"エンドポイント\", \"before\": \"/invocations に、独自の JSON を送る\", \"after\": \"/invocations で、AG-UI のイベントを受け付ける\"}, {\"label\": \"画面への反映\", \"before\": \"エージェントの応答を、自前で解釈する\", \"after\": \"CopilotKit が、イベントをそのまま描画する\"}, {\"label\": \"ヘルスチェック\", \"before\": \"決まりなし\", \"after\": \"/ping で応答する\"}]}]}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-2"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "比較表"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-1",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-1",
+            "delta": "{\"questId\": \"agentcore-agui\", \"sections\": [{\"id\": \"compare-protocol\", \"kind\": \"comparison\", \"title\": \"HTTP と AG-UI の違い\", \"rows\": [{\"label\": \"エンドポイント\", \"before\": \"/invocations に、独自の JSON を送る\", \"after\": \"/invocations で、AG-UI のイベントを受け付ける\"}, {\"label\": \"画面への反映\", \"before\": \"エージェントの応答を、自前で解釈する\", \"after\": \"CopilotKit が、イベントをそのまま描画する\"}]}]}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "影響を整理"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-3",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-3",
+            "delta": "{\"questId\": \"agentcore-agui\", \"sections\": [{\"id\": \"impact-list\", \"kind\": \"impact\", \"title\": \"影響の整理\", \"items\": [{\"label\": \"構成\", \"text\": \"エージェントを AG-UI に対応させれば、画面側の変更は少ない\"}, {\"label\": \"運用\", \"text\": \"ヘルスチェックの /ping が必要\"}, {\"label\": \"料金\", \"text\": \"ニュースには記載なし(要確認)\"}]}, {\"id\": \"note\", \"kind\": \"text\", \"title\": \"補足\", \"body\": \"詳細は、元情報を確認してください。\"}]}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-3"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "別のクエストの比較"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-4",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-4",
+            "delta": "{\"questId\": \"lambda-streaming\", \"sections\": [{\"id\": \"x\", \"kind\": \"text\", \"title\": \"別のクエスト\", \"body\": \"詳細が開かれていないクエストです\"}]}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-4"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "クエスト"
+        },
+        "text": "クエストボードのカードを選ぶと、詳細を見ながら質問できます。(モックの応答です)"
+      }
     ]
   }
 }

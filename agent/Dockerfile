@@ -7,7 +7,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
-COPY main.py ./
+COPY main.py tools.py ./
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8080

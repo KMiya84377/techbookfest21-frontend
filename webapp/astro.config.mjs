@@ -12,9 +12,15 @@ export default defineConfig({
     resolve: {
       noExternal: ['@copilotkit/react-core']
     },
-    ssr: {
-      // 依存をすべてサーバーのバンドルに含める(Lambda に node_modules を置かないため)
-      noExternal: true
-    }
+    plugins: [
+      {
+        // 依存をすべてサーバーのバンドルに含める(Lambda に node_modules を置かないため)
+        // 開発サーバーでは、この設定で起動に失敗するため、ビルドのときだけ有効にする
+        name: 'bundle-ssr-dependencies',
+        config(_, { command }) {
+          return command === 'build' ? { ssr: { noExternal: true } } : {};
+        }
+      }
+    ]
   }
 });

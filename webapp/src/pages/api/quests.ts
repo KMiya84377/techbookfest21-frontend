@@ -1,63 +1,28 @@
-import type { APIRoute } from "astro";
-import { buildSampleQuests } from "../../data/sampleQuests";
-import { authenticate } from "../../lib/auth";
-import { AUTH_DISABLED } from "../../lib/outputs";
-import { listQuests, updateQuestState } from "../../lib/quests";
+import { questStore } from "../../server/quests/store";
+import { learningHistory } from "../../server/learning/service";
+import { learningProgress } from "../../lib/learning/model";
+import { loadUserSettings } from "../../server/userSettings/service";
+import { badRequest, json, readJson, withUser } from "./_helpers";
 
 // リクエストごとにサーバーで動かす(静的ファイルにしない)
 export const prerender = false;
 
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8" },
-  });
-
-// mock モードでも、同じ開発サーバーの間は状態を保持して再読み込みを確認できるようにする
-const mockStates = new Map<
-  string,
-  { status: "viewed" | "cleared"; review?: boolean }
->();
-
-const mockStateKey = (userId: string, questId: string) => `${userId}:${questId}`;
-
 // ログインしたユーザー自身のクエストを返す(エージェントは通さない)
-//   mock モード(認証なし)では、DynamoDB を使わず、サンプルのクエストを返す
-export const GET: APIRoute = async ({ request }) => {
-  const userId = await authenticate(request);
-  if (!userId) return json({ error: "Unauthorized" }, 401);
-
-  if (AUTH_DISABLED) {
-    const quests = buildSampleQuests().map((quest) => {
-      const state = mockStates.get(mockStateKey(userId, quest.id));
-      return state ? { ...quest, ...state } : quest;
-    });
-    return json({ quests });
-  }
-
+//   mock モード(認証なし)では、DynamoDB を使わず、サンプルのクエストを返す(questStore が切り替える)
+export const GET = withUser("quests.get", async ({ userId, log }) => {
   try {
-    return json({ quests: await listQuests(userId) });
+    return json({ quests: await questStore.list(userId) });
   } catch (error) {
-    console.error("クエストの取得に失敗しました", error);
+    log.error("クエストの取得に失敗しました", { err: error });
     return json({ error: "クエストを取得できませんでした" }, 500);
   }
-};
+});
 
 // クエストの状態を、ログイン中のユーザー自身のデータへ保存する
-export const PATCH: APIRoute = async ({ request }) => {
-  const userId = await authenticate(request);
-  if (!userId) return json({ error: "Unauthorized" }, 401);
+export const PATCH = withUser("quests.patch", async ({ request, userId, log }) => {
+  const body = await readJson(request);
+  if (!body || typeof body !== "object") return badRequest();
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "リクエストの形式が不正です" }, 400);
-  }
-
-  if (!body || typeof body !== "object") {
-    return json({ error: "リクエストの形式が不正です" }, 400);
-  }
   const input = body as Record<string, unknown>;
   const id = input.id;
   const publishedAt = input.publishedAt;
@@ -72,25 +37,21 @@ export const PATCH: APIRoute = async ({ request }) => {
     return json({ error: "クエスト状態の指定が不正です" }, 400);
   }
 
-  // mock モードでも、再読み込み後に状態を復元できるようサーバー内に保持する
-  if (AUTH_DISABLED) {
-    mockStates.set(mockStateKey(userId, id), {
-      status,
-      ...(review === undefined ? {} : { review }),
-    });
-    return json({ ok: true });
-  }
-
   try {
-    await updateQuestState(
-      userId,
-      { id, publishedAt },
-      status,
-      review,
-    );
+    const result = await questStore.saveState(userId, { id, publishedAt }, status, review);
+    if (status === "cleared") {
+      try {
+        const [history, settings] = await Promise.all([learningHistory(userId), loadUserSettings(userId)]);
+        return json({ ok: true, learning: { ...learningProgress(history.length, settings.learningReviewEvery), ...result } });
+      } catch (error) {
+        // 保存自体は成功している。件数取得の失敗で、クリア失敗とは表示しない。
+        log.warn("保存後の学習件数を取得できませんでした", { err: error, questId: id });
+        return json({ ok: true, learning: null });
+      }
+    }
     return json({ ok: true });
   } catch (error) {
-    console.error("クエスト状態の保存に失敗しました", error);
+    log.error("クエスト状態の保存に失敗しました", { err: error, questId: id, status });
     return json({ error: "クエスト状態を保存できませんでした" }, 500);
   }
-};
+});

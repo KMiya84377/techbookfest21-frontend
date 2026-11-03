@@ -1,0 +1,7 @@
+{
+  "output": "server",
+  "base": "/",
+  "trailingSlash": "ignore",
+  "redirects": {},
+  "image": { "service": { "entrypoint": "astro/assets/services/noop" } }
+}

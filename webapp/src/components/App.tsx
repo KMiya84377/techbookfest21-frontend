@@ -1,174 +1,99 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { CopilotChat, CopilotKitProvider } from "@copilotkit/react-core/v2";
+import { useCallback, useRef, useState } from "react";
+import { CopilotKitProvider } from "@copilotkit/react-core/v2";
 import "@copilotkit/react-core/v2/styles.css";
+import "../styles/tailwind.css";
 import "../styles/quest.css";
-import type { Quest, QuestStatus } from "../data/quests";
-import { mergeSections, type DetailSection, type DetailUpdate } from "../lib/detailSections";
-import { AUTH_DISABLED } from "../lib/outputs";
+import { AUTH_DISABLED } from "../lib/blocks/config";
+import { useApiFetch } from "../hooks/useApiFetch";
+import { useDetailExtras } from "../hooks/useDetailExtras";
+import { useQuestFilter } from "../hooks/useQuestFilter";
+import { useQuests } from "../hooks/useQuests";
+import { useNewsNotifications } from "../hooks/useNewsNotifications";
+import { useLearningInsights } from "../hooks/useLearningInsights";
+import { useUserSettings } from "../hooks/useUserSettings";
+import AuthGate from "./auth/AuthGate";
+import ChatPanel from "./chat/ChatPanel";
+import ChatSuggestions from "./chat/ChatSuggestions";
+import MobileChatButton from "./chat/MobileChatButton";
+import GenerativeUI from "./generative-ui/GenerativeUI";
+import { reportCatalog } from "./generative-ui/ReportCatalog";
+import { QuestActionsContext, type QuestActions } from "./quests/QuestActions";
+import BoardChrome from "./quests/BoardChrome";
+import QuestBoard from "./quests/QuestBoard";
 import {
-  EMPTY_FILTER,
-  applyFilter,
-  describeFilter,
-  mergeFilter,
-  type FilterChange,
-  type FilterPatch,
-  type QuestFilter,
-} from "../lib/questFilter";
-import AuthGate from "./AuthGate";
-import GenerativeUI from "./GenerativeUI";
-import QuestBoard from "./QuestBoard";
-import { QuestActionsContext, type QuestActions } from "./QuestActions";
-import QuestDetail from "./QuestDetail";
+  QuestLoadFailed,
+  QuestLoading,
+  StateErrorBanner,
+} from "./quests/QuestBoardStatus";
+import QuestDetail from "./quests/QuestDetail";
+import QuestLayout from "./quests/QuestLayout";
+import { QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL } from "../lib/generative-ui/openGenerativeUI";
+import UserSettingsDialog from "./UserSettingsDialog";
+import LearningNotifications from "./learning/LearningNotifications";
 
 const RUNTIME_URL = "/api/copilotkit";
-const QUESTS_URL = "/api/quests";
 
 function Workspace({ getToken }: { getToken?: () => string }) {
-  // getToken は、レンダリングのたびに作り直されることがあるため、参照で持つ
-  const tokenRef = useRef(getToken);
-  tokenRef.current = getToken;
-
-  const [quests, setQuests] = useState<Quest[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  // APIから取得した状態に、画面の直近の変更を重ねる
-  const [statuses, setStatuses] = useState<Record<string, QuestStatus>>({});
-  // 不正解のままクリアした、復習候補の印
-  const [reviews, setReviews] = useState<Record<string, boolean>>({});
-  const [stateError, setStateError] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const chatRef = useRef<HTMLElement>(null);
-  // クエストボードの検索条件。詳細を閉じても、維持する(仕様書 F-03)
-  const [filter, setFilter] = useState<QuestFilter>(EMPTY_FILTER);
-  const filterRef = useRef(filter);
-
-  // クエストは、エージェントを通さず、API から取得する
-  const fetchQuests = useCallback(async (): Promise<Quest[]> => {
-    const token = tokenRef.current?.();
-    const res = await fetch(QUESTS_URL, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return (await res.json()).quests as Quest[];
-  }, []);
-
-  // 最初の取得(読み込み中の表示を出す)
-  const load = useCallback(async () => {
-    setFailed(false);
-    setQuests(null);
-    try {
-      setQuests(await fetchQuests());
-    } catch {
-      setFailed(true);
-    }
-  }, [fetchQuests]);
-
-  // 取得し直す(画面は、そのまま。エージェントが、クエストを保存したあとに使う)
-  const reloadQuests = useCallback(async (): Promise<{ count: number }> => {
-    const latest = await fetchQuests();
-    setQuests(latest);
-    return { count: latest.length };
-  }, [fetchQuests]);
-
-  // クエストの状態を保存する。mock モードでも開発サーバー内に保持する
-  const saveQuestState = useCallback(
-    async (quest: Pick<Quest, "id" | "publishedAt">, status: QuestStatus, review?: boolean) => {
-      if (status === "todo") return;
-      const token = tokenRef.current?.();
-      const res = await fetch(QUESTS_URL, {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ ...quest, status, review }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    },
+  const apiFetch = useApiFetch(getToken);
+  const {
+    shown,
+    shownRef,
+    failed,
+    load,
+    reloadQuests,
+    stateError,
+    setStateError,
+    markViewed,
+    markCleared,
+    recordQuizAnswer,
+    learningEvent,
+  } = useQuests(apiFetch);
+  const {
+    settings: userSettings,
+    loading: settingsLoading,
+    loadError: settingsLoadError,
+    save: saveUserSettings,
+  } = useUserSettings(apiFetch);
+  const newsNotifications = useNewsNotifications(apiFetch);
+  const learningInsights = useLearningInsights(
+    apiFetch,
+    learningEvent,
+    userSettings.learningReviewEvery,
   );
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const shown = quests?.map((q) => ({
-    ...q,
-    status: statuses[q.id] ?? q.status,
-    review: reviews[q.id] ?? q.review,
-  }));
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  // チャットの会話(スレッド)。新しい会話を始めるときに作り直す
+  const [threadId, setThreadId] = useState(() => crypto.randomUUID());
+  const startNewThread = useCallback(
+    () => setThreadId(crypto.randomUUID()),
+    [],
+  );
+  const chatRef = useRef<HTMLElement>(null);
+  const { filter, updateFilter } = useQuestFilter(shownRef);
+  const { detailExtras, updateDetail } = useDetailExtras(shownRef, openId);
   const opened = shown?.find((q) => q.id === openId);
-  const shownRef = useRef(shown);
-  shownRef.current = shown;
 
-  // 検索条件を変える(画面の操作と、エージェントのツールの、どちらからも使う)
-  // 変更前後の条件と、表示される件数を返す
-  const updateFilter = useCallback((patch: FilterPatch): FilterChange => {
-    const before = filterRef.current;
-    const after = mergeFilter(before, patch);
-    filterRef.current = after;
-    setFilter(after);
-    const all = shownRef.current ?? [];
-    return {
-      before: describeFilter(before),
-      after: describeFilter(after),
-      count: applyFilter(all, after).length,
-      total: all.length,
-    };
-  }, []);
-
-  // チャットの質問に応じて、詳細に追加された表示(クエストごと)。保存はしない
-  const [detailExtras, setDetailExtras] = useState<Record<string, DetailSection[]>>({});
-  const detailExtrasRef = useRef(detailExtras);
-  const openIdRef = useRef(openId);
-  openIdRef.current = openId;
-
-  // 詳細を開いているクエストの詳細に、表示を追加・更新する(エージェントのツールから使う)
-  const updateDetail = useCallback((questId: string, sections: DetailSection[]): DetailUpdate => {
-    const quest = shownRef.current?.find((q) => q.id === questId);
-    if (!quest) {
-      return { added: [], updated: [], error: `クエスト(${questId})が見つかりません。context のクエストの id を使ってください` };
-    }
-    if (openIdRef.current !== questId) {
-      return { title: quest.title, added: [], updated: [], error: "このクエストの詳細は、開かれていません。詳細を開いているクエストだけを更新できます" };
-    }
-    const { sections: merged, added, updated } = mergeSections(
-      detailExtrasRef.current[questId] ?? [],
-      sections,
-    );
-    detailExtrasRef.current = { ...detailExtrasRef.current, [questId]: merged };
-    setDetailExtras(detailExtrasRef.current);
-    return { title: quest.title, added, updated };
-  }, []);
-
-  // 詳細を開いたクエストは、閲覧済みにする(クリア済みは、そのまま)
   const open = (id: string) => {
     setOpenId(id);
-    const quest = quests?.find((q) => q.id === id);
-    const current = statuses[id] ?? quest?.status;
-    if (!quest || current !== "todo") return;
-    setStateError(null);
-    setStatuses((s) => ({ ...s, [id]: "viewed" }));
-    void saveQuestState(quest, "viewed").catch((error) => {
-      console.error("クエストの閲覧状態を保存できませんでした", error);
-      setStateError("クエストの閲覧状態を保存できませんでした。再読み込みで再試行してください。");
-    });
+    markViewed(id);
+  };
+  const openNews = async (id: string) => {
+    const { quests } = await reloadQuests();
+    if (!quests.some((quest) => quest.id === id))
+      throw new Error("通知のニュースが見つかりません");
+    open(id);
   };
   const close = useCallback(() => setOpenId(null), []);
+
+  const closeMobileChat = useCallback(() => setMobileChatOpen(false), []);
 
   // チャット内の部品が、クエストボードの状態を読み、操作するための窓口
   const actions: QuestActions = {
     statusOf: (id) => shown?.find((q) => q.id === id)?.status,
     isReview: (id) => Boolean(shown?.find((q) => q.id === id)?.review),
-    clear: (id, review) => {
-      const quest = shown?.find((q) => q.id === id);
-      if (!quest || quest.status === "cleared") return;
-      setStateError(null);
-      setStatuses((s) => ({ ...s, [id]: "cleared" }));
-      setReviews((r) => ({ ...r, [id]: review }));
-      void saveQuestState(quest, "cleared", review).catch((error) => {
-        console.error("クエストのクリア状態を保存できませんでした", error);
-        setStateError("クエストのクリア状態を保存できませんでした。再読み込みで再試行してください。");
-      });
-    },
+    clear: markCleared,
+    recordAnswer: (id, correct) => void recordQuizAnswer(id, correct),
     open,
     focusChat: () => chatRef.current?.querySelector("textarea")?.focus(),
   };
@@ -176,56 +101,91 @@ function Workspace({ getToken }: { getToken?: () => string }) {
   return (
     <CopilotKitProvider
       runtimeUrl={RUNTIME_URL}
-      headers={getToken ? () => ({ Authorization: `Bearer ${getToken()}` }) : undefined}
+      headers={
+        getToken ? () => ({ Authorization: `Bearer ${getToken()}` }) : undefined
+      }
+      a2ui={{ catalog: reportCatalog }}
+      openGenerativeUI={{
+        designSkill: QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL,
+      }}
     >
       <QuestActionsContext.Provider value={actions}>
-      <GenerativeUI
-        quests={shown ?? []}
-        openedId={openId}
-        filter={filter}
-        updateFilter={updateFilter}
-        reloadQuests={reloadQuests}
-        detailExtras={detailExtras}
-        updateDetail={updateDetail}
-      />
-      <div className="app">
-        <main className="board-area">
-          {AUTH_DISABLED && <div className="mode-banner">mock モード(認証なし)</div>}
-          {stateError && <div className="state-error" role="alert">{stateError}</div>}
-          <div className="board-scroll">
-            {failed ? (
-              <div className="board-message" role="alert">
-                <p>クエストを取得できませんでした。</p>
-                <button type="button" className="tab active" onClick={load}>
-                  もう一度取得する
-                </button>
-              </div>
-            ) : !shown ? (
-              <div className="board-message" role="status">
-                クエストを読み込んでいます…
-              </div>
-            ) : (
-              <QuestBoard
-                quests={shown}
-                filter={filter}
-                onFilterChange={updateFilter}
-                onOpen={open}
+        <GenerativeUI
+          quests={shown ?? null}
+          openedId={openId}
+          filter={filter}
+          updateFilter={updateFilter}
+          reloadQuests={reloadQuests}
+          onRefreshError={setStateError}
+          detailExtras={detailExtras}
+          updateDetail={updateDetail}
+          userSettings={userSettings}
+          userSettingsReady={!settingsLoading && !settingsLoadError}
+        />
+        <ChatSuggestions />
+        <QuestLayout>
+          <main className="board-area relative isolate min-w-0 overflow-hidden border-[11px] max-[520px]:border-[7px] max-[900px]:min-h-[660px]">
+            <BoardChrome onOpenSettings={() => setSettingsOpen(true)} />
+            <LearningNotifications
+              insights={learningInsights.insights}
+              busy={learningInsights.busy}
+              error={learningInsights.error}
+              onRetry={learningInsights.retry}
+              onRead={learningInsights.markRead}
+              news={newsNotifications.notifications}
+              newsBusy={newsNotifications.busy}
+              newsError={newsNotifications.error}
+              onCheckNews={newsNotifications.check}
+              onReadNews={newsNotifications.markRead}
+              onOpenNews={openNews}
+            />
+            {!mobileChatOpen && (
+              <MobileChatButton onOpen={() => setMobileChatOpen(true)} />
+            )}
+            {stateError && (
+              <StateErrorBanner
+                message={stateError}
+                onClose={() => setStateError(null)}
               />
             )}
-          </div>
-          {opened && (
-            <QuestDetail quest={opened} extras={detailExtras[opened.id]} onClose={close} />
-          )}
-        </main>
-        <aside className="chat-area" aria-label="チャット" ref={chatRef}>
-          <CopilotChat
-            labels={{
-              welcomeMessageText: "クエストについて、なんでも聞いてください。",
-              chatInputPlaceholder: "クエストについて質問する",
-            }}
+            <div aria-hidden={Boolean(opened)} inert={Boolean(opened)} className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:#9b7847_#312217] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]">
+              {failed ? (
+                <QuestLoadFailed onRetry={load} />
+              ) : !shown ? (
+                <QuestLoading />
+              ) : (
+                <QuestBoard
+                  quests={shown}
+                  filter={filter}
+                  onFilterChange={updateFilter}
+                  onOpen={open}
+                />
+              )}
+            </div>
+            {opened && (
+              <QuestDetail
+                quest={opened}
+                extras={detailExtras[opened.id]}
+                onClose={close}
+              />
+            )}
+          </main>
+          <ChatPanel
+            open={mobileChatOpen}
+            onClose={closeMobileChat}
+            threadId={threadId}
+            onNewThread={startNewThread}
+            ref={chatRef}
           />
-        </aside>
-      </div>
+        </QuestLayout>
+        <UserSettingsDialog
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          settings={userSettings}
+          loading={settingsLoading}
+          loadError={settingsLoadError}
+          onSave={saveUserSettings}
+        />
       </QuestActionsContext.Provider>
     </CopilotKitProvider>
   );

@@ -1,0 +1,13 @@
+[project]
+name = "questboard-batch"
+version = "0.1.0"
+description = "クエストボードの定期実行用エージェント(HTTP)"
+requires-python = ">=3.12"
+# common/ のソースを共有するので、common/tools.py が使うもの(boto3・pydantic・strands-agents)も、ここで宣言する
+dependencies = [
+    "boto3>=1.43.102",
+    "fastapi>=0.141.1",
+    "pydantic>=2.13.5",
+    "strands-agents>=1.57.0",
+    "uvicorn>=0.54.0",
+]

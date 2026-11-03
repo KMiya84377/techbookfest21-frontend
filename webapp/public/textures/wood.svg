@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500" viewBox="0 0 1000 500">
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".012 .28" numOctaves="4" seed="8" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".3"/></feComponentTransfer>
+      <feBlend in="SourceGraphic" mode="multiply"/>
+    </filter>
+    <radialGradient id="knot"><stop stop-color="#140e09"/><stop offset=".2" stop-color="#61412a"/><stop offset=".28" stop-color="#27190f"/><stop offset=".45" stop-color="#65442b"/><stop offset=".53" stop-color="#332114"/><stop offset="1" stop-color="#47301e" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g filter="url(#grain)">
+    <path fill="#49321f" d="M0 0h1000v500H0z"/>
+    <path fill="#59402a" d="M0 2h1000v120H0zM0 252h1000v123H0z"/>
+    <path fill="#312116" d="M0 122h1000v3H0zM0 248h1000v4H0zM0 375h1000v3H0zM0 498h1000v2H0z"/>
+    <path stroke="#ab7a49" stroke-opacity=".24" d="M0 126h1000M0 253h1000M0 379h1000M0 2h1000"/>
+    <ellipse cx="780" cy="65" rx="120" ry="24" fill="url(#knot)"/>
+    <ellipse cx="190" cy="320" rx="100" ry="20" fill="url(#knot)"/>
+    <g fill="none" stroke="#1f160e" stroke-opacity=".3">
+      <path d="M0 46q180-12 370 0t350 3 280-9M0 53q280-12 495-1t230-4M0 285q140 9 230-1t340-3 430 8M0 402q220-9 480 2t520-7M370 185q160 12 320-3t310 0M20 101l210-2m80 9 260-4M620 359l210-7"/>
+    </g>
+  </g>
+</svg>

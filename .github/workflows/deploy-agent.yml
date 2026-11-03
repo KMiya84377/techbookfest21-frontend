@@ -14,7 +14,6 @@ concurrency:
 
 env:
   AWS_REGION: ap-northeast-1
-  AMPLIFY_IDENTIFIER: dev
 
 jobs:
   deploy:
@@ -43,5 +42,5 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # バックエンド(Cognito、AgentCore Runtime、毎朝の実行の Lambda と Scheduler)だけをデプロイする
-      - run: npx ampx deploy --identifier "$AMPLIFY_IDENTIFIER" --backend --yes
+      # 認証・DB・他のAIエージェントは再デプロイしない
+      - run: npm run deploy:agent -- --require-approval never

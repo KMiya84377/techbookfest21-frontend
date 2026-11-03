@@ -20,14 +20,17 @@ __pycache__/
 .env
 .env.production
 
-# Amplify(デプロイで生成される。CI が自動で作る)
-amplify_outputs*
-.amplify/
-.amplify-hosting-deploy.lock
-.hosting/
-
 # macOS-specific files
 .DS_Store
 
 # jetbrains setting folder
 .idea/
+
+# AWS Blocks local data / synthesis outputs
+.blocks/
+.blocks-sandbox/
+.bb-data/
+cdk.out/
+blocks-outputs.json
+aws-blocks/client.js
+aws-blocks/blocks.spec.json

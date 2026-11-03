@@ -1,0 +1,22 @@
+.tavern-app {
+  background:
+    radial-gradient(ellipse at 10% 0, #503821, transparent 65%), #171612;
+}
+.board-area {
+  border-image: linear-gradient(
+      125deg,
+      #80603b,
+      #382719 28%,
+      #281b12 65%,
+      #795632
+    )
+    1;
+  background:
+    radial-gradient(ellipse at 12% 0, #d99b4638, transparent 65%),
+    linear-gradient(90deg, #100b0640, transparent 20% 80%, #100b0670),
+    url("/textures/wood.svg") center top / 1000px 500px;
+  box-shadow:
+    inset 0 0 0 2px #b0834740,
+    inset 0 0 40px #0c0806b0,
+    0 2px 12px #0008;
+}

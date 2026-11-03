@@ -1,0 +1,4 @@
+{
+  "app": "node --import tsx --conditions=cdk aws-blocks/index.cdk.ts",
+  "context": { "@aws-cdk/core:checkSecretUsage": true }
+}

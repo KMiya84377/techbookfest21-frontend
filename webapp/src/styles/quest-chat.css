@@ -1,0 +1,181 @@
+.chat-area {
+  background:
+    linear-gradient(90deg, #71532622, transparent 5% 97%, #71532622),
+    url("/textures/paper.svg");
+}
+
+/* CopilotKitの標準UIを、クエストボードの紙面に合わせる */
+.chat-area [data-testid="copilot-chat"] {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: 16px;
+  color: var(--ink);
+  background: transparent;
+}
+
+.chat-area [data-testid="copilot-scroll-content"] {
+  flex: 1 1 auto;
+  min-height: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, #876b3d0b 32px),
+    url("/textures/paper.svg");
+  scrollbar-color: var(--line) transparent;
+}
+
+.chat-area [data-testid="copilot-message-list"],
+.chat-area [data-testid="copilot-user-message"],
+.chat-area [data-testid="copilot-assistant-message"] {
+  background: transparent !important;
+}
+
+.chat-area [data-testid="copilot-message-list"] {
+  gap: 8px;
+  padding: 0 14px 16px;
+}
+
+.chat-area [data-testid="copilot-user-message"] {
+  padding-top: 14px;
+}
+
+.chat-area [data-testid="copilot-user-message"] > div:first-child {
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  border-radius: 2px !important;
+  color: var(--ink) !important;
+  background: var(--paper-2) !important;
+  box-shadow: 1px 3px 6px color-mix(in srgb, var(--shadow) 35%, transparent);
+  font-size: 13px;
+}
+
+.chat-area [data-testid="copilot-chat-input"] {
+  flex: 0 0 auto;
+  width: calc(100% - 12px);
+  margin: 0 6px 10px;
+  border: 1px solid var(--line) !important;
+  border-radius: 3px !important;
+  background:
+    linear-gradient(#fff6dc66, #fff6dc66), url("/textures/paper.svg") !important;
+  box-shadow: 2px 4px 8px color-mix(in srgb, var(--shadow) 38%, transparent) !important;
+}
+
+/* 入力欄のコンテナの白背景もノートに合わせる。 */
+.chat-area div:has(> div > [data-testid="copilot-chat-input"]) {
+  background: transparent !important;
+}
+
+.chat-area [data-testid="copilot-chat-textarea"] {
+  color: var(--ink) !important;
+}
+
+.chat-area [data-testid="copilot-chat-textarea"]::placeholder {
+  color: color-mix(in srgb, var(--ink) 56%, transparent) !important;
+}
+
+.chat-area [data-testid="copilot-chat"] h1 {
+  display: none;
+}
+
+/* 初期状態の入力欄は、中央ではなくノートの下端に置く。 */
+.chat-area [data-testid="copilot-welcome-screen"] {
+  justify-content: flex-end !important;
+  padding-bottom: 18px;
+}
+
+/* サジェスチョンを、案内札のような選択肢として見せる。 */
+.chat-area [data-testid="copilot-suggestions"] {
+  min-width: 0;
+  width: 100%;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  background: transparent !important;
+}
+
+.chat-area [data-testid="copilot-suggestion"] {
+  height: auto;
+  min-height: 32px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--line) 88%, var(--ink));
+  border-radius: 2px;
+  color: var(--ink);
+  background: linear-gradient(#fff7df66, #fff7df66), url("/textures/paper.svg");
+  box-shadow: 1px 2px 4px color-mix(in srgb, var(--shadow) 30%, transparent);
+  font-family: Georgia, "Yu Mincho", serif;
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: left;
+}
+
+.chat-area [data-testid="copilot-suggestion"]:hover {
+  border-color: var(--wax);
+  color: var(--ink);
+  background: linear-gradient(#f4dfb866, #f4dfb866), url("/textures/paper.svg");
+}
+
+.chat-area [data-testid="copilot-suggestion"]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--wax) 70%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .chat-area [data-testid="copilot-suggestions"] {
+    justify-content: center;
+    overflow: visible;
+    flex-wrap: wrap;
+    padding-bottom: 1px;
+  }
+
+  .chat-area [data-testid="copilot-suggestion"] {
+    flex: 1 1 calc(50% - 7px);
+    max-width: 180px;
+  }
+}
+
+.chat-area [data-testid="copilot-send-button"] {
+  background: var(--wax) !important;
+}
+
+.chat-area [data-testid="copilot-send-button"]:disabled {
+  background: color-mix(in srgb, var(--wax) 38%, transparent) !important;
+  color: var(--paper) !important;
+}
+
+/* A2UIの標準カードも、クエストの紙面として表示する */
+.chat-area .a2ui-surface > div {
+  margin: 8px 0 !important;
+  padding: 14px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 2px !important;
+  color: var(--ink) !important;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 27px,
+      color-mix(in srgb, var(--ink) 5%, transparent) 28px
+    ),
+    var(--paper) !important;
+  box-shadow: 2px 6px 12px color-mix(in srgb, var(--shadow) 46%, transparent) !important;
+}
+
+.chat-area .a2ui-surface h2,
+.chat-area .a2ui-surface h3,
+.chat-area .a2ui-surface span,
+.chat-area .a2ui-surface small {
+  color: var(--ink) !important;
+}
+
+.chat-area .a2ui-surface small {
+  color: color-mix(in srgb, var(--ink) 62%, transparent) !important;
+}
+
+.chat-area .a2ui-surface h2,
+.chat-area .a2ui-surface h3 {
+  font-family: Georgia, "Yu Mincho", serif;
+  font-weight: 500;
+}
+
+.chat-area .a2ui-surface hr,
+.chat-area .a2ui-surface [style*="height: 1px"] {
+  background-color: var(--line) !important;
+}

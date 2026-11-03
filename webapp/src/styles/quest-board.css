@@ -1,0 +1,144 @@
+/* 切り欠きと裏面は同じ寸法で動かす。元の角に紙や矩形の影を残さない。 */
+@property --quest-curl {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 32px;
+}
+.quest-paper {
+  background:
+    radial-gradient(ellipse at 0 100%, #9a5e2554, transparent 40%),
+    radial-gradient(ellipse at 100% 5%, #88542136, transparent 35%),
+    linear-gradient(
+      94deg,
+      #9d75392b,
+      transparent 9% 47%,
+      #714b2410 49.7%,
+      #fff7d952 50.2%,
+      transparent 53% 93%,
+      #9d753930
+    ),
+    url("/textures/paper.svg") center / 420px 420px;
+  clip-path: polygon(
+    0.5% 0.8%,
+    18% 0,
+    39% 0.6%,
+    63% 0,
+    84% 0.8%,
+    99.5% 0.3%,
+    100% 28%,
+    99.4% 52%,
+    100% 77%,
+    100% calc(100% - var(--quest-curl)),
+    calc(100% - var(--quest-curl)) 100%,
+    80% 100%,
+    66% 98.8%,
+    44% 100%,
+    23% 99.2%,
+    0.3% 100%,
+    0 73%,
+    0.6% 46%,
+    0 24%
+  );
+}
+.quest.importance-high .quest-paper {
+  background-color: #f0dba9;
+  background-blend-mode: multiply;
+}
+.quest.status-cleared .quest-paper {
+  background-color: #e0dcc1;
+  background-blend-mode: multiply;
+}
+.quest-pin {
+  background: radial-gradient(
+    circle at 32% 25%,
+    #edce8a,
+    #9c7b45 40%,
+    #4f3f29 78%
+  );
+  box-shadow:
+    1px 3px 2px #241709b0,
+    0 0 0 2px #5744272e;
+}
+.quest-pin::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 1px;
+  width: 6px;
+  border-top: 1px solid #40321d;
+  transform: rotate(-35deg);
+}
+.quest-fold {
+  background: linear-gradient(
+    176deg,
+    transparent 48%,
+    #5c401514 49.5%,
+    #fffae230 50%,
+    transparent 51.5%
+  );
+}
+.ink-stamp {
+  color: #8d3528;
+  mask: url("/textures/ink-wear.svg") center / 110px 110px;
+}
+.importance-medium .ink-stamp {
+  color: #4b625e;
+}
+.importance-low .ink-stamp {
+  color: #75613b;
+}
+.ink-stamp.is-cleared {
+  color: #486548;
+}
+.quest-turn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* 右下の三角形を折り線で反転させた裏面。右下半分は木が見える。 */
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  background:
+    linear-gradient(
+      135deg,
+      #fff8df88 0%,
+      #eadab044 23%,
+      #ac8d5a55 45%,
+      #75572e80 50%,
+      transparent 51%
+    ),
+    url("/textures/paper.svg") right bottom / 420px 420px;
+}
+.importance-high .quest-turn::before {
+  background-color: #f0dba9;
+  background-blend-mode: multiply;
+}
+.status-cleared .quest-turn::before {
+  background-color: #e0dcc1;
+  background-blend-mode: multiply;
+}
+@keyframes paper-breeze {
+  0%,
+  62%,
+  100% {
+    transform: perspective(800px) rotateX(0deg) skewX(0deg);
+  }
+  22% {
+    transform: perspective(800px) rotateX(2.4deg) skewX(0.25deg);
+  }
+  37% {
+    transform: perspective(800px) rotateX(0.8deg) skewX(-0.18deg);
+  }
+  46% {
+    transform: perspective(800px) rotateX(1.6deg) skewX(0.12deg);
+  }
+}
+/* 詳細も同じ木の上に広げた羊皮紙として扱う。 */
+.detail-layer {
+  background:
+    linear-gradient(#20170c33, #20170c55),
+    url("/textures/wood.svg") center / 1000px 500px;
+}
+.strategy-sheet {
+  background:
+    linear-gradient(90deg, #a27b3325, transparent 8% 94%, #a27b3325),
+    url("/textures/paper.svg");
+}

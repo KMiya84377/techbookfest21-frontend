@@ -1,0 +1,67 @@
+:root {
+  color-scheme: light;
+  --bg: #211911;
+  --panel: #eee4ca;
+  --panel-2: #dfcfaa;
+  --text: #352b20;
+  --muted: #75644b;
+  --line: #b8a27c;
+  --accent: #926e38;
+  --green: #436c59;
+  --board: #523a25;
+  --board-dark: #21170f;
+  --board-text: #f0dcaf;
+  --board-muted: #c6af87;
+  --paper: #eee0bc;
+  --paper-2: #d7bf91;
+  --ink: #382c1d;
+  --pin: #937447;
+  --wax: #8b3c2d;
+  --shadow: #130d09b8;
+  --brass: #c2a368;
+  --aether: #8ebfb0;
+  --font-tavern:
+    "Palatino Linotype", "Book Antiqua", "Yu Mincho", "Hiragino Mincho ProN",
+    Georgia, serif;
+}
+
+body {
+  color: var(--text);
+  background: var(--bg);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    "Hiragino Sans",
+    sans-serif;
+}
+
+/* Blocksの認証UIも、クエストボードと同じ色に合わせる */
+.quest-auth-shell {
+  background:
+    repeating-linear-gradient(
+      93deg,
+      transparent 0 72px,
+      rgba(33, 21, 15, 0.08) 73px 75px
+    ),
+    linear-gradient(135deg, #6f4729, #3b271a);
+}
+
+.quest-auth-shell .bb-card {
+  border: 0;
+  background: transparent;
+  color: #302b22;
+  box-shadow: none;
+}
+.quest-auth-shell .bb-input {
+  background: #fffdf7;
+  color: #302b22;
+  border-color: #c9b58e;
+}
+.quest-auth-shell .bb-button-primary {
+  background: #77362e;
+  border-color: #77362e;
+  color: #fffaf0;
+}
+.quest-auth-shell .bb-button { font-family: inherit; }

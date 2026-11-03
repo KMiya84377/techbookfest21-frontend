@@ -1,0 +1,18 @@
+[project]
+name = "questboard-chat"
+version = "0.1.0"
+description = "クエストボードのチャット用エージェント(AG-UI)"
+requires-python = ">=3.12"
+# common/ のソースを共有するので、common/tools.py が使うもの(boto3・pydantic・strands-agents)も、ここで宣言する
+dependencies = [
+    "ag-ui-strands>=0.4.1",
+    "bedrock-agentcore>=1.23.1",
+    "boto3>=1.43.102",
+    "pydantic>=2.13.5",
+    "strands-agents>=1.57.0",
+    "uvicorn>=0.54.0",
+]
+
+[tool.pytest.ini_options]
+# chat・common をパッケージとして import できるように、agent/ を探索パスに入れる
+pythonpath = [".."]

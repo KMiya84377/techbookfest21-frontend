@@ -1,0 +1,5 @@
+/* クエストUIのスタイル入口。責務別のCSSは個別ファイルに分けている。 */
+@import "./quest-theme.css";
+@import "./quest-layout.css";
+@import "./quest-chat.css";
+@import "./quest-board.css";

@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* アプリ固有の色は既存のクエストテーマをそのまま Tailwind から参照する。 */
+@theme inline {
+  --color-background: var(--panel);
+  --color-foreground: var(--ink);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--wax);
+  --color-primary: var(--wax);
+  --color-primary-foreground: var(--paper);
+  --color-secondary: var(--paper-2);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--panel-2);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--paper-2);
+  --color-accent-foreground: var(--ink);
+  --color-destructive: #8a1f1f;
+  --color-quest-bg: var(--bg);
+  --color-quest-paper: var(--paper);
+  --color-quest-paper-2: var(--paper-2);
+  --color-quest-ink: var(--ink);
+  --color-quest-line: var(--line);
+  --color-quest-wax: var(--wax);
+  --color-quest-board: var(--board);
+  --color-quest-board-dark: var(--board-dark);
+  --font-quest-display: Georgia, "Yu Mincho", serif;
+  --font-quest-copy: "Yu Mincho", "Hiragino Mincho ProN", serif;
+}

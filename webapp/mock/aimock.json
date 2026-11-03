@@ -1,0 +1,403 @@
+{
+  "port": 4010,
+  "agui": {
+    "path": "/agui",
+    "fixtures": [
+      {
+        "match": {
+          "toolCallId": "detail-3-2"
+        },
+        "text": "クエストの詳細へ追記しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "detail-1"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "detail-2"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "detail-3"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "detail-4"
+        },
+        "text": "クエストの詳細を更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "quiz-1"
+        },
+        "text": "回答を受け取りました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "filter-1"
+        },
+        "text": "ボードを更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "filter-2"
+        },
+        "text": "ボードを更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "toolCallId": "filter-3"
+        },
+        "text": "ボードを更新しました。(モックの応答です)"
+      },
+      {
+        "match": {
+          "message": "絞り込み"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "filter-1",
+            "toolCallName": "update_quest_filter"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "filter-1",
+            "delta": "{\"services\": [\"AgentCore\", \"Lambda\"], \"maxMinutes\": 5}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "filter-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "条件を解除"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "filter-2",
+            "toolCallName": "update_quest_filter"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "filter-2",
+            "delta": "{\"reset\": true}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "filter-2"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "一致しない"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "filter-3",
+            "toolCallName": "update_quest_filter"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "filter-3",
+            "delta": "{\"reset\": true, \"services\": [\"EC2\"]}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "filter-3"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "こんにちは"
+        },
+        "text": "こんにちは!AG-UI のモックです。"
+      },
+      {
+        "match": {
+          "message": "週間レポート"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "report-1",
+            "toolCallName": "render_a2ui"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "report-1",
+            "delta": "{\"surfaceId\":\"weekly-report\",\"components\":[{\"id\":\"root\",\"component\":\"Card\",\"child\":\"report-column\"},{\"id\":\"report-column\",\"component\":\"Column\",\"children\":[\"report-title\",\"report-period\",\"report-divider\",\"metrics\",\"daily-title\",\"daily-chart\",\"report-divider-2\",\"report-comment\"]},{\"id\":\"report-title\",\"component\":\"Text\",\"text\":\"週間レポート\",\"variant\":\"h2\"},{\"id\":\"report-period\",\"component\":\"Text\",\"text\":\"2026/09/21 - 2026/09/27\",\"variant\":\"caption\"},{\"id\":\"report-divider\",\"component\":\"Divider\"},{\"id\":\"metrics\",\"component\":\"Row\",\"children\":[\"metric-viewed\",\"metric-cleared\",\"metric-rate\"],\"justify\":\"spaceBetween\",\"align\":\"stretch\"},{\"id\":\"metric-viewed\",\"component\":\"Column\",\"children\":[\"metric-viewed-label\",\"metric-viewed-value\"]},{\"id\":\"metric-viewed-label\",\"component\":\"Text\",\"text\":\"閲覧\",\"variant\":\"caption\"},{\"id\":\"metric-viewed-value\",\"component\":\"Text\",\"text\":\"8件\",\"variant\":\"h3\"},{\"id\":\"metric-cleared\",\"component\":\"Column\",\"children\":[\"metric-cleared-label\",\"metric-cleared-value\"]},{\"id\":\"metric-cleared-label\",\"component\":\"Text\",\"text\":\"クリア\",\"variant\":\"caption\"},{\"id\":\"metric-cleared-value\",\"component\":\"Text\",\"text\":\"5件\",\"variant\":\"h3\"},{\"id\":\"metric-rate\",\"component\":\"Column\",\"children\":[\"metric-rate-label\",\"metric-rate-value\"]},{\"id\":\"metric-rate-label\",\"component\":\"Text\",\"text\":\"初回正解率\",\"variant\":\"caption\"},{\"id\":\"metric-rate-value\",\"component\":\"Text\",\"text\":\"67%\",\"variant\":\"h3\"},{\"id\":\"daily-title\",\"component\":\"Text\",\"text\":\"日別の学習量\",\"variant\":\"h3\"},{\"id\":\"daily-chart\",\"component\":\"BarChart\",\"items\":[{\"label\":\"月\",\"value\":2},{\"label\":\"火\",\"value\":3},{\"label\":\"水\",\"value\":1},{\"label\":\"木\",\"value\":2},{\"label\":\"金\",\"value\":4},{\"label\":\"土\",\"value\":1},{\"label\":\"日\",\"value\":2}],\"maxValue\":4,\"unit\":\"件\",\"accessibleLabel\":\"日別の学習量\"},{\"id\":\"report-divider-2\",\"component\":\"Divider\"},{\"id\":\"report-comment\",\"component\":\"Text\",\"text\":\"今週は平日を中心に学習できています。初回正解率は67%で、もう少し復習すると定着が期待できそうです。\",\"variant\":\"body\"}],\"data\":{}}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "report-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "理解度チェック"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "quiz-1",
+            "toolCallName": "show_quiz"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "quiz-1",
+            "delta": "{\"questId\": \"agentcore-agui\", \"question\": \"AgentCore Runtime で AG-UI のエージェントを動かすとき、エージェントがリクエストを受け付けるパスはどれですか。\", "
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "quiz-1",
+            "delta": "\"options\": [\"/invocations\", \"/chat\", \"/run\", \"/agent\"], \"answer\": 0, \"explanation\": \"AgentCore Runtime は、コンテナの /invocations でリクエストを受け付け、/ping でヘルスチェックを行います。このアプリのエージェント(agent/main.py)も、同じパスを使っています。\"}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "quiz-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "比較表を更新"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-2",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-2",
+            "delta": "{\"questId\":\"agentcore-agui\",\"section\":{\"id\":\"compare-protocol\",\"title\":\"HTTP と AG-UI の違い(更新)\",\"messages\":[{\"version\":\"v0.9\",\"createSurface\":{\"surfaceId\":\"compare-protocol\",\"catalogId\":\"https://a2ui.org/specification/v0_9/basic_catalog.json\"}},{\"version\":\"v0.9\",\"updateComponents\":{\"surfaceId\":\"compare-protocol\",\"components\":[{\"id\":\"root\",\"component\":\"Column\",\"children\":[\"heading\",\"row0\",\"row1\",\"row2\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":\"HTTP と AG-UI の違い(更新)\",\"variant\":\"h3\"},{\"id\":\"row0\",\"component\":\"Column\",\"children\":[\"label0\",\"compare0\"]},{\"id\":\"label0\",\"component\":\"Text\",\"text\":\"エンドポイント\"},{\"id\":\"compare0\",\"component\":\"Row\",\"children\":[\"before0\",\"after0\"]},{\"id\":\"before0\",\"component\":\"Text\",\"text\":\"これまで：/invocations に、独自の JSON を送る\"},{\"id\":\"after0\",\"component\":\"Text\",\"text\":\"更新後：/invocations で、AG-UI のイベントを受け付ける\"},{\"id\":\"row1\",\"component\":\"Column\",\"children\":[\"label1\",\"compare1\"]},{\"id\":\"label1\",\"component\":\"Text\",\"text\":\"画面への反映\"},{\"id\":\"compare1\",\"component\":\"Row\",\"children\":[\"before1\",\"after1\"]},{\"id\":\"before1\",\"component\":\"Text\",\"text\":\"これまで：エージェントの応答を、自前で解釈する\"},{\"id\":\"after1\",\"component\":\"Text\",\"text\":\"更新後：CopilotKit が、イベントをそのまま描画する\"},{\"id\":\"row2\",\"component\":\"Column\",\"children\":[\"label2\",\"compare2\"]},{\"id\":\"label2\",\"component\":\"Text\",\"text\":\"ヘルスチェック\"},{\"id\":\"compare2\",\"component\":\"Row\",\"children\":[\"before2\",\"after2\"]},{\"id\":\"before2\",\"component\":\"Text\",\"text\":\"これまで：決まりなし\"},{\"id\":\"after2\",\"component\":\"Text\",\"text\":\"更新後：/ping で応答する\"}]}}]}}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-2"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "比較表"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-1",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-1",
+            "delta": "{\"questId\":\"agentcore-agui\",\"section\":{\"id\":\"compare-protocol\",\"title\":\"HTTP と AG-UI の違い\",\"messages\":[{\"version\":\"v0.9\",\"createSurface\":{\"surfaceId\":\"compare-protocol\",\"catalogId\":\"https://a2ui.org/specification/v0_9/basic_catalog.json\"}},{\"version\":\"v0.9\",\"updateComponents\":{\"surfaceId\":\"compare-protocol\",\"components\":[{\"id\":\"root\",\"component\":\"Column\",\"children\":[\"heading\",\"row0\",\"row1\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":\"HTTP と AG-UI の違い\",\"variant\":\"h3\"},{\"id\":\"row0\",\"component\":\"Column\",\"children\":[\"label0\",\"compare0\"]},{\"id\":\"label0\",\"component\":\"Text\",\"text\":\"エンドポイント\"},{\"id\":\"compare0\",\"component\":\"Row\",\"children\":[\"before0\",\"after0\"]},{\"id\":\"before0\",\"component\":\"Text\",\"text\":\"これまで：/invocations に、独自の JSON を送る\"},{\"id\":\"after0\",\"component\":\"Text\",\"text\":\"更新後：/invocations で、AG-UI のイベントを受け付ける\"},{\"id\":\"row1\",\"component\":\"Column\",\"children\":[\"label1\",\"compare1\"]},{\"id\":\"label1\",\"component\":\"Text\",\"text\":\"画面への反映\"},{\"id\":\"compare1\",\"component\":\"Row\",\"children\":[\"before1\",\"after1\"]},{\"id\":\"before1\",\"component\":\"Text\",\"text\":\"これまで：エージェントの応答を、自前で解釈する\"},{\"id\":\"after1\",\"component\":\"Text\",\"text\":\"更新後：CopilotKit が、イベントをそのまま描画する\"}]}}]}}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "影響を整理"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-3",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-3",
+            "delta": "{\"questId\":\"agentcore-agui\",\"section\":{\"id\":\"impact-list\",\"title\":\"影響の整理\",\"messages\":[{\"version\":\"v0.9\",\"createSurface\":{\"surfaceId\":\"impact-list\",\"catalogId\":\"https://a2ui.org/specification/v0_9/basic_catalog.json\"}},{\"version\":\"v0.9\",\"updateComponents\":{\"surfaceId\":\"impact-list\",\"components\":[{\"id\":\"root\",\"component\":\"Column\",\"children\":[\"heading\",\"card0\",\"card1\",\"card2\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":\"影響の整理\",\"variant\":\"h3\"},{\"id\":\"card0\",\"component\":\"Card\",\"child\":\"body0\"},{\"id\":\"body0\",\"component\":\"Column\",\"children\":[\"label0\",\"text0\"]},{\"id\":\"label0\",\"component\":\"Text\",\"text\":\"構成\"},{\"id\":\"text0\",\"component\":\"Text\",\"text\":\"エージェントを AG-UI に対応させれば、画面側の変更は少ない\"},{\"id\":\"card1\",\"component\":\"Card\",\"child\":\"body1\"},{\"id\":\"body1\",\"component\":\"Column\",\"children\":[\"label1\",\"text1\"]},{\"id\":\"label1\",\"component\":\"Text\",\"text\":\"運用\"},{\"id\":\"text1\",\"component\":\"Text\",\"text\":\"ヘルスチェックの /ping が必要\"},{\"id\":\"card2\",\"component\":\"Card\",\"child\":\"body2\"},{\"id\":\"body2\",\"component\":\"Column\",\"children\":[\"label2\",\"text2\"]},{\"id\":\"label2\",\"component\":\"Text\",\"text\":\"料金\"},{\"id\":\"text2\",\"component\":\"Text\",\"text\":\"ニュースには記載なし(要確認)\"}]}}]}}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-3"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-3-2",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-3-2",
+            "delta": "{\"questId\":\"agentcore-agui\",\"section\":{\"id\":\"note\",\"title\":\"補足\",\"messages\":[{\"version\":\"v0.9\",\"createSurface\":{\"surfaceId\":\"note\",\"catalogId\":\"https://a2ui.org/specification/v0_9/basic_catalog.json\"}},{\"version\":\"v0.9\",\"updateComponents\":{\"surfaceId\":\"note\",\"components\":[{\"id\":\"root\",\"component\":\"Column\",\"children\":[\"heading\",\"body\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":\"補足\",\"variant\":\"h3\"},{\"id\":\"body\",\"component\":\"Text\",\"text\":\"詳細は、元情報を確認してください。\"}]}}]}}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-3-2"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "別のクエストの比較"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "detail-4",
+            "toolCallName": "update_quest_detail"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "detail-4",
+            "delta": "{\"questId\":\"lambda-streaming\",\"section\":{\"id\":\"x\",\"title\":\"別のクエスト\",\"messages\":[{\"version\":\"v0.9\",\"createSurface\":{\"surfaceId\":\"x\",\"catalogId\":\"https://a2ui.org/specification/v0_9/basic_catalog.json\"}},{\"version\":\"v0.9\",\"updateComponents\":{\"surfaceId\":\"x\",\"components\":[{\"id\":\"root\",\"component\":\"Column\",\"children\":[\"heading\",\"body\"]},{\"id\":\"heading\",\"component\":\"Text\",\"text\":\"別のクエスト\",\"variant\":\"h3\"},{\"id\":\"body\",\"component\":\"Text\",\"text\":\"詳細が開かれていないクエストです\"}]}}]}}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "detail-4"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      },
+      {
+        "match": {
+          "message": "クエスト"
+        },
+        "text": "クエストボードのカードを選ぶと、詳細を見ながら質問できます。(モックの応答です)"
+      },
+      {
+        "match": {
+          "message": "ニュースを図解"
+        },
+        "events": [
+          {
+            "type": "RUN_STARTED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          },
+          {
+            "type": "TOOL_CALL_START",
+            "toolCallId": "news-diagram-1",
+            "toolCallName": "generateSandboxedUi"
+          },
+          {
+            "type": "TOOL_CALL_ARGS",
+            "toolCallId": "news-diagram-1",
+            "delta": "{\"initialHeight\":360,\"css\":\"body{margin:0;padding:20px;background:#f4e5bd;color:#3c2b1b;font-family:system-ui}.scene{padding:20px;border:1px solid #d9c9aa;background:#fffaf0}.flow{display:flex;gap:8px;align-items:center;position:relative}.node{padding:12px 8px;border:1px solid #d9c9aa;background:#ead4a3;animation:pulse 4s ease-in-out infinite}.packet{position:absolute;top:50%;left:0;width:10px;height:10px;border-radius:50%;background:#77362e;animation:travel 5s linear infinite}@keyframes travel{from{left:0}to{left:96%}}@keyframes pulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}\",\"html\":\"<main class='scene' aria-labelledby='title'><h1 id='title'>ニュース取り込みの流れ</h1><p>毎朝のニュースがクエストになるまで</p><div class='flow' aria-label='SchedulerからNewsまでの処理'><div class='packet' aria-hidden='true'></div><div class='node'>Scheduler</div><span>→</span><div class='node'>Lambda</div><span>→</span><div class='node'>AgentCore</div><span>→</span><div class='node'>AWS RSS</div><span>→</span><div class='node'>News</div></div><p>共通ニュースを一度だけ登録します。</p></main>\"}"
+          },
+          {
+            "type": "TOOL_CALL_END",
+            "toolCallId": "news-diagram-1"
+          },
+          {
+            "type": "RUN_FINISHED",
+            "threadId": "mock-thread",
+            "runId": "mock-run"
+          }
+        ]
+      }
+    ]
+  }
+}

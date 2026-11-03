@@ -1,0 +1,13 @@
+# Claude Code / AI エージェント向けの設定とガイド
+.claude/
+.agents/
+skills-lock.json
+CLAUDE.md
+AGENTS.md
+
+# エディタの設定
+.vscode/
+
+# 調査記録(手順書の doc/dev-steps.md は対象)
+doc/framework-comparison.md
+doc/hosting-cost-comparison.md

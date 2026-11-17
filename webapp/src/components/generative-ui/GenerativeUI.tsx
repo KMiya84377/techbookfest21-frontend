@@ -198,7 +198,7 @@ export default function GenerativeUI({
   const opened = quests?.find((q) => q.id === openedId);
   useAgentContext({
     // 先頭の [opened_quest] は、エージェントの UI ルーターが詳細を開いているかを見分ける目印
-    // (agent/chat/ui_router.py の OPENED_QUEST_CONTEXT_MARKER と合わせる)
+    // (chat-agent/chat/ui_router.py の OPENED_QUEST_CONTEXT_MARKER と合わせる)
     description:
       "[opened_quest] ユーザーが、いま詳細を開いているクエスト(なければ null)。「このクエスト」は、これを指す",
     value: opened

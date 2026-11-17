@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 from pydantic import BaseModel, Field
 from strands import ToolContext, tool
 
-from common.log import log_event
+from chat.log import log_event
 
 # AWS の最新情報(What's New)の RSS
 FEED_URL = "https://aws.amazon.com/about-aws/whats-new/recent/feed/"

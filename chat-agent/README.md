@@ -1,14 +1,13 @@
-# Agent
+# チャット用エージェント
 
-Strands Agentsのエージェントです。**2つのエージェントは、環境を完全に分けた別々のuvプロジェクト**です（それぞれに `pyproject.toml`・`uv.lock`・`.venv`）。
+Webアプリのチャットから呼ばれる、Strands Agentsのエージェント（AG-UI）です。Jevによる表示先の推奨、記憶（AgentCore Memory）、新着ニュースの選定、学習内容の関連分析、週間レポートの集計を担当します。定期実行用のエージェント（[batch-agent](../batch-agent/README.md)）とは、環境を完全に分けています。
 
-| フォルダ | 役割 |
-| --- | --- |
-| `chat/` | チャット用（AG-UI）。Jevによる表示先の推奨、記憶（AgentCore Memory）、新着ニュースの選定、学習内容の関連分析、週間レポートの集計 |
-| `batch/` | 毎朝の定期実行用（HTTP）。ニュースを取得し、共通のニュースだけを保存する |
-| `common/` | 両方が使うツール（`tools.py`: RSSの取得、クエストの保存。`log.py`: JSON 1行のログ）。ソースだけを共有し、依存は両方の `pyproject.toml` に宣言する |
+このフォルダで、次のように起動・テストします（Python 3.12以上とuvが必要）。
 
-バッチをローカルで起動するときは、`uv run --project batch python -m batch.main` を実行します。
+```bash
+uv run python -m chat.main
+uv run --with pytest python -m pytest tests
+```
 
 ## Jev UIルーターを有効にする
 
@@ -17,16 +16,15 @@ JevはホストされたAPIとして呼び出します。AgentCore Runtimeやア
 - 候補は、そのリクエストで使えるUIツールだけです。詳細を開いていないときは`update_quest_detail`を外します(画面の`context`の`[opened_quest]`で判定)。
 - Jevに送るのは、直近の会話のテキストと、画面の状態(詳細を開いているか)と、候補の一覧です。ツールの引数は送りません。
 - 確信度が`JEV_UI_MIN_CONFIDENCE`未満なら、推奨を付けず、モデルに任せます。
-- 判定ごとに、`{"event": "jev_ui_route", "outcome": ...}`のJSONを1行、標準出力に出します。
+- 判定ごとに、`event` が `jev_ui_route` のJSONを1行、標準出力に出します（`outcome` などの項目つき。下の「ログ」を参照）。
 
 ### ローカル開発
 
 TypeSafe APIキーを環境変数に設定してエージェントを起動します。
 
 ```bash
-cd agent
 export TYPESAFE_API_KEY='your-api-key'
-uv run --project chat python -m chat.main
+uv run python -m chat.main
 ```
 
 ### AgentCore Runtime
@@ -43,11 +41,11 @@ CDKはチャット用Runtimeにprovider名を渡し、`bedrock-agentcore:GetReso
 
 Webアプリの `/api/news-notifications` が、通常のチャットとは別のAG-UIスレッドで選定を依頼します。`forwardedProps.newsReview` が真の場合、`chat/news_review.py` の指示を使い、会話のMemoryとテンプレートのRSS取得・DB保存ツールを外します。渡された候補と保存済み設定から選び、`submit_news_recommendations` にニュースIDと理由を返します。通知の保存と既読管理はWebアプリ側が担当します。
 
-`batch/main.py` は共通ニュースの取得・保存を引き続き担当し、個人別通知の作成は行いません。AWS・LLMを呼び出さない確認は、`agent` で `uv run --project chat --with pytest python -m pytest chat/tests common/tests` を実行します（chat の環境で動かします）。
+共通ニュースの取得・保存は、定期実行用のエージェントが担当し、個人別通知の作成は行いません。
 
 ## Blocksのローカル保存を使う
 
-WebアプリとBlocksのローカル認証APIを起動し、`BLOCKS_WEB_URL=http://localhost:4321 uv run --project chat python -m chat.main` で起動します。Web側から `AGENT_URL=http://localhost:8080/invocations` へ接続します。ニュースの保存・保存済みニュースの取得は、Webサーバーが確認したCookieを使い、Webアプリの `/api/agent-news` 経由でBlocksへ中継します。Cookieはツール実行用のメタデータにだけ保持し、ユーザー入力やモデル用コンテキストへは入れません。
+WebアプリとBlocksのローカル認証APIを起動し、`BLOCKS_WEB_URL=http://localhost:4321 uv run python -m chat.main` で起動します。Web側から `AGENT_URL=http://localhost:8080/invocations` へ接続します。ニュースの保存・保存済みニュースの取得は、Webサーバーが確認したCookieを使い、Webアプリの `/api/agent-news` 経由でBlocksへ中継します。Cookieはツール実行用のメタデータにだけ保持し、ユーザー入力やモデル用コンテキストへは入れません。
 
 AWS用のRuntimeにはBLOCKS_WEB_URLを設定せず、Blocksが構築したDynamoDBのテーブル名を渡します。
 
@@ -57,4 +55,12 @@ AWS用のRuntimeにはBLOCKS_WEB_URLを設定せず、Blocksが構築したDynam
 
 ## ログ
 
-ツールとバッチのログは、`common/log.py` のJSON 1行です。Jevの判定ログ（`jev_ui_route`）は別の書式で、どちらもCloudWatch Logs Insightsで集計できます。
+ログは、標準の `logging` にJSON整形を付けた `chat/log.py` で、標準出力に1行のJSONとして出します。アプリのログ（`log_event`）も、Jevの判定ログ（`jev_ui_route`）も、Strands・boto3・uvicornなどライブラリのログも、同じ書式です（`level`・`message`・`time`・`logger` と、ログごとの項目）。起動時に `configure_logging()` を1度呼びます（`uvicorn.run` は `log_config=None`）。
+
+CloudWatch Logs Insightsでの集計例:
+
+```
+filter event = "jev_ui_route" | stats count(*) by outcome
+```
+
+トレース（モデル・ツールの呼び出しごとの時間など）は、まだ出していません（OpenTelemetryは未導入）。

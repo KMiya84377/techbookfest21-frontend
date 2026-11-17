@@ -97,5 +97,5 @@ filter message = "API リクエスト"
 
 - ダッシュボードの作成(CDK の標準の `cloudwatch.Dashboard` を検討)。
 - 対話用エージェントの失敗通知。
-- エージェント(Python)のログの構造化は、ツールとバッチを `common/log.py` の JSON 1 行にした。Jev の判定ログ(`ui_router.py`)は別の書式のまま。
+- エージェント(Python)のログは、標準の `logging` に JSON 整形を付けた `log.py`(`chat-agent/chat/`・`batch-agent/batch/`)で、ライブラリのログも含めて JSON 1 行にした。トレース(OpenTelemetry)は未導入。
 - `copilotkit` のリクエスト用ロガー。

@@ -4,7 +4,7 @@ import unittest
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
-from common.tools import MAX_LIST_LIMIT, _save_failed, list_saved_quests
+from chat.tools import MAX_LIST_LIMIT, _save_failed, list_saved_quests
 
 
 class ToolSafetyTests(unittest.TestCase):
@@ -19,7 +19,7 @@ class ToolSafetyTests(unittest.TestCase):
         self.assertEqual(json.loads(out.getvalue())["err"], "table secret-name")
 
     def test_list_limit_is_capped(self):
-        with patch("common.tools._news_table") as table:
+        with patch("chat.tools._news_table") as table:
             table.return_value.query.return_value = {"Items": []}
             list_saved_quests._tool_func(tool_context=None, limit=10_000)
             list_saved_quests._tool_func(tool_context=None, limit=-5)

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from email.utils import format_datetime
 from unittest.mock import patch
 
-from common.tools import fetch_news
+from chat.tools import fetch_news
 
 NOW = format_datetime(datetime.now(timezone.utc))
 FEED = f"""<?xml version="1.0"?>

@@ -57,15 +57,15 @@ export function createAgentStacks(
   });
 
   // エージェントの Runtime(対話用は AG-UI、定期取得用は HTTP)
-  const artifact = (file: string) =>
-    agentcore.AgentRuntimeArtifact.fromAsset(path.resolve("..", "agent"), {
-      file,
+  //   それぞれのフォルダ(chat-agent/、batch-agent/)の Dockerfile でビルドする
+  const artifact = (folder: string) =>
+    agentcore.AgentRuntimeArtifact.fromAsset(path.resolve("..", folder), {
       platform: ecrAssets.Platform.LINUX_ARM64,
     });
 
   const runtime = new agentcore.Runtime(agentStack, "AgentRuntime", {
     runtimeName: "quest_board_chat",
-    agentRuntimeArtifact: artifact("chat/Dockerfile"),
+    agentRuntimeArtifact: artifact("chat-agent"),
     protocolConfiguration: agentcore.ProtocolType.AGUI,
     environmentVariables: {
       NEWS_TABLE: tables.news,
@@ -77,22 +77,21 @@ export function createAgentStacks(
   });
 
   const batch = new agentcore.Runtime(batchStack, "BatchAgentRuntime", {
-    agentRuntimeArtifact: artifact("batch/Dockerfile"),
+    agentRuntimeArtifact: artifact("batch-agent"),
     protocolConfiguration: agentcore.ProtocolType.HTTP,
+    // バッチは共通のニュースだけを保存する(ユーザーごとの状態は作らない)ので、ユーザー用テーブルは渡さない
     environmentVariables: {
       NEWS_TABLE: tables.news,
-      USER_QUEST_TABLE: tables.userQuests,
       MODEL_ID,
     },
   });
 
-  // どちらの Runtime にも、テーブルの読み書きとモデルの呼び出しを許可する
+  // どちらの Runtime にも、ニュースのテーブルの読み書きとモデルの呼び出しを許可する
   for (const [stack, target] of [
     [agentStack, runtime],
     [batchStack, batch],
   ] as const) {
     dynamodb.Table.fromTableName(stack, "News", tables.news).grantReadWriteData(target);
-    dynamodb.Table.fromTableName(stack, "UserQuests", tables.userQuests).grantReadWriteData(target);
     target.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
@@ -113,6 +112,9 @@ export function createAgentStacks(
       })],
     }),
   );
+
+  // 対話用 Runtime: ユーザー用テーブルの読み書き(クエストの状態・週間レポートの記録)
+  dynamodb.Table.fromTableName(agentStack, "UserQuests", tables.userQuests).grantReadWriteData(runtime);
 
   // 対話用 Runtime: 記憶の読み書き
   memory.grantRead(runtime);

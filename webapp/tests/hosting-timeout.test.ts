@@ -5,7 +5,7 @@ import { Template } from "aws-cdk-lib/assertions";
 import { LambdaIntegration, MockIntegration, ResponseTransferMode, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
-import { configureStreamingIntegrationTimeout } from "../infra/hostingTimeout";
+import { configureStreamingIntegrationTimeout } from "../aws-blocks/hostingTimeout";
 
 function synth(seconds: number) {
   const stack = new Stack(new App(), "Test");

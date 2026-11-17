@@ -34,8 +34,8 @@ npm run dev:blocks-mock
 実際のPythonエージェントへ接続する場合は、別のターミナルで起動し、Astroの環境変数に `AGENT_URL=http://localhost:8080/invocations` を設定します。
 
 ```sh
-cd ../agent
-BLOCKS_WEB_URL=http://localhost:4321 uv run --project chat python -m chat.main
+cd ../chat-agent
+BLOCKS_WEB_URL=http://localhost:4321 uv run python -m chat.main
 ```
 
 ローカルのニュース取得・保存ツールは、認証済みリクエストのCookieを使い、Webアプリの `/api/agent-news` 経由でBlocksの保存領域へ接続します。週間レポートの記録は `/api/agent-learning-records` から読みます。どちらも `astro dev` のときだけ登録されるローカル専用のAPIです。Cookieはツール実行用のメタデータとして渡し、モデルへのコンテキストには含めません。AWS上のPythonエージェントは、引き続きDynamoDBへ接続します。
@@ -48,7 +48,7 @@ BLOCKS_WEB_URL=http://localhost:4321 uv run --project chat python -m chat.main
 | --- | --- |
 | aws-blocks/storage.ts | DistributedTableによるニュース・学習状態・設定と、AIエージェントの接続設定を定義します |
 | aws-blocks/auth.ts・index.ts | AuthCognitoと認証APIを定義します |
-| aws-blocks/index.cdk.ts | BlocksStackとHosting BlockでWebアプリの配信基盤を定義します |
+| aws-blocks/index.cdk.ts | BlocksStackとHosting BlockでWebアプリの配信基盤を定義します。`astroHostingAdapter.ts`（Astro 7 をHostingに渡す回避）と `hostingTimeout.ts`（ストリーミング統合のタイムアウト）は、Hostingの制約を補う部品です |
 | infra/agents.ts | 対話用・定期取得用のPythonエージェントをAgentCore Runtimeへ配置し、記憶、毎朝の定期ニュース取得、その失敗アラームを定義します |
 | src/server/ | サーバー(SSR)専用のコードです。認証・保存・AgentCore接続を置き、ブラウザーのコードからは読み込みません |
 | src/lib/ | ブラウザーでも使う型・定数・純粋関数だけを置きます |

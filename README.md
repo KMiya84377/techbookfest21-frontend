@@ -17,4 +17,5 @@ AWSの最新情報(What's New)を、RPGのクエストのように学べるWeb�
 ローカルでの起動、AWSへのデプロイは、各フォルダのREADMEを参照ください。
 
 - [Webアプリ](webapp/README.md)
-- [AIエージェント](agent/README.md)
+- [チャット用エージェント](chat-agent/README.md)
+- [定期実行用エージェント](batch-agent/README.md)

@@ -42,6 +42,6 @@
 1. 引数のスキーマ(zod)を決める。表示の部品がある場合は、部品のファイルから `export` する(`quizSchema` と同じ形)。
 2. 表示の部品を、このフォルダに作る。
 3. `GenerativeUI.tsx` で、`useFrontendTool`(画面を操作する)か `useHumanInTheLoop`(ユーザーの回答を待つ)で登録する。
-4. エージェント側が呼べるよう、`agent/` のプロンプトやツール定義を合わせる(未確認: 必要かどうかはツールの種類による)。
+4. エージェント側が呼べるよう、`chat-agent/` のプロンプトやツール定義を合わせる(未確認: 必要かどうかはツールの種類による)。
 
 A2UI のレポート部品を足す場合は、`lib/generative-ui/reportCatalog.ts` に定義を足し、`ReportCatalog.tsx` に描画を足す。

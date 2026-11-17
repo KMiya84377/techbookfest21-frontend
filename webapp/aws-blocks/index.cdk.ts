@@ -6,10 +6,10 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as subs from "aws-cdk-lib/aws-sns-subscriptions";
 import { BlocksPresets, BlocksStack, Hosting } from "@aws-blocks/blocks/cdk";
 import type { Construct } from "constructs";
-import { astroHostingAdapter } from "../infra/astroHostingAdapter";
 import { createAgentStacks } from "../infra/agents";
-import { configureStreamingIntegrationTimeout } from "../infra/hostingTimeout";
+import { astroHostingAdapter } from "./astroHostingAdapter";
 import { AGENT_RUNTIME_PARAMETER } from "./constants";
+import { configureStreamingIntegrationTimeout } from "./hostingTimeout";
 
 const app = new App();
 

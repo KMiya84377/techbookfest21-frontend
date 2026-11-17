@@ -1,4 +1,6 @@
 import asyncio
+import contextlib
+import io
 import json
 import unittest
 from types import SimpleNamespace
@@ -237,12 +239,15 @@ class UiRouterTests(unittest.TestCase):
         self.assertEqual(self.agent.system_prompt, self.BASE_PROMPT)
 
     def test_logs_decision_as_json(self):
-        with self.assertLogs("jev_ui_router.decision", level="INFO") as logs:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
             self.before(self.jev_choosing("show_quiz"))
 
-        record = json.loads(logs.records[0].getMessage())
+        record = json.loads(out.getvalue().strip().splitlines()[-1])
+        self.assertEqual(record["event"], "jev_ui_route")
         self.assertEqual(record["outcome"], "hinted")
         self.assertEqual(record["selected"], "show_quiz")
+        self.assertEqual(record["level"], "INFO")
 
 
 if __name__ == "__main__":

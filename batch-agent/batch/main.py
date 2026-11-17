@@ -12,8 +12,11 @@ from pydantic import BaseModel, Field
 from strands import Agent
 from strands.models import BedrockModel
 
-from common.log import log_event
-from common.tools import fetch_news, list_saved_quests, save_quests
+from batch.log import configure_logging, log_event
+from batch.tools import fetch_news, list_saved_quests, save_quests
+
+# ログは、ライブラリのものも含めて、JSON の 1 行で標準出力に出す
+configure_logging()
 
 REGION = os.environ.get("AWS_REGION", "ap-northeast-1")
 MODEL_ID = os.environ.get("MODEL_ID", "moonshotai.kimi-k2.5")
@@ -89,4 +92,5 @@ async def invoke(payload: BatchRequest) -> dict[str, object]:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # log_config=None: uvicorn 自身のログ設定を使わず、上の JSON のログ設定に合わせる
+    uvicorn.run(app, host="0.0.0.0", port=8080, log_config=None)

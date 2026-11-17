@@ -24,11 +24,15 @@ from chat.learning_review import (
     learning_review_context,
     template_tools_for_request,
 )
+from chat.log import configure_logging
 from chat.news_review import is_news_review, news_review_context
 from chat.ui_router import UiRouterIntervention, ui_destinations_prompt
 from chat.user_settings import user_settings_context
+from chat.tools import fetch_news, list_saved_quests, save_quests
 from chat.weekly_stats import get_weekly_stats
-from common.tools import fetch_news, list_saved_quests, save_quests
+
+# ログは、ライブラリのものも含めて、JSON の 1 行で標準出力に出す
+configure_logging()
 
 REGION = os.environ.get("AWS_REGION", "ap-northeast-1")
 MODEL_ID = os.environ.get("MODEL_ID", "moonshotai.kimi-k2.5")
@@ -262,4 +266,5 @@ async def set_agentcore_identity_context(request, call_next):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # log_config=None: uvicorn 自身のログ設定を使わず、上の JSON のログ設定に合わせる
+    uvicorn.run(app, host="0.0.0.0", port=8080, log_config=None)

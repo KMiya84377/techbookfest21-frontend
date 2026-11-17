@@ -210,7 +210,7 @@
           {
             "type": "TOOL_CALL_ARGS",
             "toolCallId": "quiz-1",
-            "delta": "\"options\": [\"/invocations\", \"/chat\", \"/run\", \"/agent\"], \"answer\": 0, \"explanation\": \"AgentCore Runtime は、コンテナの /invocations でリクエストを受け付け、/ping でヘルスチェックを行います。このアプリのエージェント(agent/main.py)も、同じパスを使っています。\"}"
+            "delta": "\"options\": [\"/invocations\", \"/chat\", \"/run\", \"/agent\"], \"answer\": 0, \"explanation\": \"AgentCore Runtime は、コンテナの /invocations でリクエストを受け付け、/ping でヘルスチェックを行います。このアプリのエージェント(chat-agent/chat/main.py)も、同じパスを使っています。\"}"
           },
           {
             "type": "TOOL_CALL_END",

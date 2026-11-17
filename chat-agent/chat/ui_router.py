@@ -6,25 +6,15 @@ import asyncio
 import json
 import logging
 import math
-import sys
 from typing import Any
 
 from strands.interventions import InterventionHandler, Proceed
 
 from chat.jev_client import JevClient, JevUnavailable
+from chat.log import log_event
 
 
 logger = logging.getLogger(__name__)
-
-# 判定ごとに、JSON を 1 行、標準出力に出す。CloudWatch Logs Insights で、
-# 結果ごとに数えられる(例: `stats count(*) by outcome`)
-decision_logger = logging.getLogger("jev_ui_router.decision")
-if not decision_logger.handlers:
-    _handler = logging.StreamHandler(sys.stdout)
-    _handler.setFormatter(logging.Formatter("%(message)s"))
-    decision_logger.addHandler(_handler)
-    decision_logger.setLevel(logging.INFO)
-    decision_logger.propagate = False
 
 # 表示先の定義は、ここだけ。Jev の選択肢、候補の絞り込み、システムプロンプトの一覧を、これから作る
 UI_DESTINATIONS = {
@@ -63,17 +53,16 @@ def _log_decision(
     selected: str | None = None,
     confidence: float | None = None,
 ) -> None:
-    decision_logger.info(
-        json.dumps(
-            {
-                "event": "jev_ui_route",
-                "outcome": outcome,
-                "candidates": candidates,
-                "selected": selected,
-                "confidence": confidence,
-            },
-            ensure_ascii=False,
-        )
+    # 判定ごとに 1 行。CloudWatch Logs Insights で、結果ごとに数えられる
+    # (例: `filter event = "jev_ui_route" | stats count(*) by outcome`)
+    log_event(
+        "INFO",
+        "jev_ui_route",
+        event="jev_ui_route",
+        outcome=outcome,
+        candidates=candidates,
+        selected=selected,
+        confidence=confidence,
     )
 
 

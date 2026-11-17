@@ -5,6 +5,7 @@ import { toQuest, type NewsItem } from "./newsItem";
 import { MAX_QUIZ_ANSWERS, type UserQuestItem } from "./userQuestItem";
 import type { LearningEntry } from "../../lib/learning/model";
 import { changeUserRecord, listUserRecords } from "../blocks/records";
+import { QuestNotFoundError } from "./errors";
 
 export async function listLearningHistory(userId: string): Promise<LearningEntry[]> {
   const states = (await listUserRecords<UserQuestItem>(userId)).filter((item) => item.status === "cleared");
@@ -28,7 +29,7 @@ export async function listQuests(userId: string): Promise<Quest[]> {
 export async function updateQuestState(userId: string, quest: Pick<Quest, "id" | "publishedAt">,
   status: "viewed" | "cleared", review?: boolean): Promise<{ newlyCleared: boolean }> {
   const item = await news.get({ newsId: quest.id });
-  if (!item || item.publishedAt !== quest.publishedAt) throw new Error("対象のニュースが見つかりません");
+  if (!item || item.publishedAt !== quest.publishedAt) throw new QuestNotFoundError();
   return changeUserRecord<UserQuestItem, { newlyCleared: boolean }>(userId, quest.id, (current) => {
     if (current?.status === "cleared") return { result: { newlyCleared: false } };
     const updatedAt = new Date().toISOString();
@@ -47,7 +48,7 @@ export async function updateQuestState(userId: string, quest: Pick<Quest, "id" |
 // 理解度チェックの、初回の回答を 1 件追記する。クエストの状態(閲覧済み・クリア済み)は変えない
 export async function recordQuizAnswer(userId: string, questId: string, correct: boolean): Promise<void> {
   const item = await news.get({ newsId: questId });
-  if (!item) throw new Error("対象のニュースが見つかりません");
+  if (!item) throw new QuestNotFoundError();
   const answeredAt = new Date().toISOString();
   await changeUserRecord<UserQuestItem, null>(userId, questId, (current) => ({
     value: {

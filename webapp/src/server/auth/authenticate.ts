@@ -2,7 +2,7 @@ import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { AUTH_DISABLED, BLOCKS_LOCAL } from "../../lib/blocks/config";
 import { serverConfig } from "../blocks/serverConfig";
 
-export const MOCK_USER_ID = "mock-user";
+const MOCK_USER_ID = "mock-user";
 
 type Authenticate = (request: Request) => Promise<string | null>;
 
@@ -18,8 +18,9 @@ const authenticateLocal: Authenticate = async (request) => {
     method: "POST", headers: { "content-type": "application/json", cookie },
     body: JSON.stringify({ jsonrpc: "2.0", id: crypto.randomUUID(), method: "session.identity", params: [] }),
   });
-  const body = await response.json() as { result?: { userId?: string }; error?: unknown };
-  return response.ok && !body.error && typeof body.result?.userId === "string" ? body.result.userId : null;
+  if (!response.ok) return null;
+  const body = (await response.json().catch(() => null)) as { result?: { userId?: string }; error?: unknown } | null;
+  return body && !body.error && typeof body.result?.userId === "string" ? body.result.userId : null;
 };
 
 // AWS上: CognitoのアクセストークンのJWTを検証する

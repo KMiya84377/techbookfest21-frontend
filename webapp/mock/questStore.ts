@@ -2,6 +2,7 @@ import { buildSampleQuests } from "./sampleQuests";
 import type { Quest } from "../src/lib/quests/model";
 import type { LearningEntry } from "../src/lib/learning/model";
 import type { QuestStore } from "../src/server/quests/store";
+import { QuestNotFoundError } from "../src/server/quests/errors";
 
 // mockモード専用。DynamoDB・LLM・AWS認証情報を使わず同じAPI契約を試す。
 const states = new Map<string, {
@@ -19,7 +20,7 @@ export function listMockQuests(userId: string): Quest[] {
 
 export function saveMockQuestState(userId: string, id: string, status: "viewed" | "cleared", review?: boolean) {
   const quest = listMockQuests(userId).find((item) => item.id === id);
-  if (!quest) throw new Error("対象のニュースが見つかりません");
+  if (!quest) throw new QuestNotFoundError();
   const previous = states.get(key(userId, id));
   if (quest.status === "cleared") return { newlyCleared: false };
   const learning: LearningEntry | undefined = status === "cleared" ? {
@@ -40,8 +41,8 @@ export function mockLearningHistory(userId: string): LearningEntry[] {
 }
 
 // 理解度チェックの、初回の回答を記録する(状態は変えない)
-export function recordMockQuizAnswer(userId: string, id: string, correct: boolean) {
-  if (!listMockQuests(userId).some((item) => item.id === id)) throw new Error("対象のニュースが見つかりません");
+function recordMockQuizAnswer(userId: string, id: string, correct: boolean) {
+  if (!listMockQuests(userId).some((item) => item.id === id)) throw new QuestNotFoundError();
   const previous = states.get(key(userId, id));
   const answeredAt = new Date().toISOString();
   states.set(key(userId, id), {

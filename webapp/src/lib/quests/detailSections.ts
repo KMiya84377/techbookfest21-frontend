@@ -8,7 +8,7 @@ const children = z.array(id).min(1).max(20);
 
 // F-01は閲覧用UI。HTML・外部リソース・アクションや式は受け付けない。
 // AIは完成済みの比較表を選ぶのではなく、これらの部品から構造を作る。
-export const detailComponentSchema = z.discriminatedUnion("component", [
+const detailComponentSchema = z.discriminatedUnion("component", [
   z.object({ ...common, component: z.literal("Text"), text: z.string().max(6000),
     variant: z.enum(["h1", "h2", "h3", "h4", "h5", "body", "caption"]).optional() }).strict(),
   z.object({ ...common, component: z.literal("Column"), children }).strict(),

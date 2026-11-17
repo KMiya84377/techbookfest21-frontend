@@ -1,4 +1,4 @@
-import type { Quest, QuestStatus } from "../../lib/quests/model";
+import type { QuestStatus } from "../../lib/quests/model";
 import type { LearningEntry } from "../../lib/learning/model";
 
 // 理解度チェックの、初回の回答1件(再回答は記録しない)。週間レポートの、回答数と初回正解率に使う
@@ -24,12 +24,3 @@ export interface UserQuestItem {
 
 // 1 つのクエストに残す回答の上限(想定外の増加を抑える)
 export const MAX_QUIZ_ANSWERS = 50;
-
-export function toUserQuestItem(userId: string, quest: Quest): UserQuestItem {
-  return {
-    userId,
-    newsId: quest.id,
-    status: quest.status,
-    ...(quest.review === undefined ? {} : { review: quest.review }),
-  };
-}

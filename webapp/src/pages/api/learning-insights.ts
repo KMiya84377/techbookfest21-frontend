@@ -28,11 +28,17 @@ const mutate = (action: "generate" | "read") =>
       return json({ error: "学習件数の閾値が不正です" }, 400);
     }
 
-    try {
-      if (action === "read") {
+    if (action === "read") {
+      try {
         await readInsight(userId, batch, reviewEvery);
         return json({ ok: true }, 200);
+      } catch (error) {
+        log.error("関連分析の通知を既読にできませんでした", { err: error, batch });
+        return json({ error: "通知を既読にできませんでした" }, 500);
       }
+    }
+
+    try {
       const result = await createInsight(userId, batch, reviewEvery);
       return json({ ...result, ...(await insightStatus(userId)) }, result.state === "stale" ? 409 : 200);
     } catch (error) {

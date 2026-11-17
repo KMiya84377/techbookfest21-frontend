@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Quest } from "../quests/model";
 
-export const NEWS_REVIEW_LIMIT = 20;
+const NEWS_REVIEW_LIMIT = 20;
 export const recommendationsSchema = z.object({
   recommendations: z.array(z.object({
     questId: z.string().min(1).max(200),

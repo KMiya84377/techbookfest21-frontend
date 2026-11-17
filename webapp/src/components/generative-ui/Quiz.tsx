@@ -28,7 +28,7 @@ export const quizSchema = z.object({
 type QuizProps = z.infer<typeof quizSchema>;
 
 // エージェントに返す、初回の回答の内容
-export interface QuizAnswer {
+interface QuizAnswer {
   selectedIndex: number;
   selectedOption: string;
   correct: boolean;

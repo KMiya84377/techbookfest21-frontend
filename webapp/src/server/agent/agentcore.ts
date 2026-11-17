@@ -45,7 +45,7 @@ const createSigV4Fetch = (region: string): HttpAgentFetchFn => {
       accept: "text/event-stream",
       "x-amzn-bedrock-agentcore-runtime-session-id": sessionIdOf(threadId),
     };
-    // This ID comes from the server-side authenticated request context, never from browser input.
+    // このユーザー ID は、サーバーが認証したリクエストのものだけを使う(ブラウザーの入力は使わない)
     if (userId) {
       headers["x-amzn-bedrock-agentcore-runtime-user-id"] = userId;
     }

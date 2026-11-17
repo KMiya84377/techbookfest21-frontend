@@ -16,8 +16,8 @@ SSR 用 Lambda で動く。`route` は、ログとメトリクスに付く名前
 | パス | メソッド | route | 役割 | 入力 | 成功時の応答 | 失敗時 |
 |---|---|---|---|---|---|---|
 | `/api/quests` | GET | `quests.get` | クエスト一覧の取得 | なし | `{ quests: Quest[] }` | 401、500 |
-| | PATCH | `quests.patch` | 閲覧済み・クリアの保存 | `{ id, publishedAt, status: "viewed"\|"cleared", review? }` | `{ ok: true, learning: { count, reviewEvery, batch, newlyCleared } \| null }` | 400、401、500 |
-| `/api/quiz-answers` | POST | `quiz-answers.post` | 理解度チェックの、初回の回答を保存(週間レポートの回答数・初回正解率用) | `{ questId, correct: boolean }` | `{ ok: true }` | 400、401、500 |
+| | PATCH | `quests.patch` | 閲覧済み・クリアの保存 | `{ id, publishedAt, status: "viewed"\|"cleared", review? }` | `{ ok: true, learning: { count, reviewEvery, batch, newlyCleared } \| null }` | 400、401、404(ニュースがない)、500 |
+| `/api/quiz-answers` | POST | `quiz-answers.post` | 理解度チェックの、初回の回答を保存(週間レポートの回答数・初回正解率用) | `{ questId, correct: boolean }`(`questId` は 200 文字まで) | `{ ok: true }` | 400、401、404(ニュースがない)、500 |
 | `/api/settings` | GET | `settings.get` | ユーザー設定の取得 | なし | `{ settings }` | 401、500 |
 | | PUT | `settings.put` | ユーザー設定の保存 | 設定(学習分野・難易度・回答の詳しさ・関連分析の間隔) | `{ settings }` | 400、401、500 |
 | `/api/news-notifications` | GET | `news-notifications.get` | 新着の通知の一覧 | なし | `{ notifications }` | 401、500 |
@@ -25,7 +25,7 @@ SSR 用 Lambda で動く。`route` は、ログとメトリクスに付く名前
 | | PATCH | `news-notifications.patch` | 通知を既読にする | `{ questId }` | `{ ok: true }` | 400、401、404、500 |
 | `/api/learning-insights` | GET | `learning-insights.get` | 学習の関連分析の状態と通知 | なし | `{ learning, insights, pendingBatch }` | 401、500 |
 | | POST | `learning-insights.generate` | 関連分析を作る | `{ batch, reviewEvery? }` | `{ state: "ready"\|"none"\|"existing"\|"stale", ...状態 }`(`stale` は 409) | 400、401、409、502 |
-| | PATCH | `learning-insights.read` | 関連分析の通知を既読にする | `{ batch, reviewEvery? }` | `{ ok: true }` | 400、401、502 |
+| | PATCH | `learning-insights.read` | 関連分析の通知を既読にする | `{ batch, reviewEvery? }` | `{ ok: true }` | 400、401、500 |
 | `/api/copilotkit/[...slug]` | すべて | `copilotkit` | CopilotKit のランタイム(チャット・エージェント接続) | CopilotKit のプロトコル | ストリーム(SSE など) | 401 |
 
 ### 1.2 Blocks のバックエンドの API

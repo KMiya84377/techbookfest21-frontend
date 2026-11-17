@@ -31,14 +31,6 @@ async function buildHandler() {
   const handler = createCopilotRuntimeHandler({
     runtime,
     basePath: "/api/copilotkit",
-    hooks: {
-      onRequest: async ({ request }) => {
-        // 全リクエストで JWT を検証し、失敗したら 401 を返す
-        if (!(await authenticate(request))) {
-          throw new Response("Unauthorized", { status: 401 });
-        }
-      },
-    },
   });
 
   return handler;
@@ -48,6 +40,7 @@ function getHandler() {
   return pendingHandler ??= buildHandler().catch((error) => { pendingHandler = undefined; throw error; });
 }
 
+// 全リクエストで認証し、失敗したら 401 を返す(ランタイムには、認証済みのリクエストだけを渡す)
 // 検証したユーザー ID を、この処理の間だけ持たせる(エージェントへの送信で、本文に入れる)
 // 件数・処理時間は、サブパスをまとめて "copilotkit" として記録する
 export const ALL: APIRoute = ({ request }) =>

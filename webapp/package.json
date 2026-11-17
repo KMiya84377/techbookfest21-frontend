@@ -56,15 +56,16 @@
     "esbuild": true
   },
   "devDependencies": {
+    "@a2ui/web_core": "0.10.4",
     "@copilotkit/aimock": "^1.43.0",
     "@tailwindcss/vite": "^4.3.3",
-    "tailwindcss": "^4.3.3",
-    "tsx": "^4.23.15",
-    "typescript": "^7.0.2",
+    "@types/node": "^24.0.0",
     "aws-cdk": "^2.1138.0",
     "aws-cdk-lib": "^2.257.0",
     "constructs": "^10.6.0",
     "esbuild": "^0.28.2",
-    "@types/node": "^24.0.0"
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }

@@ -4,6 +4,7 @@ import type { ApiFetch } from "./useApiFetch";
 import type { LearningProgress } from "../lib/learning/model";
 
 const QUESTS_URL = "/api/quests";
+const QUIZ_ANSWERS_URL = "/api/quiz-answers";
 
 // クエストの取得と、閲覧・クリア状態の保存
 //   クエストは、エージェントを通さず、API から取得する
@@ -75,7 +76,7 @@ export function useQuests(apiFetch: ApiFetch) {
   const recordQuizAnswer = useCallback(
     async (questId: string, correct: boolean) => {
       try {
-        const res = await apiFetch("/api/quiz-answers", {
+        const res = await apiFetch(QUIZ_ANSWERS_URL, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ questId, correct }),

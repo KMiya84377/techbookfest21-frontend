@@ -2,8 +2,6 @@ import { AppSetting, DistributedTable, Scope, getSdkIdentifiers } from "@aws-blo
 import { z } from "zod";
 import { AGENT_RUNTIME_PARAMETER, NEWS_FEED } from "./constants";
 
-export { AGENT_RUNTIME_PARAMETER } from "./constants";
-
 export const scope = new Scope("quests");
 
 // ニュースの共通情報(ユーザーに依存しない)

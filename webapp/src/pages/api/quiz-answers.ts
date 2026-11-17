@@ -1,4 +1,5 @@
 import { questStore } from "../../server/quests/store";
+import { QuestNotFoundError } from "../../server/quests/errors";
 import { badRequest, json, readJson, withUser } from "./_helpers";
 
 // リクエストごとにサーバーで動かす(静的ファイルにしない)
@@ -11,7 +12,12 @@ export const POST = withUser("quiz-answers.post", async ({ request, userId, log 
   if (!body || typeof body !== "object") return badRequest();
 
   const { questId, correct } = body as Record<string, unknown>;
-  if (typeof questId !== "string" || questId.length === 0 || typeof correct !== "boolean") {
+  if (
+    typeof questId !== "string" ||
+    questId.length === 0 ||
+    questId.length > 200 ||
+    typeof correct !== "boolean"
+  ) {
     return json({ error: "回答の指定が不正です" }, 400);
   }
 
@@ -19,6 +25,7 @@ export const POST = withUser("quiz-answers.post", async ({ request, userId, log 
     await questStore.recordQuizAnswer(userId, questId, correct);
     return json({ ok: true });
   } catch (error) {
+    if (error instanceof QuestNotFoundError) return json({ error: error.message }, 404);
     log.error("理解度チェックの回答を保存できませんでした", { err: error, questId });
     return json({ error: "回答を保存できませんでした" }, 500);
   }

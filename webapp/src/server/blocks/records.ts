@@ -1,7 +1,7 @@
 import { getConsistentItem, isAwsBlock, listConsistentUserItems } from "./consistentReads";
 import { userQuests } from "../../../aws-blocks/storage";
 
-export type UserRecord = { userId: string; newsId: string; version?: number; [key: string]: unknown };
+type UserRecord = { userId: string; newsId: string; version?: number; [key: string]: unknown };
 export const conditionalFailure = (error: unknown) => error instanceof Error && error.name === "ConditionalCheckFailedException";
 export const getUserRecord = async <T extends object>(userId: string, newsId: string) =>
   (isAwsBlock(userQuests) ? await getConsistentItem(userQuests, { userId, newsId }) : await userQuests.get({ userId, newsId })) as (T & UserRecord) | null;

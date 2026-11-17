@@ -2,6 +2,7 @@ import { questStore } from "../../server/quests/store";
 import { learningHistory } from "../../server/learning/service";
 import { learningProgress } from "../../lib/learning/model";
 import { loadUserSettings } from "../../server/userSettings/service";
+import { QuestNotFoundError } from "../../server/quests/errors";
 import { badRequest, json, readJson, withUser } from "./_helpers";
 
 // リクエストごとにサーバーで動かす(静的ファイルにしない)
@@ -51,6 +52,7 @@ export const PATCH = withUser("quests.patch", async ({ request, userId, log }) =
     }
     return json({ ok: true });
   } catch (error) {
+    if (error instanceof QuestNotFoundError) return json({ error: error.message }, 404);
     log.error("クエスト状態の保存に失敗しました", { err: error, questId: id, status });
     return json({ error: "クエスト状態を保存できませんでした" }, 500);
   }

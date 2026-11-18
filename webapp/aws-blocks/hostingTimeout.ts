@@ -2,7 +2,7 @@ import { Duration } from "aws-cdk-lib";
 import { CfnMethod, RestApi } from "aws-cdk-lib/aws-apigateway";
 import type { Construct } from "constructs";
 
-// Hosting 0.4.1はSTREAM統合のtimeoutを公開していないため、CDKのescape hatchで設定する。
+// HostingはSTREAM統合のtimeoutを公開していない(0.4.1・0.5.0の型定義で確認)ため、CDKのescape hatchで設定する。
 // Hosting内のストリーミング統合だけが対象。Blocksの認証・データAPIは変更しない。
 export function configureStreamingIntegrationTimeout(hosting: Construct, timeout: Duration) {
   const apis = hosting.node.findAll().filter((child): child is RestApi => child instanceof RestApi);

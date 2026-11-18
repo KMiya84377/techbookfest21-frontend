@@ -1,6 +1,6 @@
 # AWS Quest Board — Webアプリ
 
-Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、AWS Blocksで認証・保存・ホスティングを定義します。AWS Blocks 0.8.0、共通ホスティングパッケージ0.4.1を使用しています。
+Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、AWS Blocksで認証・保存・ホスティングを定義します。AWS Blocks 0.9.0、共通ホスティングパッケージ0.5.0を使用しています。
 
 ## ローカル開発
 

@@ -2,7 +2,7 @@ import { astroAdapter, type FrameworkAdapterFn } from "@aws-blocks/hosting/adapt
 import { mkdirSync, readFileSync, symlinkSync, existsSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 
-// 公開0.4.1の同期設定ローダーはAstro 7のESM依存を読めない。
+// 公開0.4.1の同期設定ローダーはAstro 7のESM依存を読めない(0.5.0で解消したかは未確認)。
 // 実際のビルドはAstro自身に任せ、公式アダプターへ共通の配信設定と生成済み出力を渡す。
 export const astroHostingAdapter: FrameworkAdapterFn = (root) => {
   const stage = path.join(root, ".blocks", "astro-manifest");

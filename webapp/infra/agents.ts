@@ -146,7 +146,8 @@ export function createAgentStacks(
   const daily = new lambda.Function(batchStack, "DailyQuests", {
     runtime: lambda.Runtime.PYTHON_3_13,
     handler: "handler.handler",
-    code: lambda.Code.fromAsset(path.resolve("infra/jobs/daily-quests")),
+    // 毎朝の呼び出し用の Lambda のコードは、バッチのエージェントのフォルダにある
+    code: lambda.Code.fromAsset(path.resolve("..", "batch-agent", "scheduler")),
     timeout: Duration.minutes(15),
     memorySize: 256,
     environment: { RUNTIME_ARN: batch.agentRuntimeArn },

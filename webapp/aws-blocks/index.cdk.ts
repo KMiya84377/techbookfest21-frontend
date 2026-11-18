@@ -23,7 +23,9 @@ const web = await BlocksStack.create(app, "QuestBoardWeb", {
   env,
   backendHandlerPath: path.resolve("aws-blocks/index.handler.ts"),
   backendCDKPath: path.resolve("aws-blocks/index.ts"),
-  defaults: BlocksPresets.production,
+  // API Gateway のアクセスログを有効にする(本番の既定は無効)。
+  // アカウント・リージョンで 1 つだけの CloudWatch 用ロールを作るため、同じリージョンの Blocks スタックはこれだけにする
+  defaults: { ...BlocksPresets.production, accessLogging: true },
 });
 
 // BlocksがCDK条件で読み込んだ同じリソースから接続情報を取得する。

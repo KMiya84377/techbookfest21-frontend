@@ -101,7 +101,7 @@ export default function QuestBoard({
     <section className="relative min-h-full" aria-label="クエストボード">
       <div className="flex flex-wrap items-center justify-between gap-[14px] pt-[28px] pb-[10px] max-[600px]:gap-[13px]">
         <div className="flex items-baseline gap-3">
-          <h2 className="font-[var(--font-tavern)] text-base font-medium tracking-[0.1em] text-[var(--board-text)]">
+          <h2 className="font-quest-tavern text-base font-medium tracking-[0.1em] text-[var(--board-text)]">
             クエストボード
           </h2>
           <span
@@ -213,7 +213,7 @@ export default function QuestBoard({
                     </span>
                   </span>
                   <span className="block">
-                    <span className="block font-[var(--font-tavern)] text-[clamp(17px,1.4vw,21px)] leading-[1.6] font-semibold tracking-[0.025em] [overflow-wrap:anywhere] [text-wrap:pretty] max-[600px]:text-[20px]">
+                    <span className="block font-quest-tavern text-[clamp(17px,1.4vw,21px)] leading-[1.6] font-semibold tracking-[0.025em] [overflow-wrap:anywhere] [text-wrap:pretty] max-[600px]:text-[20px]">
                       {q.title}
                     </span>
                   </span>
@@ -229,7 +229,7 @@ export default function QuestBoard({
                   </span>
                   <span className="mt-auto grid grid-cols-1 gap-[5px] pt-[19px] pr-[85px] text-[10px]">
                     <span
-                      className={`font-[var(--font-tavern)] text-[10px] ${
+                      className={`font-quest-tavern text-[10px] ${
                         q.status === "cleared"
                           ? "text-[#405e45] before:content-['✓']"
                           : q.status === "viewed"
@@ -240,7 +240,7 @@ export default function QuestBoard({
                       {STATUS_LABEL[q.status]}
                       {q.review && " · 復習"}
                     </span>
-                    <span className="font-[var(--font-tavern)] text-[10px] text-[#6d5a40]">
+                    <span className="font-quest-tavern text-[10px] text-[#6d5a40]">
                       所要 約 {q.minutes} 分
                     </span>
                     <span className="text-[9px] text-[#776043]">
@@ -261,7 +261,7 @@ export default function QuestBoard({
           ))}
         </div>
       )}
-      <footer className="relative z-[1] flex flex-wrap justify-between gap-[15px] px-0 pt-[5px] pb-6 font-[var(--font-tavern)] text-[11px] tracking-[0.04em] text-[#c4ad84] max-[600px]:text-[10px]">
+      <footer className="relative z-[1] flex flex-wrap justify-between gap-[15px] px-0 pt-[5px] pb-6 font-quest-tavern text-[11px] tracking-[0.04em] text-[#c4ad84] max-[600px]:text-[10px]">
         <Button
           variant="ghost"
           size="xs"

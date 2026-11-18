@@ -3,7 +3,7 @@ import type { LearningInsight } from "../../lib/learning/model";
 
 // 図の中のニュース 1 件の枠
 const NODE_CLASS =
-  "h-full overflow-hidden rounded border-2 border-[#b99a67] bg-[#f4e8ce] p-3 text-[#302b22]";
+  "h-full overflow-hidden rounded border-2 border-quest-frame bg-quest-card-header p-3 text-quest-card-ink";
 
 // AIが指定したニュース・関係を描画する。コードやHTMLは受け取らない。
 export default function LearningDiagram({
@@ -32,12 +32,12 @@ export default function LearningDiagram({
   return (
     <div className="space-y-4">
       {insight.mock && (
-        <p className="rounded border border-[#b99a67] bg-[#f4e8ce] p-3 text-sm">
+        <p className="rounded border border-quest-frame bg-quest-card-header p-3 text-sm">
           モック表示です。AIによる関連分析ではありません。
         </p>
       )}
       <p className="text-sm leading-relaxed">{insight.diagram.summary}</p>
-      <div className="overflow-x-auto rounded border border-[#d9c9aa] bg-[#fffdf8]">
+      <div className="overflow-x-auto rounded border border-quest-card-line bg-[#fffdf8]">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="min-w-[600px] w-full"
@@ -104,7 +104,7 @@ export default function LearningDiagram({
                 height="116"
               >
                 <div className={NODE_CLASS}>
-                  <div className="mb-1 text-xs text-[#74532b]">
+                  <div className="mb-1 text-xs text-quest-brown">
                     学習済み {index + 1}
                   </div>
                   <div className="line-clamp-3 text-sm leading-snug font-semibold">
@@ -120,7 +120,7 @@ export default function LearningDiagram({
         {insight.diagram.edges.map((edge, index) => (
           <li
             key={`${edge.from}-${edge.to}`}
-            className="rounded border border-[#d9c9aa] p-3 text-sm"
+            className="rounded border border-quest-card-line p-3 text-sm"
           >
             <div className="font-semibold">
               {index + 1}. {sources.get(edge.from)?.title} →{" "}
@@ -131,7 +131,7 @@ export default function LearningDiagram({
         ))}
       </ol>
       <details className="text-sm">
-        <summary className="cursor-pointer text-[#74532b]">
+        <summary className="cursor-pointer text-quest-brown">
           関連づけに使った学習内容
         </summary>
         <ul className="mt-3 space-y-3">
@@ -139,7 +139,7 @@ export default function LearningDiagram({
             <li key={node.questId}>
               <strong>{sources.get(node.questId)?.title}</strong>
               <p className="mt-1">{node.note}</p>
-              <p className="mt-1 text-[#746b5c]">
+              <p className="mt-1 text-quest-card-muted">
                 学習時の要約：{sources.get(node.questId)?.summary}
               </p>
             </li>

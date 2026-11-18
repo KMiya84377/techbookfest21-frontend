@@ -98,32 +98,32 @@ export default function UserSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed top-1/2 left-1/2 max-h-[min(88dvh,780px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[3px] border border-[#b99a67] bg-[#fffaf0] p-0 text-[#302b22] shadow-[0_18px_55px_#0009]">
+      <DialogContent className="fixed top-1/2 left-1/2 max-h-[min(88dvh,780px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[3px] border border-quest-frame bg-quest-card p-0 text-quest-card-ink shadow-[0_18px_55px_#0009]">
         <form onSubmit={(event) => void submit(event)}>
-          <div className="border-b border-[#d9c9aa] bg-[#f4e8ce] px-6 py-5 pr-12 max-[520px]:px-4">
-            <div className="flex items-center gap-2 text-[#74532b]">
+          <div className="border-b border-quest-card-line bg-quest-card-header px-6 py-5 pr-12 max-[520px]:px-4">
+            <div className="flex items-center gap-2 text-quest-brown">
               <Settings2Icon className="size-4" aria-hidden="true" />
               <span className="text-[11px] tracking-[0.13em]">
                 LEARNER PROFILE
               </span>
             </div>
-            <DialogTitle className="mt-1 font-[var(--font-tavern)] text-xl font-medium">
+            <DialogTitle className="mt-1 font-quest-tavern text-xl font-medium">
               学習設定
             </DialogTitle>
-            <DialogDescription className="mt-1 text-sm text-[#746b5c]">
+            <DialogDescription className="mt-1 text-sm text-quest-card-muted">
               学習分野や説明の仕方を、あなたに合わせて調整します。
             </DialogDescription>
           </div>
 
           <div className="space-y-6 px-6 py-5 max-[520px]:px-4">
             {loading && (
-              <p className="text-sm text-[#746b5c]" role="status">
+              <p className="text-sm text-quest-card-muted" role="status">
                 保存済みの設定を読み込んでいます…
               </p>
             )}
             {loadError && (
               <p
-                className="border border-[#d9c9aa] bg-[#f9f0df] px-3 py-2 text-sm text-[#74532b]"
+                className="border border-quest-card-line bg-[#f9f0df] px-3 py-2 text-sm text-quest-brown"
                 role="alert"
               >
                 {loadError}{" "}
@@ -133,7 +133,7 @@ export default function UserSettingsDialog({
 
             <fieldset disabled={loading || saving}>
               <legend className="text-sm font-semibold">学びたい分野</legend>
-              <p className="mt-1 text-xs leading-relaxed text-[#746b5c]">
+              <p className="mt-1 text-xs leading-relaxed text-quest-card-muted">
                 何も選ばない場合は、AWS全般を対象にします。
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -147,7 +147,7 @@ export default function UserSettingsDialog({
                       size="sm"
                       aria-pressed={selected}
                       className={
-                        selected ? "border-[#74532b] bg-[#f0e2c4]" : ""
+                        selected ? "border-quest-brown bg-[#f0e2c4]" : ""
                       }
                       onClick={() => toggleTopic(topic.id)}
                     >
@@ -172,7 +172,7 @@ export default function UserSettingsDialog({
                       type="button"
                       variant="questOutline"
                       aria-pressed={selected}
-                      className={`h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2 ${selected ? "border-[#74532b] bg-[#f0e2c4]" : ""}`}
+                      className={`h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2 ${selected ? "border-quest-brown bg-[#f0e2c4]" : ""}`}
                       onClick={() => {
                         setDraft((current) => ({
                           ...current,
@@ -182,7 +182,7 @@ export default function UserSettingsDialog({
                       }}
                     >
                       <span className="font-semibold">{option.label}</span>
-                      <span className="text-xs font-normal text-[#746b5c]">
+                      <span className="text-xs font-normal text-quest-card-muted">
                         {option.description}
                       </span>
                     </Button>
@@ -202,7 +202,7 @@ export default function UserSettingsDialog({
                       type="button"
                       variant="questOutline"
                       aria-pressed={selected}
-                      className={`h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2 ${selected ? "border-[#74532b] bg-[#f0e2c4]" : ""}`}
+                      className={`h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2 ${selected ? "border-quest-brown bg-[#f0e2c4]" : ""}`}
                       onClick={() => {
                         setDraft((current) => ({
                           ...current,
@@ -212,7 +212,7 @@ export default function UserSettingsDialog({
                       }}
                     >
                       <span className="font-semibold">{option.label}</span>
-                      <span className="text-xs font-normal text-[#746b5c]">
+                      <span className="text-xs font-normal text-quest-card-muted">
                         {option.description}
                       </span>
                     </Button>
@@ -250,13 +250,13 @@ export default function UserSettingsDialog({
                     }));
                     setSaved(false);
                   }}
-                  className="w-24 rounded border border-[#b99a67] bg-white px-3 py-2 text-sm"
+                  className="w-24 rounded border border-quest-frame bg-white px-3 py-2 text-sm"
                 />
                 <span className="text-sm">件ごと</span>
               </div>
               <p
                 id="learning-review-help"
-                className="mt-2 text-xs leading-relaxed text-[#746b5c]"
+                className="mt-2 text-xs leading-relaxed text-quest-card-muted"
               >
                 学習したニュースのつながりを分析して図解を提案します。
                 {MIN_LEARNING_REVIEW_EVERY}〜{MAX_LEARNING_REVIEW_EVERY}
@@ -267,7 +267,7 @@ export default function UserSettingsDialog({
 
             {(saveError || saved) && (
               <p
-                className={`text-sm ${saveError ? "text-[#8a1f1f]" : "text-[#3e7254]"}`}
+                className={`text-sm ${saveError ? "text-destructive" : "text-[#3e7254]"}`}
                 role={saveError ? "alert" : "status"}
               >
                 {saveError ?? "設定を保存しました。"}
@@ -275,7 +275,7 @@ export default function UserSettingsDialog({
             )}
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-[#d9c9aa] bg-[#fcf6e9] px-6 py-4 max-[520px]:px-4">
+          <div className="flex justify-end gap-2 border-t border-quest-card-line bg-[#fcf6e9] px-6 py-4 max-[520px]:px-4">
             <Button
               type="button"
               variant="questOutline"

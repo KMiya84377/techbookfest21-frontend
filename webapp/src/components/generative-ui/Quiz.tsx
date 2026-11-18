@@ -131,7 +131,7 @@ export default function Quiz(props: Props) {
 
   return (
     <ChatCard role="group" aria-label="理解度チェック">
-      <div className="mb-1 text-xs tracking-[0.08em] text-[#74532b]">
+      <div className="mb-1 text-xs tracking-[0.08em] text-quest-brown">
         理解度チェック
       </div>
       <p className="mb-2.5 font-medium">{question}</p>
@@ -164,7 +164,7 @@ export default function Quiz(props: Props) {
           <strong>{result === "correct" ? "正解です" : "不正解です"}</strong>
           <p className="mt-1">{explanation}</p>
           {first && (
-            <p className="mt-1 text-xs text-[#746b5c]">
+            <p className="mt-1 text-xs text-quest-card-muted">
               初回の回答: {first === "correct" ? "正解" : "不正解"}
             </p>
           )}
@@ -187,7 +187,7 @@ export default function Quiz(props: Props) {
         questId &&
         actions.statusOf(questId) !== undefined && (
           <div
-            className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#d9c9aa] pt-3"
+            className="mt-3 flex flex-wrap items-center gap-2 border-t border-quest-card-line pt-3"
             aria-label="次の操作"
           >
             {actions.statusOf(questId) === "cleared" ? (

@@ -94,7 +94,7 @@ export default function LearningNotifications({
         </span>
         {listOpen && (
           <section
-            className="absolute top-10 -right-12 max-h-[min(70dvh,480px)] w-[min(350px,calc(100vw-70px))] overflow-auto rounded border border-[#b99a67] bg-[#fffaf0] p-4 text-[#302b22] shadow-xl"
+            className="absolute top-10 -right-12 max-h-[min(70dvh,480px)] w-[min(350px,calc(100vw-70px))] overflow-auto rounded border border-quest-frame bg-quest-card p-4 text-quest-card-ink shadow-xl"
             aria-label="通知一覧"
           >
             <div className="mb-3 flex items-center justify-between gap-2">
@@ -137,10 +137,10 @@ export default function LearningNotifications({
                   <button
                     type="button"
                     disabled={opening}
-                    className="w-full rounded border border-[#d9c9aa] bg-[#f4e8ce] p-3 text-left hover:bg-[#ecdcba] disabled:opacity-60"
+                    className="w-full rounded border border-quest-card-line bg-quest-card-header p-3 text-left hover:bg-[#ecdcba] disabled:opacity-60"
                     onClick={() => void openNews(notification)}
                   >
-                    <span className="block text-xs text-[#74532b]">
+                    <span className="block text-xs text-quest-brown">
                       {notification.readAt ? "確認済み" : "未読"}
                       {notification.mock ? " · モック" : ""}
                     </span>
@@ -186,14 +186,14 @@ export default function LearningNotifications({
                 <li key={insight.id}>
                   <button
                     type="button"
-                    className="w-full rounded border border-[#d9c9aa] bg-[#f4e8ce] p-3 text-left hover:bg-[#ecdcba]"
+                    className="w-full rounded border border-quest-card-line bg-quest-card-header p-3 text-left hover:bg-[#ecdcba]"
                     onClick={() => {
                       setSelected(insight);
                       setListOpen(false);
                       void onRead(insight);
                     }}
                   >
-                    <span className="block text-xs text-[#74532b]">
+                    <span className="block text-xs text-quest-brown">
                       {insight.readAt ? "確認済み" : "未読"}
                       {insight.mock ? " · モック" : ""}
                     </span>
@@ -213,11 +213,11 @@ export default function LearningNotifications({
           if (!open) setSelected(null);
         }}
       >
-        <DialogContent className="fixed top-1/2 left-1/2 max-h-[88dvh] w-[min(980px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded border border-[#b99a67] bg-[#fffaf0] p-6 text-[#302b22] shadow-xl max-[520px]:p-4">
+        <DialogContent className="fixed top-1/2 left-1/2 max-h-[88dvh] w-[min(980px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded border border-quest-frame bg-quest-card p-6 text-quest-card-ink shadow-xl max-[520px]:p-4">
           <DialogTitle className="mb-2 pr-8 text-xl font-semibold">
             {selected?.diagram.title ?? "学習内容のつながり"}
           </DialogTitle>
-          <DialogDescription className="mb-4 text-sm text-[#746b5c]">
+          <DialogDescription className="mb-4 text-sm text-quest-card-muted">
             学習済みのニュースを関連づけた図解です。新しいニュースそのものを生成する機能ではありません。
           </DialogDescription>
           {selected && <LearningDiagram insight={selected} />}

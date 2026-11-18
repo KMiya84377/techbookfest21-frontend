@@ -14,10 +14,11 @@ import {
   type FilterPatch,
   type QuestFilter,
 } from "../../lib/quests/filter";
+import { type DetailSection } from "../../lib/quests/detailSections";
 import {
-  type DetailSection,
-} from "../../lib/quests/detailSections";
-import { createDetailTool, type UpdateDetail } from "../../lib/quests/detailTools";
+  createDetailTool,
+  type UpdateDetail,
+} from "../../lib/quests/detailTools";
 import type { UserSettings } from "../../lib/userSettings/model";
 import DetailUpdateCard from "./DetailUpdateCard";
 import FilterChangeCard from "./FilterChangeCard";

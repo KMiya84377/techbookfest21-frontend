@@ -22,9 +22,9 @@ const buttonVariants = cva(
         questActive:
           "border-[var(--wax)] bg-[var(--paper)] text-[var(--ink)] shadow-[1px_2px_4px_var(--shadow)] hover:bg-[var(--paper-2)]",
         questPrimary:
-          "border-[#74532b] bg-[#74532b] text-[#fffaf0] hover:bg-[#5f4324]",
+          "border-quest-brown bg-quest-brown text-quest-card hover:bg-[#5f4324]",
         questOutline:
-          "border-[#d9c9aa] bg-transparent text-[#302b22] hover:bg-[#f4e5bd]",
+          "border-quest-card-line bg-transparent text-quest-card-ink hover:bg-[#f4e5bd]",
         questTavern:
           "border-[#d3b276] bg-[#24352fee] text-[#f8e7c0] shadow-[0_5px_14px_#120b08b8,inset_0_0_0_1px_#ffffff12] hover:bg-[#304536] hover:text-[#f8e7c0]",
       },

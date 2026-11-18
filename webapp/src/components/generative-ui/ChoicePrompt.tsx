@@ -96,7 +96,7 @@ export default function ChoicePrompt({
 
   return (
     <ChatCard as="section" aria-label="選択肢">
-      <div className="mb-1 text-xs tracking-[0.08em] text-[#74532b]">
+      <div className="mb-1 text-xs tracking-[0.08em] text-quest-brown">
         選択してください
       </div>
       <p className="mb-2.5 font-medium">{question}</p>
@@ -108,7 +108,7 @@ export default function ChoicePrompt({
         disabled={Boolean(returned) || sending}
       />
       {response ? (
-        <p className="mt-2.5 text-xs text-[#746b5c]" role="status">
+        <p className="mt-2.5 text-xs text-quest-card-muted" role="status">
           選択しました:{" "}
           {response.selectedOptions.map((option) => option.label).join("、")}
         </p>
@@ -125,7 +125,7 @@ export default function ChoicePrompt({
         </Button>
       )}
       {sendFailed && (
-        <p className="mt-2 text-xs text-[#8a1f1f]" role="alert">
+        <p className="mt-2 text-xs text-destructive" role="alert">
           選択を送信できませんでした。もう一度お試しください。
         </p>
       )}

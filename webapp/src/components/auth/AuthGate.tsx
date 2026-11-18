@@ -91,14 +91,16 @@ export default function AuthGate({ children }: { children: Children }) {
       <div
         hidden={signedIn}
         style={{ display: signedIn ? "none" : undefined }}
-        className="quest-auth-shell grid min-h-screen place-items-center p-6 text-[#302b22]"
+        className="quest-auth-shell grid min-h-screen place-items-center p-6 text-quest-card-ink"
         data-bb-theme="light"
       >
-        <section className="w-full max-w-md rounded border border-[#b99a67] bg-[#fffaf0] p-6">
+        <section className="w-full max-w-md rounded border border-quest-frame bg-quest-card p-6">
           <h1 className="mb-2 text-2xl font-semibold">クエストボード</h1>
           <p className="mb-5 text-sm">技術ニュースを、次の一手に変える。</p>
           {import.meta.env.PROD && (
-            <p className="mb-4 text-sm">現在は招待された方のみご利用いただけます。</p>
+            <p className="mb-4 text-sm">
+              現在は招待された方のみご利用いただけます。
+            </p>
           )}
           <div ref={mount} />
           {error && <p role="alert">{error}</p>}

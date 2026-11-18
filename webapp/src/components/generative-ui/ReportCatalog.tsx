@@ -39,7 +39,8 @@ export function ReportBarChart({ props }: { props: unknown }) {
       aria-label={accessibleLabel ?? "棒グラフ"}
     >
       {items.map((item, index) => {
-        const height = item.value <= 0 ? 0 : Math.max((item.value / max) * 100, 4);
+        const height =
+          item.value <= 0 ? 0 : Math.max((item.value / max) * 100, 4);
         return (
           <div
             className={COLUMN_CLASS}

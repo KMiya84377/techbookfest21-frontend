@@ -26,6 +26,14 @@
   --color-quest-wax: var(--wax);
   --color-quest-board: var(--board);
   --color-quest-board-dark: var(--board-dark);
+  --color-quest-card: var(--quest-card);
+  --color-quest-card-header: var(--quest-card-header);
+  --color-quest-card-line: var(--quest-card-line);
+  --color-quest-card-ink: var(--quest-card-ink);
+  --color-quest-card-muted: var(--quest-card-muted);
+  --color-quest-frame: var(--quest-frame);
+  --color-quest-brown: var(--quest-brown);
   --font-quest-display: Georgia, "Yu Mincho", serif;
   --font-quest-copy: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  --font-quest-tavern: var(--font-tavern);
 }

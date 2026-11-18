@@ -17,8 +17,8 @@ export default function ChatCard({
   return (
     <Tag
       className={cn(
-        "my-2 rounded-xl border border-[#d9c9aa] bg-[#fffaf0] p-3.5 text-sm leading-relaxed",
-        loading ? "text-[#746b5c]" : "text-[#302b22]",
+        "my-2 rounded-xl border border-quest-card-line bg-quest-card p-3.5 text-sm leading-relaxed",
+        loading ? "text-quest-card-muted" : "text-quest-card-ink",
         className,
       )}
       {...props}

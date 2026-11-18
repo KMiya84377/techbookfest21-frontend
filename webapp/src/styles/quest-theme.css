@@ -20,6 +20,14 @@
   --shadow: #130d09b8;
   --brass: #c2a368;
   --aether: #8ebfb0;
+  /* チャットのカードやダイアログなど、明るい紙の部品の色 */
+  --quest-card: #fffaf0;
+  --quest-card-header: #f4e8ce;
+  --quest-card-line: #d9c9aa;
+  --quest-card-ink: #302b22;
+  --quest-card-muted: #746b5c;
+  --quest-frame: #b99a67;
+  --quest-brown: #74532b;
   --font-tavern:
     "Palatino Linotype", "Book Antiqua", "Yu Mincho", "Hiragino Mincho ProN",
     Georgia, serif;

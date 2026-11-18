@@ -22,7 +22,11 @@ export function useDetailExtras(
   const updateDetail = useCallback(
     (questId: string, section: DetailSection): DetailUpdate => {
       const { details, result } = updateOpenedDetail(
-        detailExtrasRef.current, shownRef.current, openIdRef.current, questId, section,
+        detailExtrasRef.current,
+        shownRef.current,
+        openIdRef.current,
+        questId,
+        section,
       );
       if (!result.error) {
         detailExtrasRef.current = details;

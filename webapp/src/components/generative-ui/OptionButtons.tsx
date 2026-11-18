@@ -18,7 +18,7 @@ const OPTION_CLASS =
   "h-auto w-full justify-start gap-2 whitespace-normal rounded-lg px-2.5 py-2 text-left font-normal text-inherit";
 // 選択中の選択肢(ホバーしても、色を変えない)
 const OPTION_SELECTED_CLASS = [
-  "border-[#74532b]",
+  "border-quest-brown",
   "bg-[color-mix(in_srgb,#74532b_14%,transparent)]",
   "hover:bg-[color-mix(in_srgb,#74532b_14%,transparent)]",
 ].join(" ");
@@ -72,7 +72,7 @@ export default function OptionButtons({
             <span className="min-w-0">
               <span className="block">{option.label}</span>
               {option.description && (
-                <span className="mt-0.5 block text-xs text-[#746b5c]">
+                <span className="mt-0.5 block text-xs text-quest-card-muted">
                   {option.description}
                 </span>
               )}

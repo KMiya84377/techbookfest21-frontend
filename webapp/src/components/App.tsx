@@ -148,7 +148,11 @@ function Workspace({ getToken }: { getToken?: () => string }) {
                 onClose={() => setStateError(null)}
               />
             )}
-            <div aria-hidden={Boolean(opened)} inert={Boolean(opened)} className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:#9b7847_#312217] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]">
+            <div
+              aria-hidden={Boolean(opened)}
+              inert={Boolean(opened)}
+              className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:#9b7847_#312217] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]"
+            >
               {failed ? (
                 <QuestLoadFailed onRetry={load} />
               ) : !shown ? (

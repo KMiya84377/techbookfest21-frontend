@@ -15,8 +15,14 @@ const loadRuntimeArn = () =>
 //   2. 本番ビルド(AWS 上)では、SSM に保存された AgentCore Runtime
 //   3. それ以外(ローカル開発)は、AGENT_URL の AG-UI サーバー(既定は aimock)
 export async function createConfiguredAgent() {
-  const arn = process.env.AGENT_RUNTIME_ARN ?? import.meta.env?.AGENT_RUNTIME_ARN;
+  const arn =
+    process.env.AGENT_RUNTIME_ARN ?? import.meta.env?.AGENT_RUNTIME_ARN;
   if (arn) return createAgentCoreAgent(arn);
-  if (import.meta.env?.PROD) return createAgentCoreAgent(await loadRuntimeArn());
-  return createLocalAgent(process.env.AGENT_URL ?? import.meta.env?.AGENT_URL ?? "http://localhost:4010/agui");
+  if (import.meta.env?.PROD)
+    return createAgentCoreAgent(await loadRuntimeArn());
+  return createLocalAgent(
+    process.env.AGENT_URL ??
+      import.meta.env?.AGENT_URL ??
+      "http://localhost:4010/agui",
+  );
 }

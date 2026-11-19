@@ -1,26 +1,21 @@
 import { createCatalog } from "@copilotkit/a2ui-renderer";
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
   REPORT_CATALOG_ID,
   reportCatalogDefinitions,
   reportBarChartValuesSchema,
 } from "../../lib/generative-ui/reportCatalog";
 
-// 棒グラフ(7 本が横に並ぶ)のクラス
-const CHART_CLASS =
-  "my-[10px] mx-2 grid min-h-[132px] grid-cols-7 items-end gap-[6px] text-[var(--ink)]";
-const COLUMN_CLASS =
-  "grid min-w-0 grid-rows-[auto_86px_auto] items-end text-center";
-const LABEL_CLASS =
-  "overflow-hidden text-ellipsis whitespace-nowrap text-[10px]";
-const VALUE_CLASS = `${LABEL_CLASS} text-[color-mix(in_srgb,var(--ink)_70%,transparent)]`;
-const NAME_CLASS = `${LABEL_CLASS} mt-[5px] text-[var(--ink)]`;
-const TRACK_CLASS =
-  "flex h-[86px] w-full items-end justify-center border-b border-[var(--line)] px-1";
-const BAR_CLASS = [
-  "min-h-0 w-[min(22px,100%)] border border-b-0",
-  "border-[color-mix(in_srgb,var(--wax)_72%,var(--ink))] bg-[var(--wax)]",
-].join(" ");
-
+// A2UIの入力を検証し、棒・軸・ラベルの描画はRechartsへ任せる。
 export function ReportBarChart({ props }: { props: unknown }) {
   const result = reportBarChartValuesSchema.safeParse(props);
   if (!result.success) {
@@ -30,35 +25,80 @@ export function ReportBarChart({ props }: { props: unknown }) {
   if (!items.length) {
     return <p role="status">棒グラフに表示するデータがありません。</p>;
   }
-  const max = Math.max(maxValue ?? 1, ...items.map((item) => item.value));
+  const max = items.reduce(
+    (highest, item) => Math.max(highest, item.value),
+    maxValue ?? 1,
+  );
 
   return (
     <div
-      className={CHART_CLASS}
+      className="my-[10px] min-w-0 text-[var(--ink)]"
       role="group"
       aria-label={accessibleLabel ?? "棒グラフ"}
     >
-      {items.map((item, index) => {
-        const height =
-          item.value <= 0 ? 0 : Math.max((item.value / max) * 100, 4);
-        return (
-          <div
-            className={COLUMN_CLASS}
-            // ラベルと値は、エージェントの出力なので重なりうる。並び順で区別する
-            key={`${index}-${item.label}`}
-            aria-label={`${item.label}: ${item.value}${unit}`}
+      <ResponsiveContainer
+        width="100%"
+        height={180}
+        minWidth={0}
+        initialDimension={{ width: 300, height: 180 }}
+      >
+        <BarChart
+          data={items}
+          margin={{ top: 24, right: 8, bottom: 0, left: 0 }}
+          accessibilityLayer
+        >
+          <CartesianGrid
+            vertical={false}
+            stroke="var(--line)"
+            strokeDasharray="3 3"
+          />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: "var(--ink)", fontSize: 10 }}
+            tickLine={false}
+            axisLine={{ stroke: "var(--line)" }}
+          />
+          <YAxis
+            domain={[0, max]}
+            allowDecimals={false}
+            width={28}
+            tick={{ fill: "var(--ink)", fontSize: 10 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip
+            formatter={(value) => [`${value}${unit}`, "学習数"]}
+            contentStyle={{
+              backgroundColor: "var(--paper)",
+              borderColor: "var(--line)",
+              color: "var(--ink)",
+              fontSize: 12,
+            }}
+          />
+          <Bar
+            dataKey="value"
+            name="学習数"
+            fill="var(--wax)"
+            maxBarSize={28}
+            isAnimationActive={false}
           >
-            <span className={VALUE_CLASS}>
-              {item.value}
-              {unit}
-            </span>
-            <div className={TRACK_CLASS} aria-hidden="true">
-              <div className={BAR_CLASS} style={{ height: `${height}%` }} />
-            </div>
-            <span className={NAME_CLASS}>{item.label}</span>
-          </div>
-        );
-      })}
+            <LabelList
+              dataKey="value"
+              position="top"
+              fill="var(--ink)"
+              fontSize={10}
+            />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      {/* グラフを操作せずに各数値を確認できる、読み上げ用の一覧。 */}
+      <ul className="sr-only" aria-label="棒グラフの数値">
+        {items.map((item, index) => (
+          <li
+            key={`${index}-${item.label}`}
+          >{`${item.label}: ${item.value}${unit}`}</li>
+        ))}
+      </ul>
     </div>
   );
 }

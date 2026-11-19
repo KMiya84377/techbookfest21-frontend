@@ -1,29 +1,20 @@
 import { useMemo } from "react";
+import { detailUpdateResultSchema } from "../../lib/quests/detailSections";
 import {
-  detailUpdateResultSchema,
-  type DetailUpdate,
-} from "../../lib/quests/detailSections";
+  parseToolResult,
+  type ToolResultProps,
+} from "../../lib/copilotkit/toolResult";
 import DetailA2UI from "./DetailA2UI";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
-interface Props {
-  status: string;
-  result?: string;
-}
+// エージェントが、クエスト詳細(メイン領域)に、表示を追加・更新したことを、チャットに示す(本の F-01)
+export default function DetailUpdateCard({ status, result }: ToolResultProps) {
+  // 描画のたびに A2UI を作り直さないよう、結果が変わったときだけ読み直す
+  const update = useMemo(
+    () => parseToolResult(result, detailUpdateResultSchema),
+    [result],
+  );
 
-function parseUpdate(result?: string): DetailUpdate | null {
-  if (!result) return null;
-  try {
-    const parsed = detailUpdateResultSchema.safeParse(JSON.parse(result));
-    return parsed.success ? parsed.data : null;
-  } catch {
-    return null;
-  }
-}
-
-// エージェントが、クエスト詳細(メイン領域)に、表示を追加・更新したことを、チャットに示す(仕様書 F-04)
-export default function DetailUpdateCard({ status, result }: Props) {
-  const update = useMemo(() => parseUpdate(result), [result]);
   if (!update) {
     return (
       <Alert
@@ -37,6 +28,7 @@ export default function DetailUpdateCard({ status, result }: Props) {
       </Alert>
     );
   }
+
   if (update.error) {
     return (
       <Alert variant="quest" className="my-2 text-[13px]" role="status">
@@ -45,6 +37,7 @@ export default function DetailUpdateCard({ status, result }: Props) {
       </Alert>
     );
   }
+
   return (
     <Alert variant="quest" className="my-2 text-[13px]" role="status">
       <AlertTitle>クエスト詳細を更新しました</AlertTitle>

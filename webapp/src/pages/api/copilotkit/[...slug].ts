@@ -12,9 +12,6 @@ import {
 } from "../../../lib/generative-ui/reportCatalog";
 import { userContext } from "../../../server/agent/userContext";
 
-// リクエストごとにサーバーで動かす(静的ファイルにしない)
-export const prerender = false;
-
 async function buildHandler() {
   const agent = await createConfiguredAgent();
 
@@ -37,7 +34,10 @@ async function buildHandler() {
 }
 let pendingHandler: ReturnType<typeof buildHandler> | undefined;
 function getHandler() {
-  return pendingHandler ??= buildHandler().catch((error) => { pendingHandler = undefined; throw error; });
+  return (pendingHandler ??= buildHandler().catch((error) => {
+    pendingHandler = undefined;
+    throw error;
+  }));
 }
 
 // 全リクエストで認証し、失敗したら 401 を返す(ランタイムには、認証済みのリクエストだけを渡す)
@@ -48,7 +48,12 @@ export const ALL: APIRoute = ({ request }) =>
     const userId = await authenticate(request);
     if (!userId) return new Response("Unauthorized", { status: 401 });
     return userContext.run(
-      { userId, ...(import.meta.env.DEV ? { localAuthCookie: request.headers.get("cookie") ?? undefined } : {}) },
+      {
+        userId,
+        ...(import.meta.env.DEV
+          ? { localAuthCookie: request.headers.get("cookie") ?? undefined }
+          : {}),
+      },
       async () => (await getHandler())(request),
     );
   });

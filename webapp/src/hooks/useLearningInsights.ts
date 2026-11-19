@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ApiFetch } from "./useApiFetch";
 import type { LearningInsight, LearningProgress } from "../lib/learning/model";
-import { DEFAULT_LEARNING_REVIEW_EVERY } from "../lib/userSettings/model";
 
 const INSIGHTS_URL = "/api/learning-insights";
 
@@ -148,7 +147,7 @@ export function useLearningInsights(
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             batch: insight.batch,
-            reviewEvery: insight.reviewEvery ?? DEFAULT_LEARNING_REVIEW_EVERY,
+            reviewEvery: insight.reviewEvery,
           }),
         });
         if (!response.ok) throw new Error("既読の保存に失敗しました");

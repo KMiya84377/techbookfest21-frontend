@@ -15,7 +15,7 @@ import AuthGate from "./auth/AuthGate";
 import ChatPanel from "./chat/ChatPanel";
 import ChatSuggestions from "./chat/ChatSuggestions";
 import MobileChatButton from "./chat/MobileChatButton";
-import GenerativeUI from "./generative-ui/GenerativeUI";
+import CopilotKitIntegration from "./copilotkit/CopilotKitIntegration";
 import { reportCatalog } from "./generative-ui/ReportCatalog";
 import { QuestActionsContext, type QuestActions } from "./quests/QuestActions";
 import BoardChrome from "./quests/BoardChrome";
@@ -28,7 +28,7 @@ import {
 import QuestDetail from "./quests/QuestDetail";
 import QuestLayout from "./quests/QuestLayout";
 import { QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL } from "../lib/generative-ui/openGenerativeUI";
-import UserSettingsDialog from "./UserSettingsDialog";
+import UserSettingsDialog from "./user-setting/UserSettingsDialog";
 import LearningNotifications from "./learning/LearningNotifications";
 
 const RUNTIME_URL = "/api/copilotkit";
@@ -43,6 +43,7 @@ function Workspace({ getToken }: { getToken?: () => string }) {
     reloadQuests,
     stateError,
     setStateError,
+    findShown,
     markViewed,
     markCleared,
     recordQuizAnswer,
@@ -72,14 +73,14 @@ function Workspace({ getToken }: { getToken?: () => string }) {
   const chatRef = useRef<HTMLElement>(null);
   const { filter, updateFilter } = useQuestFilter(shownRef);
   const { detailExtras, updateDetail } = useDetailExtras(shownRef, openId);
-  const opened = shown?.find((q) => q.id === openId);
+  const opened = openId ? findShown(openId) : undefined;
 
   const open = (id: string) => {
     setOpenId(id);
     markViewed(id);
   };
   const openNews = async (id: string) => {
-    const { quests } = await reloadQuests();
+    const quests = await reloadQuests();
     if (!quests.some((quest) => quest.id === id))
       throw new Error("通知のニュースが見つかりません");
     open(id);
@@ -90,8 +91,8 @@ function Workspace({ getToken }: { getToken?: () => string }) {
 
   // チャット内の部品が、クエストボードの状態を読み、操作するための窓口
   const actions: QuestActions = {
-    statusOf: (id) => shown?.find((q) => q.id === id)?.status,
-    isReview: (id) => Boolean(shown?.find((q) => q.id === id)?.review),
+    statusOf: (id) => findShown(id)?.status,
+    isReview: (id) => Boolean(findShown(id)?.review),
     clear: markCleared,
     recordAnswer: (id, correct) => void recordQuizAnswer(id, correct),
     open,
@@ -110,7 +111,7 @@ function Workspace({ getToken }: { getToken?: () => string }) {
       }}
     >
       <QuestActionsContext.Provider value={actions}>
-        <GenerativeUI
+        <CopilotKitIntegration
           quests={shown ?? null}
           openedId={openId}
           filter={filter}
@@ -151,7 +152,7 @@ function Workspace({ getToken }: { getToken?: () => string }) {
             <div
               aria-hidden={Boolean(opened)}
               inert={Boolean(opened)}
-              className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:#9b7847_#312217] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]"
+              className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:var(--quest-scrollbar-thumb)_var(--quest-scrollbar-track)] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]"
             >
               {failed ? (
                 <QuestLoadFailed onRetry={load} />

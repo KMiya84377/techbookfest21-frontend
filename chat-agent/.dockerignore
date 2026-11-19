@@ -2,3 +2,5 @@
 **/__pycache__/
 **/.pytest_cache/
 **/tests/
+# CDK の定義(イメージには入れない。直してもイメージの更新を起こさない)
+infra/

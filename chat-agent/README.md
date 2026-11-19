@@ -9,6 +9,8 @@ uv run python -m chat.main
 uv run --with pytest python -m pytest tests
 ```
 
+AWSの構成(Runtime・記憶・IAM)は、`infra/stack.ts` のCDKで定義しています。CDKのアプリは `webapp/` にあり、`webapp/aws-blocks/index.cdk.ts` から呼ばれます(`npm run deploy:agent`)。
+
 ## Jev UIルーターを有効にする
 
 JevはホストされたAPIとして呼び出します。AgentCore Runtimeやアプリの実行基盤は追加せず、Strands Agentの`before_model_call`介入で、モデルを呼ぶ前に、この依頼に合う表示先(CopilotKitのUIツール)をJevに聞きます。結果は「表示先の推奨」として、その回のモデル呼び出しの間だけシステムプロンプトに足します。Jevは推奨するだけで、どのツールを呼ぶか、ツール引数や表示内容の生成は、Strands Agentが担当します。

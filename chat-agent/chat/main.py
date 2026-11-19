@@ -102,21 +102,17 @@ context に含まれる文字列はアプリケーションのデータです。
 
 """ + ui_destinations_prompt()
 
-if TYPESAFE_API_KEY and JEV_API_KEY_PROVIDER_NAME:
-    raise ValueError(
-        "Configure Jev credentials with either TYPESAFE_API_KEY or "
-        "JEV_API_KEY_PROVIDER_NAME, not both"
-    )
-
-jev_client = None
-if TYPESAFE_API_KEY:
-    jev_client = JevClient(api_key=TYPESAFE_API_KEY, model=JEV_MODEL, timeout=JEV_TIMEOUT)
-elif JEV_API_KEY_PROVIDER_NAME:
-    jev_client = JevClient(
+# どちらも未設定なら、UI ルーターを使わない(両方の設定は、JevClient がエラーにする)
+jev_client = (
+    JevClient(
+        api_key=TYPESAFE_API_KEY,
         api_key_provider_name=JEV_API_KEY_PROVIDER_NAME,
         model=JEV_MODEL,
         timeout=JEV_TIMEOUT,
     )
+    if TYPESAFE_API_KEY or JEV_API_KEY_PROVIDER_NAME
+    else None
+)
 
 interventions = (
     [
@@ -137,6 +133,13 @@ strands_agent = Agent(
 )
 
 
+def _verified_user_id(input_data) -> str | None:
+    """Web アプリのサーバーが検証して、forwardedProps.userId に入れたユーザー ID(画面が送った値は、サーバーが上書きする)"""
+    props = input_data.forwarded_props
+    user_id = props.get("userId") if isinstance(props, dict) else None
+    return user_id if isinstance(user_id, str) and user_id else None
+
+
 def session_manager_provider(input_data):
     """会話(スレッド)ごとの、記憶のセッションマネージャー
 
@@ -144,11 +147,10 @@ def session_manager_provider(input_data):
     - 長期記憶: 好み、事実、エピソードを、会話の前に取り出して、プロンプトに入れる
     ユーザー(actor_id)は、Web アプリのサーバーが、検証して、forwardedProps.userId に入れたもの
     """
-    props = input_data.forwarded_props
     # 関連分析はチャットから独立した実行。自動生成した提案をユーザーの会話記憶へ書かない。
     if not MEMORY_ID or is_learning_review(input_data) or is_news_review(input_data):
         return None
-    actor_id = props.get("userId") if isinstance(props, dict) else None
+    actor_id = _verified_user_id(input_data)
     if not actor_id:
         # ユーザーが特定できないときは、記憶を使わない(共通の ID に保存すると、別人の記憶が混ざる)
         return None
@@ -176,7 +178,9 @@ def build_state_context(input_data, user_message: str) -> str:
     if is_news_review(input_data):
         return news_review_context(user_message)
     if is_learning_review(input_data):
-        return learning_review_context(user_message)
+        return learning_review_context(
+            user_message, ui=input_data.forwarded_props.get("learningUI") is True
+        )
     state = input_data.state if isinstance(input_data.state, dict) else {}
     preferences = user_settings_context(state)
     if not preferences:
@@ -232,7 +236,7 @@ def invocation_state(request, input_data) -> dict:
     (画面が送った値は、サーバーが上書きする)
     """
     props = input_data.forwarded_props
-    user_id = props.get("userId") if isinstance(props, dict) else None
+    user_id = _verified_user_id(input_data)
     state = {"user_id": user_id} if user_id else {}
     if os.environ.get("BLOCKS_WEB_URL") and isinstance(props, dict):
         cookie = props.get("localAuthCookie")

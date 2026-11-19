@@ -5,16 +5,6 @@ from __future__ import annotations
 import json
 from typing import Any
 
-_TOPICS = {
-    "ai_ml",
-    "compute",
-    "containers",
-    "database",
-    "networking",
-    "security",
-    "storage",
-    "serverless",
-}
 _TOPIC_LABELS = {
     "ai_ml": "AI・機械学習",
     "compute": "コンピューティング",
@@ -25,6 +15,7 @@ _TOPIC_LABELS = {
     "storage": "ストレージ",
     "serverless": "サーバーレス",
 }
+_TOPICS = set(_TOPIC_LABELS)
 _DIFFICULTIES = {"beginner", "intermediate", "advanced"}
 _ANSWER_DETAILS = {"concise", "standard", "detailed"}
 

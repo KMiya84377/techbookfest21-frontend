@@ -1,21 +1,22 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CheckIcon, Settings2Icon } from "lucide-react";
-import { Button } from "./ui/button";
+import { clsx } from "cn";
+import { Button } from "../ui/button";
 import {
-  LEARNING_TOPICS,
+  ANSWER_DETAIL_OPTIONS,
   DEFAULT_LEARNING_REVIEW_EVERY,
-  MIN_LEARNING_REVIEW_EVERY,
+  DIFFICULTY_OPTIONS,
+  LEARNING_TOPICS,
   MAX_LEARNING_REVIEW_EVERY,
-  type AnswerDetail,
-  type LearningDifficulty,
+  MIN_LEARNING_REVIEW_EVERY,
   type UserSettings,
-} from "../lib/userSettings/model";
+} from "../../lib/userSettings/model";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "./ui/dialog";
+} from "../ui/dialog";
 
 interface Props {
   open: boolean;
@@ -26,25 +27,52 @@ interface Props {
   onSave: (settings: UserSettings) => Promise<void>;
 }
 
-const DIFFICULTIES: {
-  id: LearningDifficulty;
-  label: string;
-  description: string;
-}[] = [
-  { id: "beginner", label: "初級", description: "用語から補足" },
-  { id: "intermediate", label: "中級", description: "基本知識を前提" },
-  { id: "advanced", label: "上級", description: "設計やトレードオフまで" },
-];
+// 選択中のボタンの色
+const SELECTED_CLASS = "border-quest-brown bg-quest-selected-bg";
 
-const ANSWER_DETAILS: {
-  id: AnswerDetail;
-  label: string;
-  description: string;
-}[] = [
-  { id: "concise", label: "簡潔", description: "要点を中心に" },
-  { id: "standard", label: "標準", description: "背景も含めて" },
-  { id: "detailed", label: "詳しく", description: "仕組みや注意点まで" },
-];
+// 説明つきの選択肢から 1 つを選ぶ欄(難易度、回答の詳しさ)
+function ChoiceFieldset<T extends string>({
+  legend,
+  options,
+  value,
+  disabled,
+  onChange,
+}: {
+  legend: string;
+  options: readonly { id: T; label: string; description: string }[];
+  value: T;
+  disabled: boolean;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <fieldset disabled={disabled}>
+      <legend className="text-sm font-semibold">{legend}</legend>
+      <div className="mt-3 grid grid-cols-3 gap-2 max-[420px]:grid-cols-1">
+        {options.map((option) => {
+          const selected = value === option.id;
+          return (
+            <Button
+              key={option.id}
+              type="button"
+              variant="questOutline"
+              aria-pressed={selected}
+              className={clsx(
+                "h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2",
+                selected && SELECTED_CLASS,
+              )}
+              onClick={() => onChange(option.id)}
+            >
+              <span className="font-semibold">{option.label}</span>
+              <span className="text-xs font-normal text-quest-card-muted">
+                {option.description}
+              </span>
+            </Button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
 
 export default function UserSettingsDialog({
   open,
@@ -86,6 +114,12 @@ export default function UserSettingsDialog({
     }
   };
 
+  // 下書きの一部を変える(保存済みの表示は消す)
+  const updateDraft = (change: Partial<UserSettings>) => {
+    setDraft((current) => ({ ...current, ...change }));
+    setSaved(false);
+  };
+
   const toggleTopic = (topicId: UserSettings["learningTopics"][number]) => {
     setDraft((current) => ({
       ...current,
@@ -98,7 +132,7 @@ export default function UserSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed top-1/2 left-1/2 max-h-[min(88dvh,780px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[3px] border border-quest-frame bg-quest-card p-0 text-quest-card-ink shadow-[0_18px_55px_#0009]">
+      <DialogContent className="fixed top-1/2 left-1/2 max-h-[min(88dvh,780px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[3px] border border-quest-frame bg-quest-card p-0 text-quest-card-ink shadow-[0_18px_55px_var(--quest-dialog-shadow)]">
         <form onSubmit={(event) => void submit(event)}>
           <div className="border-b border-quest-card-line bg-quest-card-header px-6 py-5 pr-12 max-[520px]:px-4">
             <div className="flex items-center gap-2 text-quest-brown">
@@ -123,7 +157,7 @@ export default function UserSettingsDialog({
             )}
             {loadError && (
               <p
-                className="border border-quest-card-line bg-[#f9f0df] px-3 py-2 text-sm text-quest-brown"
+                className="border border-quest-card-line bg-quest-settings-notice-bg px-3 py-2 text-sm text-quest-brown"
                 role="alert"
               >
                 {loadError}{" "}
@@ -146,9 +180,7 @@ export default function UserSettingsDialog({
                       variant="questOutline"
                       size="sm"
                       aria-pressed={selected}
-                      className={
-                        selected ? "border-quest-brown bg-[#f0e2c4]" : ""
-                      }
+                      className={selected ? SELECTED_CLASS : ""}
                       onClick={() => toggleTopic(topic.id)}
                     >
                       {selected && (
@@ -161,65 +193,21 @@ export default function UserSettingsDialog({
               </div>
             </fieldset>
 
-            <fieldset disabled={loading || saving}>
-              <legend className="text-sm font-semibold">学習の難易度</legend>
-              <div className="mt-3 grid grid-cols-3 gap-2 max-[420px]:grid-cols-1">
-                {DIFFICULTIES.map((option) => {
-                  const selected = draft.difficulty === option.id;
-                  return (
-                    <Button
-                      key={option.id}
-                      type="button"
-                      variant="questOutline"
-                      aria-pressed={selected}
-                      className={`h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2 ${selected ? "border-quest-brown bg-[#f0e2c4]" : ""}`}
-                      onClick={() => {
-                        setDraft((current) => ({
-                          ...current,
-                          difficulty: option.id,
-                        }));
-                        setSaved(false);
-                      }}
-                    >
-                      <span className="font-semibold">{option.label}</span>
-                      <span className="text-xs font-normal text-quest-card-muted">
-                        {option.description}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </fieldset>
+            <ChoiceFieldset
+              legend="学習の難易度"
+              options={DIFFICULTY_OPTIONS}
+              value={draft.difficulty}
+              disabled={loading || saving}
+              onChange={(difficulty) => updateDraft({ difficulty })}
+            />
 
-            <fieldset disabled={loading || saving}>
-              <legend className="text-sm font-semibold">回答の詳しさ</legend>
-              <div className="mt-3 grid grid-cols-3 gap-2 max-[420px]:grid-cols-1">
-                {ANSWER_DETAILS.map((option) => {
-                  const selected = draft.answerDetail === option.id;
-                  return (
-                    <Button
-                      key={option.id}
-                      type="button"
-                      variant="questOutline"
-                      aria-pressed={selected}
-                      className={`h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2 ${selected ? "border-quest-brown bg-[#f0e2c4]" : ""}`}
-                      onClick={() => {
-                        setDraft((current) => ({
-                          ...current,
-                          answerDetail: option.id,
-                        }));
-                        setSaved(false);
-                      }}
-                    >
-                      <span className="font-semibold">{option.label}</span>
-                      <span className="text-xs font-normal text-quest-card-muted">
-                        {option.description}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </fieldset>
+            <ChoiceFieldset
+              legend="回答の詳しさ"
+              options={ANSWER_DETAIL_OPTIONS}
+              value={draft.answerDetail}
+              disabled={loading || saving}
+              onChange={(answerDetail) => updateDraft({ answerDetail })}
+            />
 
             <fieldset disabled={loading || saving}>
               <label
@@ -243,12 +231,9 @@ export default function UserSettingsDialog({
                       : ""
                   }
                   onChange={(event) => {
-                    const value = event.currentTarget.valueAsNumber;
-                    setDraft((current) => ({
-                      ...current,
-                      learningReviewEvery: value,
-                    }));
-                    setSaved(false);
+                    updateDraft({
+                      learningReviewEvery: event.currentTarget.valueAsNumber,
+                    });
                   }}
                   className="w-24 rounded border border-quest-frame bg-white px-3 py-2 text-sm"
                 />
@@ -267,7 +252,10 @@ export default function UserSettingsDialog({
 
             {(saveError || saved) && (
               <p
-                className={`text-sm ${saveError ? "text-destructive" : "text-[#3e7254]"}`}
+                className={clsx(
+                  "text-sm",
+                  saveError ? "text-destructive" : "text-quest-success",
+                )}
                 role={saveError ? "alert" : "status"}
               >
                 {saveError ?? "設定を保存しました。"}
@@ -275,7 +263,7 @@ export default function UserSettingsDialog({
             )}
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-quest-card-line bg-[#fcf6e9] px-6 py-4 max-[520px]:px-4">
+          <div className="flex justify-end gap-2 border-t border-quest-card-line bg-quest-settings-footer-bg px-6 py-4 max-[520px]:px-4">
             <Button
               type="button"
               variant="questOutline"

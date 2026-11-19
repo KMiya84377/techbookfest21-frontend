@@ -71,7 +71,7 @@ def fetch_news(days: int = 1, keyword: str = "") -> list[dict]:
             continue
         if published < since:
             continue
-        categories = [c.text or "" for c in item.findall("category")]
+        categories = [category.text or "" for category in item.findall("category")]
         title = _plain_text(item.findtext("title", default=""))
         text = _plain_text(item.findtext("description", default=""))
         services = _services_of(categories)
@@ -87,7 +87,7 @@ def fetch_news(days: int = 1, keyword: str = "") -> list[dict]:
                 "text": text[:TEXT_LIMIT],
             }
         )
-    news.sort(key=lambda n: n["published_at"], reverse=True)
+    news.sort(key=lambda entry: entry["published_at"], reverse=True)
     return news
 
 
@@ -125,27 +125,27 @@ def _news_table():
 
 
 def _news_item(raw) -> dict:
-    q = raw if isinstance(raw, QuestInput) else QuestInput.model_validate(raw)
+    quest = raw if isinstance(raw, QuestInput) else QuestInput.model_validate(raw)
     return {
-        "newsId": q.id,
+        "newsId": quest.id,
         "feed": NEWS_FEED,
-        "title": q.title,
-        "services": q.services,
-        "summary": q.summary,
-        "importance": q.importance,
-        "minutes": q.minutes,
+        "title": quest.title,
+        "services": quest.services,
+        "summary": quest.summary,
+        "importance": quest.importance,
+        "minutes": quest.minutes,
         "status": "todo",
-        "publishedAt": q.published_at,
-        "source": {"label": q.source_label, "url": q.source_url},
-        "changes": q.changes,
-        "before": q.before,
-        "after": q.after,
+        "publishedAt": quest.published_at,
+        "source": {"label": quest.source_label, "url": quest.source_url},
+        "changes": quest.changes,
+        "before": quest.before,
+        "after": quest.after,
         "impact": {
-            "changes": q.impact_changes,
-            "unchanged": q.impact_unchanged,
-            "check": q.impact_check,
+            "changes": quest.impact_changes,
+            "unchanged": quest.impact_unchanged,
+            "check": quest.impact_check,
         },
-        "checks": q.checks,
+        "checks": quest.checks,
     }
 
 
@@ -171,19 +171,19 @@ def save_quests(quests: list[QuestInput]) -> dict:
     skipped: list[str] = []
     for raw in quests:
         # ツールの引数は、辞書で渡されることがある
-        q = raw if isinstance(raw, QuestInput) else QuestInput.model_validate(raw)
-        item = _news_item(q)
+        quest = raw if isinstance(raw, QuestInput) else QuestInput.model_validate(raw)
+        item = _news_item(quest)
         try:
             # 同じクエストは、上書きしない(重要度などが、毎回変わらないようにする)
             news_table.put_item(Item=item, ConditionExpression="attribute_not_exists(newsId)")
-            saved.append(q.id)
+            saved.append(quest.id)
         except ClientError as error:
             if error.response["Error"]["Code"] == "ConditionalCheckFailedException":
-                skipped.append(q.id)
+                skipped.append(quest.id)
             else:
-                return _save_failed("保存に失敗しました", q.id, error, saved)
+                return _save_failed("保存に失敗しました", quest.id, error, saved)
         except Exception as error:  # 想定外の形のデータなど
-            return _save_failed("保存に失敗しました", q.id, error, saved)
+            return _save_failed("保存に失敗しました", quest.id, error, saved)
     return {"saved": saved, "skipped_existing": skipped}
 
 

@@ -5,15 +5,19 @@ import {
   useCopilotKit,
 } from "@copilotkit/react-core/v2";
 import { z } from "zod";
+import {
+  parseToolResult,
+  type HumanInTheLoopProps,
+} from "../../lib/copilotkit/toolResult";
 import { Button } from "../ui/button";
 import { useQuestActions } from "../quests/QuestActions";
-import ChatCard from "./ChatCard";
+import ChatCard from "../chat/ChatCard";
 import OptionButtons from "./OptionButtons";
 
 // 回答の結果の背景色
 const RESULT_CLASS = {
-  correct: "bg-[color-mix(in_srgb,#3e7254_18%,transparent)]",
-  wrong: "bg-[color-mix(in_srgb,#77362e_16%,transparent)]",
+  correct: "bg-[color-mix(in_srgb,var(--quest-success)_18%,transparent)]",
+  wrong: "bg-[color-mix(in_srgb,var(--quest-wrong)_16%,transparent)]",
 } as const;
 
 // エージェントが、ツール呼び出し(show_quiz)の引数として渡す、理解度チェックの問題
@@ -28,26 +32,22 @@ export const quizSchema = z.object({
 type QuizProps = z.infer<typeof quizSchema>;
 
 // エージェントに返す、初回の回答の内容
-interface QuizAnswer {
-  selectedIndex: number;
-  selectedOption: string;
-  correct: boolean;
-}
+const quizAnswerSchema = z.object({
+  selectedIndex: z.number(),
+  selectedOption: z.string(),
+  correct: z.boolean(),
+});
+type QuizAnswer = z.infer<typeof quizAnswerSchema>;
 
-interface Props extends Partial<QuizProps> {
-  // 回答を、エージェントに返す関数(エージェントの応答待ちの間だけ、渡される)
-  respond?: (result: unknown) => Promise<void>;
-  // 回答済みのときの、エージェントに返した内容(JSON の文字列)
-  result?: string;
-}
+// 回答の結果(null は、まだ回答していない)
+type Outcome = "correct" | "wrong" | null;
 
-function parseFirstResult(result?: string): "correct" | "wrong" | null {
-  if (!result) return null;
-  try {
-    return (JSON.parse(result) as QuizAnswer).correct ? "correct" : "wrong";
-  } catch {
-    return null;
-  }
+type Props = Partial<QuizProps> & HumanInTheLoopProps;
+
+function parseFirstResult(result?: string): Outcome {
+  const answer = parseToolResult(result, quizAnswerSchema);
+  if (!answer) return null;
+  return answer.correct ? "correct" : "wrong";
 }
 
 // 引数は、ストリーミングで少しずつ届くため、届いていない項目は undefined になる
@@ -68,12 +68,10 @@ export default function Quiz(props: Props) {
   const { agent } = useAgent({ updates: [UseAgentUpdate.OnRunStatusChanged] });
   const { copilotkit } = useCopilotKit();
   const [selected, setSelected] = useState<number | null>(null);
-  // 直近の回答の結果(null は、まだ回答していない)
-  const [result, setResult] = useState<"correct" | "wrong" | null>(null);
+  // 直近の回答の結果
+  const [result, setResult] = useState<Outcome>(null);
   // 初回の回答の結果。再回答しても、上書きしない
-  const [firstResult, setFirstResult] = useState<"correct" | "wrong" | null>(
-    null,
-  );
+  const [firstResult, setFirstResult] = useState<Outcome>(null);
   // 再読み込みなどで画面の状態が失われても、エージェントに返した内容から、初回の結果を復元する
   const first = firstResult ?? parseFirstResult(returned);
 
@@ -136,7 +134,7 @@ export default function Quiz(props: Props) {
       </div>
       <p className="mb-2.5 font-medium">{question}</p>
       <OptionButtons
-        options={options.map((label, i) => ({ id: String(i), label }))}
+        options={options.map((label, index) => ({ id: String(index), label }))}
         selectionMode="single"
         selectedIds={selected === null ? [] : [String(selected)]}
         onSelectionChange={(ids) =>
@@ -191,7 +189,7 @@ export default function Quiz(props: Props) {
             aria-label="次の操作"
           >
             {actions.statusOf(questId) === "cleared" ? (
-              <span className="font-medium text-[#3e7254]" role="status">
+              <span className="font-medium text-quest-success" role="status">
                 クリア済みです{actions.isReview(questId) && "(復習候補)"}
               </span>
             ) : (

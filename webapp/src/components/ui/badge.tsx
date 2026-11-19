@@ -9,9 +9,9 @@ const badgeVariants = cva(
       variant: {
         default: "border-[var(--line)] bg-[var(--paper-2)] text-[var(--ink)]",
         outline: "border-current bg-transparent text-current",
-        news: "border-[#315d3e]/45 bg-[#315d3e]/10 text-[#315d3e]",
+        news: "border-quest-badge-news/45 bg-quest-badge-news/10 text-quest-badge-news",
         ai: "border-[var(--wax)]/45 bg-[var(--wax)]/10 text-[var(--wax)]",
-        chat: "border-[#5a4a1f]/45 bg-[#5a4a1f]/10 text-[#5a4a1f]",
+        chat: "border-quest-badge-chat/45 bg-quest-badge-chat/10 text-quest-badge-chat",
         condition:
           "border-[var(--line)]/55 bg-[var(--paper)] text-[var(--ink)]",
       },

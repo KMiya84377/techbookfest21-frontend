@@ -1,4 +1,5 @@
 import type { APIContext, APIRoute } from "astro";
+import { BLOCKS_LOCAL } from "../../lib/blocks/config";
 import { authenticate } from "../../server/auth/authenticate";
 import { requestLogger } from "./_logger";
 import { measureApi } from "./_metrics";
@@ -22,7 +23,8 @@ export async function readJson(request: Request): Promise<unknown | undefined> {
   }
 }
 
-export const badRequest = (message = "リクエストの形式が不正です") => json({ error: message }, 400);
+export const badRequest = (message = "リクエストの形式が不正です") =>
+  json({ error: message }, 400);
 
 type UserContext = APIContext & {
   userId: string;
@@ -32,10 +34,26 @@ type UserContext = APIContext & {
 // ログインを確認し、ユーザー ID とリクエスト用のロガーを渡す。未ログインなら 401 を返す。
 // 結果(件数・処理時間)は、route ごとのメトリクスとして記録する(例外で終わったときは 5xx 扱い)
 export const withUser =
-  (route: string, handler: (context: UserContext) => Promise<Response>): APIRoute =>
+  (
+    route: string,
+    handler: (context: UserContext) => Promise<Response>,
+  ): APIRoute =>
   (context) =>
     measureApi(route, async () => {
       const userId = await authenticate(context.request);
       if (!userId) return json({ error: "Unauthorized" }, 401);
       return handler({ ...context, userId, log: requestLogger(route, userId) });
     });
+
+// ローカル開発でだけ使う API(_local/)。Blocks のローカル構成のときだけ動かし、
+// mock モードでは、認証より先に 404 を返す
+export const localOnly = (
+  route: string,
+  handler: Parameters<typeof withUser>[1],
+): APIRoute => {
+  const authenticated = withUser(route, handler);
+  return (context) =>
+    BLOCKS_LOCAL
+      ? authenticated(context)
+      : Promise.resolve(json({ error: "Not found" }, 404));
+};

@@ -11,16 +11,26 @@ const SAMPLES: Omit<Quest, "publishedAt">[] = [
     importance: "high",
     minutes: 5,
     status: "todo",
-    source: { label: "AWS What's New(サンプル)", url: "https://aws.amazon.com/new/" },
-    changes: ["AG-UI のプロトコルを指定して、Runtime を作れる", "エージェントは、/invocations で SSE を返す"],
-    before: "フロントエンドとエージェントの間に、独自の中継層を作って運用する。",
+    source: {
+      label: "AWS What's New(サンプル)",
+      url: "https://aws.amazon.com/new/",
+    },
+    changes: [
+      "AG-UI のプロトコルを指定して、Runtime を作れる",
+      "エージェントは、/invocations で SSE を返す",
+    ],
+    before:
+      "フロントエンドとエージェントの間に、独自の中継層を作って運用する。",
     after: "Runtime の AG-UI エンドポイントへ、直接つなぐ選択肢が増える。",
     impact: {
       changes: "接続方式と、認証の境界を見直せる",
       unchanged: "Generative UI の部品づくりは必要",
       check: "CopilotRuntime を残す理由があるか",
     },
-    checks: ["認証方式(SigV4 か JWT か)", "ストリーミングの経路と、タイムアウト"],
+    checks: [
+      "認証方式(SigV4 か JWT か)",
+      "ストリーミングの経路と、タイムアウト",
+    ],
   },
   {
     id: "lambda-streaming",
@@ -31,8 +41,14 @@ const SAMPLES: Omit<Quest, "publishedAt">[] = [
     importance: "medium",
     minutes: 4,
     status: "todo",
-    source: { label: "AWS What's New(サンプル)", url: "https://aws.amazon.com/new/" },
-    changes: ["ストリーミング応答の扱いに、変更がある", "対象のランタイムと制限値を確認する"],
+    source: {
+      label: "AWS What's New(サンプル)",
+      url: "https://aws.amazon.com/new/",
+    },
+    changes: [
+      "ストリーミング応答の扱いに、変更がある",
+      "対象のランタイムと制限値を確認する",
+    ],
     before: "応答をまとめて返すか、独自にストリームの経路を用意する。",
     after: "新しい制約を踏まえて、SSE の経路とタイムアウトを設計し直せる。",
     impact: {
@@ -51,7 +67,10 @@ const SAMPLES: Omit<Quest, "publishedAt">[] = [
     importance: "medium",
     minutes: 6,
     status: "viewed",
-    source: { label: "AWS ニュースブログ(サンプル)", url: "https://aws.amazon.com/blogs/aws/" },
+    source: {
+      label: "AWS ニュースブログ(サンプル)",
+      url: "https://aws.amazon.com/blogs/aws/",
+    },
     changes: ["新しいモデルバージョンが選べる", "料金とコンテキスト長が異なる"],
     before: "既存モデルを前提に、プロンプトとコストを最適化している。",
     after: "新モデルを候補に加え、品質、速度、料金を同じ条件で比べられる。",
@@ -70,7 +89,10 @@ const SAMPLES: Omit<Quest, "publishedAt">[] = [
     importance: "low",
     minutes: 3,
     status: "cleared",
-    source: { label: "AWS What's New(サンプル)", url: "https://aws.amazon.com/new/" },
+    source: {
+      label: "AWS What's New(サンプル)",
+      url: "https://aws.amazon.com/new/",
+    },
     changes: ["料金の体系に、変更がある", "対象のリクエスト種別を確認する"],
     before: "旧料金を前提に、月額コストを見積もっていた。",
     after: "新料金の対象範囲を反映して、見積もりを更新する。",
@@ -87,6 +109,8 @@ const SAMPLES: Omit<Quest, "publishedAt">[] = [
 export function buildSampleQuests(now = new Date()): Quest[] {
   return SAMPLES.map((q, i) => ({
     ...q,
-    publishedAt: new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString(),
+    publishedAt: new Date(
+      now.getTime() - i * 24 * 60 * 60 * 1000,
+    ).toISOString(),
   }));
 }

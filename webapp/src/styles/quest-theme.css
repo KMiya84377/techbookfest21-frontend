@@ -28,6 +28,99 @@
   --quest-card-muted: #746b5c;
   --quest-frame: #b99a67;
   --quest-brown: #74532b;
+  /* 画面の部品ごとの色(components/ のクラスから、名前で参照する) */
+  /* フォーカスの枠 */
+  --quest-focus: #e6c98f;
+  --quest-focus-card: #efdaa4;
+  --quest-focus-tab: #d4b780;
+  /* エラーの表示 */
+  --quest-error-line: #d97a7a;
+  --quest-error-bg: #fff2f2;
+  --quest-error-hover: #fbe2e2;
+  --quest-error-box-line: #b98476;
+  /* 理解度チェックの結果・保存の成功 */
+  --quest-success: #3e7254;
+  --quest-wrong: #77362e;
+  /* バッジと通知の印 */
+  --quest-badge-news: #315d3e;
+  --quest-badge-chat: #5a4a1f;
+  --quest-unread-badge: #9a493b;
+  --quest-busy-dot: #d3b276;
+  /* ボードの飾りとスクロールバー */
+  --quest-ornament: #aa8955;
+  --quest-ornament-shadow: #000;
+  --quest-scrollbar-thumb: #9b7847;
+  --quest-scrollbar-track: #312217;
+  /* ボタン(ui/button.tsx の quest 系の variant) */
+  --quest-primary-hover: #5f4324;
+  --quest-outline-hover: #f4e5bd;
+  --quest-tavern-line: #d3b276;
+  --quest-tavern-bg: #24352fee;
+  --quest-tavern-ink: #f8e7c0;
+  --quest-tavern-shadow: #120b08b8;
+  --quest-tavern-inner-line: #ffffff12;
+  --quest-tavern-hover: #304536;
+  /* ボード右上のボタン(設定) */
+  --quest-corner-button-line: #c2a36888;
+  --quest-corner-button-bg: #241a13e8;
+  --quest-corner-button-ink: #e6d2aa;
+  /* ダイアログ */
+  --quest-backdrop: #120d09;
+  --quest-dialog-shadow: #0009;
+  /* チャット欄 */
+  --quest-chat-line: #a489584f;
+  --quest-chat-shadow: #0007;
+  --quest-chat-popup-line: #c2a36899;
+  --quest-chat-popup-shadow: #000b;
+  --quest-chat-backdrop: #0e0a08a6;
+  --quest-chat-button-line: #8e764e88;
+  --quest-chat-button-bg: #ead9b5e6;
+  --quest-chat-button-ink: #55432d;
+  --quest-chat-button-shadow: #2c1b0c55;
+  --quest-chat-open-dot: #a4cdb3;
+  --quest-chat-open-glow: #72af8e;
+  /* クエストの詳細 */
+  --quest-detail-panel: #bca27222;
+  --quest-detail-compare: #f0e4c488;
+  --quest-detail-back-line: #b4976655;
+  --quest-detail-back-bg: #21170fc9;
+  --quest-detail-back-hover: #302116;
+  --quest-detail-services: #78603c;
+  /* 選択肢のボタン */
+  --quest-option-mark-line: #9b7847;
+  /* クエストボード(タブ) */
+  --quest-tab-ink: #d7c09a;
+  --quest-tab-selected-line: #c4a46b;
+  --quest-tab-selected-bg: #c9ad7920;
+  --quest-tab-selected-ink: #ffe6b9;
+  --quest-tab-selected-glow: #d2b27012;
+  --quest-tab-hover-bg: #c9ad7928;
+  --quest-tab-hover-ink: #fff1d2;
+  /* クエストボード(依頼書の紙) */
+  --quest-sheet-shadow: #130b0890;
+  --quest-sheet-shadow-hover: #130b0899;
+  --quest-sheet-turn-shadow: #50341555;
+  --quest-pin-line: #493a23;
+  --quest-sheet-header-line: #7d60344f;
+  --quest-sheet-header-ink: #725a38;
+  --quest-sheet-summary: #59482f;
+  --quest-sheet-services: #685338;
+  --quest-sheet-services-line: #8d744b66;
+  --quest-status-cleared: #405e45;
+  --quest-status-viewed: #405c5c;
+  --quest-status-todo: #715937;
+  --quest-sheet-minutes: #6d5a40;
+  --quest-sheet-importance: #776043;
+  /* クエストボード(下の飾り) */
+  --quest-board-footer: #c4ad84;
+  --quest-board-footer-line: #a78b6055;
+  --quest-board-emblem: #c4a36c;
+  /* 通知・学習設定 */
+  --quest-notice-hover: #ecdcba;
+  --quest-diagram-bg: #fffdf8;
+  --quest-settings-notice-bg: #f9f0df;
+  --quest-selected-bg: #f0e2c4;
+  --quest-settings-footer-bg: #fcf6e9;
   --font-tavern:
     "Palatino Linotype", "Book Antiqua", "Yu Mincho", "Hiragino Mincho ProN",
     Georgia, serif;
@@ -72,4 +165,6 @@ body {
   border-color: #77362e;
   color: #fffaf0;
 }
-.quest-auth-shell .bb-button { font-family: inherit; }
+.quest-auth-shell .bb-button {
+  font-family: inherit;
+}

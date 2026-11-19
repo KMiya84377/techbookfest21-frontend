@@ -11,8 +11,13 @@ test("理解度チェックの初回の回答を追記しても、クエスト�
   await mockQuestStore.recordQuizAnswer(user, id, true);
   await mockQuestStore.recordQuizAnswer(user, id, false);
   const record = mockQuestRecord(user, id);
-  assert.deepEqual(record.quizAnswers.map((a) => a.correct), [true, false]);
-  assert.ok(record.quizAnswers.every((a) => !Number.isNaN(Date.parse(a.answeredAt))));
+  assert.deepEqual(
+    record.quizAnswers.map((a) => a.correct),
+    [true, false],
+  );
+  assert.ok(
+    record.quizAnswers.every((a) => !Number.isNaN(Date.parse(a.answeredAt))),
+  );
   const quests = await mockQuestStore.list(user);
   assert.equal(quests.find((q) => q.id === id)?.status, "viewed");
 });
@@ -28,5 +33,7 @@ test("初めて詳細を開いた日時は、1度だけ残る", async () => {
 });
 
 test("存在しないクエストへの回答は、保存しない", async () => {
-  await assert.rejects(mockQuestStore.recordQuizAnswer("quiz-user-3", "no-such-news", true));
+  await assert.rejects(
+    mockQuestStore.recordQuizAnswer("quiz-user-3", "no-such-news", true),
+  );
 });

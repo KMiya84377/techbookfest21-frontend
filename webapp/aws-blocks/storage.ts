@@ -1,4 +1,9 @@
-import { AppSetting, DistributedTable, Scope, getSdkIdentifiers } from "@aws-blocks/blocks";
+import {
+  AppSetting,
+  DistributedTable,
+  Scope,
+  getSdkIdentifiers,
+} from "@aws-blocks/blocks";
 import { z } from "zod";
 import { AGENT_RUNTIME_PARAMETER, NEWS_FEED } from "./constants";
 
@@ -59,7 +64,7 @@ export const settings = new DistributedTable(scope, "user-settings", {
       learningTopics: z.array(z.string()),
       difficulty: z.string(),
       answerDetail: z.string(),
-      learningReviewEvery: z.number().optional(),
+      learningReviewEvery: z.number(),
       updatedAt: z.string().optional(),
     })
     .strict(),
@@ -77,6 +82,10 @@ if (
 }
 
 // AIエージェントは別のデプロイ単位。接続先はそのスタックが管理するSSMから読む。
-export const agentRuntimeSetting = AppSetting.fromExisting(scope, "chat-runtime", {
-  name: AGENT_RUNTIME_PARAMETER,
-});
+export const agentRuntimeSetting = AppSetting.fromExisting(
+  scope,
+  "chat-runtime",
+  {
+    name: AGENT_RUNTIME_PARAMETER,
+  },
+);

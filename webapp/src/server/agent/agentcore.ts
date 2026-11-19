@@ -4,11 +4,8 @@ import { Sha256 } from "@aws-crypto/sha256-js";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { HttpRequest } from "@smithy/protocol-http";
 import { SignatureV4 } from "@smithy/signature-v4";
+import { createHash } from "node:crypto";
 import { userContext, withUserId } from "./userContext";
-
-// セッション ID の長さの制約(InvokeAgentRuntime の runtimeSessionId)
-const SESSION_ID_MIN_LENGTH = 33;
-const SESSION_ID_MAX_LENGTH = 256;
 
 // AgentCore Runtime の ARN から、リージョンを取り出す
 // 例: arn:aws:bedrock-agentcore:ap-northeast-1:123456789012:runtime/xxxx
@@ -18,11 +15,13 @@ const regionOf = (arn: string): string => {
   return region;
 };
 
-// AG-UI の threadId から、AgentCore のセッション ID を作る(同じスレッドは同じセッション)
-const sessionIdOf = (threadId: string): string => {
-  const padded = threadId.padEnd(SESSION_ID_MIN_LENGTH, "0");
-  return padded.slice(0, SESSION_ID_MAX_LENGTH);
-};
+// 検証済みのユーザー ID と AG-UI の threadId から、AgentCore のセッション ID を作る。
+// threadId はブラウザーが決めるので、ユーザー ID を含めて、別のユーザーと同じセッションにならないようにする。
+// SHA-256 の 16 進数(64 文字)は、runtimeSessionId の長さの制約(33〜256 文字)を満たす
+const sessionIdOf = (userId: string, threadId: string): string =>
+  createHash("sha256")
+    .update(JSON.stringify([userId, threadId]))
+    .digest("hex");
 
 // リクエストに SigV4 で署名して送る fetch(サービス名は bedrock-agentcore)
 const createSigV4Fetch = (region: string): HttpAgentFetchFn => {
@@ -37,13 +36,17 @@ const createSigV4Fetch = (region: string): HttpAgentFetchFn => {
     const target = new URL(url);
     // 検証済みのユーザー ID を、本文に入れる(署名は、この本文に対して行う)
     const body = withUserId(typeof init.body === "string" ? init.body : "");
-    const threadId = (JSON.parse(body || "{}") as { threadId?: string }).threadId ?? "default";
+    const threadId =
+      (JSON.parse(body || "{}") as { threadId?: string }).threadId ?? "default";
     const userId = userContext.getStore()?.userId;
     const headers: Record<string, string> = {
       host: target.host,
       "content-type": "application/json",
       accept: "text/event-stream",
-      "x-amzn-bedrock-agentcore-runtime-session-id": sessionIdOf(threadId),
+      "x-amzn-bedrock-agentcore-runtime-session-id": sessionIdOf(
+        userId ?? "",
+        threadId,
+      ),
     };
     // このユーザー ID は、サーバーが認証したリクエストのものだけを使う(ブラウザーの入力は使わない)
     if (userId) {

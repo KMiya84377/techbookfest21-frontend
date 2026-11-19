@@ -1,3 +1,6 @@
+import { Toggle } from "@base-ui/react/toggle";
+import { clsx } from "cn";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { Button } from "../ui/button";
 
 export interface OptionButtonItem {
@@ -19,14 +22,15 @@ const OPTION_CLASS =
 // 選択中の選択肢(ホバーしても、色を変えない)
 const OPTION_SELECTED_CLASS = [
   "border-quest-brown",
-  "bg-[color-mix(in_srgb,#74532b_14%,transparent)]",
-  "hover:bg-[color-mix(in_srgb,#74532b_14%,transparent)]",
+  "bg-[color-mix(in_srgb,var(--quest-brown)_14%,transparent)]",
+  "hover:bg-[color-mix(in_srgb,var(--quest-brown)_14%,transparent)]",
 ].join(" ");
 // 選択肢の左の丸(単一選択)・四角(複数選択)の印
 const MARK_CLASS =
-  "mt-0.5 flex size-4 shrink-0 items-center justify-center border border-[#9b7847] text-[10px] leading-none";
+  "mt-0.5 flex size-4 shrink-0 items-center justify-center border border-quest-option-mark-line text-[10px] leading-none";
 
 // 選択内容だけを差し替え、クイズや確認UIで共通して使う選択ボタン。
+// 単一選択でも再クリックで解除できるため、RadioGroupではなくToggleGroupを使う。
 export default function OptionButtons({
   options,
   selectionMode,
@@ -34,37 +38,32 @@ export default function OptionButtons({
   onSelectionChange,
   disabled = false,
 }: Props) {
-  const toggle = (id: string) => {
-    if (selectionMode === "single") {
-      onSelectionChange(selectedIds.includes(id) ? [] : [id]);
-      return;
-    }
-
-    onSelectionChange(
-      selectedIds.includes(id)
-        ? selectedIds.filter((selectedId) => selectedId !== id)
-        : [...selectedIds, id],
-    );
-  };
-
   return (
-    <div className="grid gap-1.5" role="group" aria-label="選択肢">
+    <ToggleGroup
+      className="grid gap-1.5"
+      aria-label={
+        selectionMode === "single" ? "選択肢（単一選択）" : "選択肢（複数選択）"
+      }
+      orientation="vertical"
+      multiple={selectionMode === "multiple"}
+      value={selectedIds}
+      onValueChange={onSelectionChange}
+      disabled={disabled}
+    >
       {options.map((option) => {
         const selected = selectedIds.includes(option.id);
         return (
-          <Button
+          <Toggle
             key={option.id}
-            type="button"
-            aria-pressed={selected}
-            disabled={disabled}
-            variant="questOutline"
-            className={`${OPTION_CLASS} ${selected ? OPTION_SELECTED_CLASS : ""}`}
-            onClick={() => toggle(option.id)}
+            value={option.id}
+            render={<Button type="button" variant="questOutline" />}
+            className={clsx(OPTION_CLASS, selected && OPTION_SELECTED_CLASS)}
           >
             <span
-              className={`${MARK_CLASS} ${
-                selectionMode === "single" ? "rounded-full" : "rounded-[2px]"
-              }`}
+              className={clsx(
+                MARK_CLASS,
+                selectionMode === "single" ? "rounded-full" : "rounded-[2px]",
+              )}
               aria-hidden="true"
             >
               {selected ? (selectionMode === "single" ? "●" : "✓") : null}
@@ -77,9 +76,9 @@ export default function OptionButtons({
                 </span>
               )}
             </span>
-          </Button>
+          </Toggle>
         );
       })}
-    </div>
+    </ToggleGroup>
   );
 }

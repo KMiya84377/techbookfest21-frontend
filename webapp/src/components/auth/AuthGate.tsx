@@ -6,12 +6,12 @@ type Children = (getToken: () => string) => ReactNode;
 
 // ログインするまで、Blocks のログイン画面を出す。ログイン後は、アクセストークンを返す関数を子へ渡す
 export default function AuthGate({ children }: { children: Children }) {
-  // Blocks の Authenticator(React ではない DOM 部品)を差し込む場所
   const mount = useRef<HTMLDivElement>(null);
-  // 描画し直さずに最新のトークンを渡すため、state ではなく参照で持つ
   const token = useRef("");
+
   const [signedIn, setSignedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     let active = true;
     const host = mount.current;
@@ -47,6 +47,7 @@ export default function AuthGate({ children }: { children: Children }) {
         },
       }),
     );
+
     // セッションから、アクセストークンを取得し直す
     const refresh = async () => {
       try {
@@ -64,6 +65,7 @@ export default function AuthGate({ children }: { children: Children }) {
         }
       }
     };
+
     const unsubscribe = onAuthChange(authApi, async (user) => {
       if (user) await refresh();
       else if (active) {
@@ -71,6 +73,7 @@ export default function AuthGate({ children }: { children: Children }) {
         setSignedIn(false);
       }
     });
+
     // サーバー側のセッションのトークンに追従するため、ログイン中は 5 分ごとに取得し直す
     const timer = setInterval(
       () => {
@@ -85,6 +88,7 @@ export default function AuthGate({ children }: { children: Children }) {
       host?.replaceChildren();
     };
   }, []);
+
   return (
     <>
       {/* grid クラスが hidden 属性の display: none を上書きするため、style でも隠す */}

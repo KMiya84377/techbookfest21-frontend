@@ -1,19 +1,23 @@
 import { useState } from "react";
 import { z } from "zod";
+import {
+  parseToolResult,
+  type HumanInTheLoopProps,
+} from "../../lib/copilotkit/toolResult";
 import { Button } from "../ui/button";
-import ChatCard from "./ChatCard";
-import OptionButtons, { type OptionButtonItem } from "./OptionButtons";
+import ChatCard from "../chat/ChatCard";
+import OptionButtons from "./OptionButtons";
+
+const optionSchema = z.object({
+  id: z.string().min(1).describe("選択肢を識別する一意な ID"),
+  label: z.string().min(1).describe("選択肢の短いラベル"),
+  description: z.string().optional().describe("選択肢の補足説明"),
+});
 
 export const choicePromptSchema = z.object({
   question: z.string().min(1).describe("ユーザーに選んでもらう質問"),
   options: z
-    .array(
-      z.object({
-        id: z.string().min(1).describe("選択肢を識別する一意な ID"),
-        label: z.string().min(1).describe("選択肢の短いラベル"),
-        description: z.string().optional().describe("選択肢の補足説明"),
-      }),
-    )
+    .array(optionSchema)
     .min(2)
     .max(6)
     .describe("ユーザーが選ぶ候補。2〜6 件"),
@@ -23,42 +27,13 @@ export const choicePromptSchema = z.object({
 });
 
 type ChoicePromptArgs = z.infer<typeof choicePromptSchema>;
-type ChoicePromptResult = {
-  selectedOptions: OptionButtonItem[];
-};
 
-interface Props extends Partial<ChoicePromptArgs> {
-  respond?: (result: unknown) => Promise<void>;
-  result?: string;
-}
+// エージェントに返した、選択の結果
+const choicePromptResultSchema = z.object({
+  selectedOptions: z.array(optionSchema),
+});
 
-function parseResult(result?: string): ChoicePromptResult | null {
-  if (!result) return null;
-  try {
-    const value: unknown = JSON.parse(result);
-    if (
-      typeof value === "object" &&
-      value !== null &&
-      "selectedOptions" in value &&
-      Array.isArray(value.selectedOptions)
-    ) {
-      return {
-        selectedOptions: value.selectedOptions.filter(
-          (option): option is OptionButtonItem =>
-            typeof option === "object" &&
-            option !== null &&
-            "id" in option &&
-            typeof option.id === "string" &&
-            "label" in option &&
-            typeof option.label === "string",
-        ),
-      };
-    }
-  } catch {
-    // 届きかけ・壊れた結果は無視して、選択肢の表示を続ける
-  }
-  return null;
-}
+type Props = Partial<ChoicePromptArgs> & HumanInTheLoopProps;
 
 // 固定レイアウトに、エージェントが渡した質問と選択肢だけを差し込む。
 export default function ChoicePrompt({
@@ -71,7 +46,8 @@ export default function ChoicePrompt({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [sendFailed, setSendFailed] = useState(false);
-  const response = parseResult(returned);
+  // 届きかけ・壊れた結果は null になり、選択肢の表示を続ける
+  const response = parseToolResult(returned, choicePromptResultSchema);
 
   const ready =
     question && options && options.length >= 2 && selectionMode !== undefined;

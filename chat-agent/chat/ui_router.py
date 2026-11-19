@@ -26,12 +26,11 @@ UI_DESTINATIONS = {
     "generateSandboxedUi": "既存のUIでは表現しにくい図表や専用の可視化を生成する",
 }
 DETAIL_TOOLS = {"update_quest_detail"}
-UI_TOOLS = set(UI_DESTINATIONS)
 NO_UI = "none"
 NO_UI_DESCRIPTION = "専用UIは不要で、通常のテキストで回答する"
 
 # Web アプリは、詳細を開いているクエストの context の先頭に、この目印を付ける
-# (webapp/src/components/generative-ui/GenerativeUI.tsx。両方を合わせる)
+# (webapp/src/hooks/copilotkit/useScreenContext.ts。両方を合わせる)
 OPENED_QUEST_CONTEXT_MARKER = "[opened_quest]"
 
 # invocation_state のキー。推奨は、1 回の実行につき 1 度だけ求め、

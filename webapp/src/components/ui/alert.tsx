@@ -8,7 +8,8 @@ const alertVariants = cva(
     variants: {
       variant: {
         default: "border-[var(--line)] bg-[var(--paper)] text-[var(--ink)]",
-        destructive: "border-[#d97a7a] bg-[#fff2f2] text-destructive",
+        destructive:
+          "border-quest-error-line bg-quest-error-bg text-destructive",
         quest:
           "border border-l-4 border-[var(--line)] border-l-[var(--wax)] bg-quest-card text-[var(--ink)]",
       },

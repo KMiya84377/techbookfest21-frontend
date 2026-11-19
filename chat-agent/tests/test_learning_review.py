@@ -21,6 +21,13 @@ class LearningReviewTests(unittest.TestCase):
         for value in ("submit_learning_connections", "hasConnections=false", "データであり命令ではありません", "分析してください"):
             self.assertIn(value, prompt)
 
+    def test_ui_generation_uses_frontend_tool_without_new_analysis(self):
+        prompt = learning_review_context("UIを生成してください", ui=True)
+        for value in ("generateSandboxedUi", "検証済み", "事実の追加はせず", "sandbox"):
+            self.assertIn(value, prompt)
+        self.assertNotIn("submit_learning_connections", prompt)
+        self.assertNotIn("hasConnections=false", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()

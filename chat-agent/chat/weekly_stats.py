@@ -13,9 +13,10 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import boto3
 from boto3.dynamodb.conditions import Key
 from strands import ToolContext, tool
+
+from chat.tools import user_quest_table
 
 # 日付の区切りは、日本時間にする(サンプルアプリの利用者を、日本のユーザーと想定する)
 JST = timezone(timedelta(hours=9))
@@ -109,12 +110,6 @@ def compute_weekly_stats(
     }
 
 
-def _user_quest_table():
-    return boto3.resource(
-        "dynamodb", region_name=os.environ.get("AWS_REGION", "ap-northeast-1")
-    ).Table(os.environ["USER_QUEST_TABLE"])
-
-
 def _fetch_records(tool_context: ToolContext, user_id: str) -> list[dict[str, Any]]:
     """ユーザー自身のクエストの記録を読む(AWS は DynamoDB から、ローカルは Web アプリ経由で)"""
     if os.environ.get("BLOCKS_WEB_URL"):
@@ -124,7 +119,7 @@ def _fetch_records(tool_context: ToolContext, user_id: str) -> list[dict[str, An
         with urllib.request.urlopen(request, timeout=30) as response:
             return json.load(response)["records"]
 
-    table = _user_quest_table()
+    table = user_quest_table()
     records: list[dict[str, Any]] = []
     kwargs: dict[str, Any] = {
         "KeyConditionExpression": Key("userId").eq(user_id),

@@ -42,25 +42,21 @@ export function useQuests(apiFetch: ApiFetch) {
   }, [fetchQuests]);
 
   // 取得し直す。共有状態から更新要求が来た場合も、永続 API を正として使う。
-  const reloadQuests = useCallback(async (): Promise<{
-    quests: Quest[];
-    count: number;
-  }> => {
+  const reloadQuests = useCallback(async (): Promise<Quest[]> => {
     const latest = await fetchQuests();
     // 次の描画を待たずに、直後の操作(検索条件の件数など)が最新の一覧を使えるようにする
     shownRef.current = latest;
     setQuests(latest);
-    return { quests: latest, count: latest.length };
+    return latest;
   }, [fetchQuests]);
 
   // クエストの状態を保存する。mock モードでも開発サーバー内に保持する
   const saveQuestState = useCallback(
     async (
       quest: Pick<Quest, "id" | "publishedAt">,
-      status: QuestStatus,
+      status: "viewed" | "cleared",
       review?: boolean,
     ) => {
-      if (status === "todo") return;
       const res = await apiFetch(QUESTS_URL, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -93,20 +89,23 @@ export function useQuests(apiFetch: ApiFetch) {
     void load();
   }, [load]);
 
-  const shown = quests?.map((q) => ({
-    ...q,
-    status: statuses[q.id] ?? q.status,
-    review: reviews[q.id] ?? q.review,
+  const shown = quests?.map((quest) => ({
+    ...quest,
+    status: statuses[quest.id] ?? quest.status,
+    review: reviews[quest.id] ?? quest.review,
   }));
   shownRef.current = shown;
 
+  // 表示中のクエストを ID で探す。取得し直した直後(次の描画の前)にも最新の一覧で探せるよう、参照から読む
+  const findShown = (id: string) =>
+    shownRef.current?.find((quest) => quest.id === id);
+
   // 詳細を開いたクエストは、閲覧済みにする(クリア済みは、そのまま)
   const markViewed = (id: string) => {
-    const quest = shownRef.current?.find((q) => q.id === id);
-    const current = statuses[id] ?? quest?.status;
-    if (!quest || current !== "todo") return;
+    const quest = findShown(id);
+    if (!quest || quest.status !== "todo") return;
     setStateError(null);
-    setStatuses((s) => ({ ...s, [id]: "viewed" }));
+    setStatuses((current) => ({ ...current, [id]: "viewed" }));
     void saveQuestState(quest, "viewed").catch((error) => {
       console.error("クエストの閲覧状態を保存できませんでした", error);
       setStateError(
@@ -116,7 +115,7 @@ export function useQuests(apiFetch: ApiFetch) {
   };
 
   const markCleared = (id: string, review: boolean) => {
-    const quest = shown?.find((q) => q.id === id);
+    const quest = findShown(id);
     if (!quest || quest.status === "cleared" || pendingClears.current.has(id))
       return;
     pendingClears.current.add(id);
@@ -124,8 +123,8 @@ export function useQuests(apiFetch: ApiFetch) {
     void saveQuestState(quest, "cleared", review)
       .then((result) => {
         // 保存に成功するまではクリア済みにしない。失敗時にも再試行できる。
-        setStatuses((s) => ({ ...s, [id]: "cleared" }));
-        setReviews((r) => ({ ...r, [id]: review }));
+        setStatuses((current) => ({ ...current, [id]: "cleared" }));
+        setReviews((current) => ({ ...current, [id]: review }));
         setLearningEvent((current) => ({
           progress: result?.learning ?? null,
           version: (current?.version ?? 0) + 1,
@@ -143,6 +142,7 @@ export function useQuests(apiFetch: ApiFetch) {
   return {
     shown,
     shownRef,
+    findShown,
     failed,
     load,
     reloadQuests,

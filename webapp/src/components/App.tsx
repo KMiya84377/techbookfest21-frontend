@@ -3,7 +3,7 @@ import { CopilotKitProvider } from "@copilotkit/react-core/v2";
 import "@copilotkit/react-core/v2/styles.css";
 import "../styles/tailwind.css";
 import "../styles/quest.css";
-import { AUTH_DISABLED } from "../lib/blocks/config";
+import { AUTH_DISABLED } from "../lib/appMode";
 import { useApiFetch } from "../hooks/useApiFetch";
 import { useDetailExtras } from "../hooks/useDetailExtras";
 import { useQuestFilter } from "../hooks/useQuestFilter";
@@ -15,10 +15,9 @@ import AuthGate from "./auth/AuthGate";
 import ChatPanel from "./chat/ChatPanel";
 import ChatSuggestions from "./chat/ChatSuggestions";
 import MobileChatButton from "./chat/MobileChatButton";
-import GenerativeUI from "./generative-ui/GenerativeUI";
+import CopilotKitIntegration from "./copilotkit/CopilotKitIntegration";
 import { reportCatalog } from "./generative-ui/ReportCatalog";
 import { QuestActionsContext, type QuestActions } from "./quests/QuestActions";
-import BoardChrome from "./quests/BoardChrome";
 import QuestBoard from "./quests/QuestBoard";
 import {
   QuestLoadFailed,
@@ -28,21 +27,24 @@ import {
 import QuestDetail from "./quests/QuestDetail";
 import QuestLayout from "./quests/QuestLayout";
 import { QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL } from "../lib/generative-ui/openGenerativeUI";
-import UserSettingsDialog from "./UserSettingsDialog";
+import UserSettingsDialog from "./user-setting/UserSettingsDialog";
+import UserSettingsButton from "./user-setting/UserSettingsButton";
 import LearningNotifications from "./learning/LearningNotifications";
 
 const RUNTIME_URL = "/api/copilotkit";
 
+// getToken: アクセストークンを返す関数。渡さないとき(mock モード)は、認証ヘッダーを付けない
 function Workspace({ getToken }: { getToken?: () => string }) {
   const apiFetch = useApiFetch(getToken);
   const {
-    shown,
-    shownRef,
-    failed,
-    load,
+    displayedQuests,
+    displayedQuestsRef,
+    loadFailed,
+    loadQuests,
     reloadQuests,
     stateError,
     setStateError,
+    findDisplayedQuest,
     markViewed,
     markCleared,
     recordQuizAnswer,
@@ -70,16 +72,19 @@ function Workspace({ getToken }: { getToken?: () => string }) {
     [],
   );
   const chatRef = useRef<HTMLElement>(null);
-  const { filter, updateFilter } = useQuestFilter(shownRef);
-  const { detailExtras, updateDetail } = useDetailExtras(shownRef, openId);
-  const opened = shown?.find((q) => q.id === openId);
+  const { filter, updateFilter } = useQuestFilter(displayedQuestsRef);
+  const { detailExtras, updateDetail } = useDetailExtras(
+    displayedQuestsRef,
+    openId,
+  );
+  const opened = openId ? findDisplayedQuest(openId) : undefined;
 
   const open = (id: string) => {
     setOpenId(id);
     markViewed(id);
   };
   const openNews = async (id: string) => {
-    const { quests } = await reloadQuests();
+    const quests = await reloadQuests();
     if (!quests.some((quest) => quest.id === id))
       throw new Error("通知のニュースが見つかりません");
     open(id);
@@ -90,12 +95,26 @@ function Workspace({ getToken }: { getToken?: () => string }) {
 
   // チャット内の部品が、クエストボードの状態を読み、操作するための窓口
   const actions: QuestActions = {
-    statusOf: (id) => shown?.find((q) => q.id === id)?.status,
-    isReview: (id) => Boolean(shown?.find((q) => q.id === id)?.review),
+    statusOf: (id) => findDisplayedQuest(id)?.status,
+    isReview: (id) => Boolean(findDisplayedQuest(id)?.review),
     clear: markCleared,
     recordAnswer: (id, correct) => void recordQuizAnswer(id, correct),
     open,
     focusChat: () => chatRef.current?.querySelector("textarea")?.focus(),
+  };
+
+  // ボードの領域に出すもの: 取得に失敗した、読み込み中、クエストボードのどれか
+  const renderBoard = () => {
+    if (loadFailed) return <QuestLoadFailed onRetry={loadQuests} />;
+    if (!displayedQuests) return <QuestLoading />;
+    return (
+      <QuestBoard
+        quests={displayedQuests}
+        filter={filter}
+        onFilterChange={updateFilter}
+        onOpen={open}
+      />
+    );
   };
 
   return (
@@ -110,8 +129,8 @@ function Workspace({ getToken }: { getToken?: () => string }) {
       }}
     >
       <QuestActionsContext.Provider value={actions}>
-        <GenerativeUI
-          quests={shown ?? null}
+        <CopilotKitIntegration
+          quests={displayedQuests ?? null}
           openedId={openId}
           filter={filter}
           updateFilter={updateFilter}
@@ -125,7 +144,7 @@ function Workspace({ getToken }: { getToken?: () => string }) {
         <ChatSuggestions />
         <QuestLayout>
           <main className="board-area relative isolate min-w-0 overflow-hidden border-[11px] max-[520px]:border-[7px] max-[900px]:min-h-[660px]">
-            <BoardChrome onOpenSettings={() => setSettingsOpen(true)} />
+            <UserSettingsButton onOpenSettings={() => setSettingsOpen(true)} />
             <LearningNotifications
               insights={learningInsights.insights}
               busy={learningInsights.busy}
@@ -148,19 +167,12 @@ function Workspace({ getToken }: { getToken?: () => string }) {
                 onClose={() => setStateError(null)}
               />
             )}
-            <div aria-hidden={Boolean(opened)} inert={Boolean(opened)} className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:#9b7847_#312217] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]">
-              {failed ? (
-                <QuestLoadFailed onRetry={load} />
-              ) : !shown ? (
-                <QuestLoading />
-              ) : (
-                <QuestBoard
-                  quests={shown}
-                  filter={filter}
-                  onFilterChange={updateFilter}
-                  onOpen={open}
-                />
-              )}
+            <div
+              aria-hidden={Boolean(opened)}
+              inert={Boolean(opened)}
+              className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:var(--quest-scrollbar-thumb)_var(--quest-scrollbar-track)] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]"
+            >
+              {renderBoard()}
             </div>
             {opened && (
               <QuestDetail
@@ -192,6 +204,8 @@ function Workspace({ getToken }: { getToken?: () => string }) {
 }
 
 export default function App() {
+  // AUTH_DISABLED(開発サーバーの mock モード): ログイン画面を出さず、トークンなしで表示する
   if (AUTH_DISABLED) return <Workspace />;
+
   return <AuthGate>{(getToken) => <Workspace getToken={getToken} />}</AuthGate>;
 }

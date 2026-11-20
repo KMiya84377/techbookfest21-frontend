@@ -2,7 +2,9 @@
   "extends": "astro/tsconfigs/strict",
   "include": [
     ".astro/types.d.ts",
-    "**/*"
+    "**/*",
+    "../chat-agent/infra/**/*.ts",
+    "../batch-agent/infra/**/*.ts"
   ],
   "exclude": [
     "dist",
@@ -15,6 +17,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "aws-cdk-lib": [
+        "./node_modules/aws-cdk-lib"
+      ],
+      "aws-cdk-lib/*": [
+        "./node_modules/aws-cdk-lib/*"
       ]
     }
   }

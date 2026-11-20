@@ -1,0 +1,8 @@
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/tests/
+# Scheduler から呼ばれる Lambda のコード(イメージには入れない。直してもイメージの更新を起こさない)
+scheduler/
+# CDK の定義(イメージには入れない。直してもイメージの更新を起こさない)
+infra/

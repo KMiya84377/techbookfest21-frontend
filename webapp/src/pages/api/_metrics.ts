@@ -25,7 +25,10 @@ function recordApiRequest(route: string, status: number, durationMs: number) {
 
 // run を実行して、結果を記録する。例外で終わったときは 5xx 扱いにして、例外はそのまま投げ直す。
 // 処理時間は、レスポンスが返るまで(ストリーミングの応答は、最初の応答が返るまで)
-export async function measureApi(route: string, run: () => Promise<Response>): Promise<Response> {
+export async function measureApi(
+  route: string,
+  run: () => Promise<Response>,
+): Promise<Response> {
   const startedAt = performance.now();
   let status = 500;
   try {

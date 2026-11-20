@@ -5,6 +5,7 @@ import type { Quest } from "../src/lib/quests/model";
 export const mockRecommendations = (candidates: Quest[]): Recommendations => ({
   recommendations: candidates.slice(0, 2).map((quest) => ({
     questId: quest.id,
-    reason: "新着通知の画面確認用モックです。AIによる関心の判定ではありません。",
+    reason:
+      "新着通知の画面確認用モックです。AIによる関心の判定ではありません。",
   })),
 });

@@ -160,8 +160,7 @@
 
 .chat-area .a2ui-surface h2,
 .chat-area .a2ui-surface h3,
-.chat-area .a2ui-surface span,
-.chat-area .a2ui-surface small {
+.chat-area .a2ui-surface span {
   color: var(--ink) !important;
 }
 
@@ -175,6 +174,7 @@
   font-weight: 500;
 }
 
+/* A2UI の区切り線は、hr ではなく、高さ 1px の要素(インラインの style)で描かれるため、style 属性で探す */
 .chat-area .a2ui-surface hr,
 .chat-area .a2ui-surface [style*="height: 1px"] {
   background-color: var(--line) !important;

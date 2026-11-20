@@ -12,6 +12,10 @@ export function requestLogger(route: string, userId: string) {
 
 // API の1リクエストごとの記録(1行)。route・status 別の件数や処理時間を、Logs Insights で集計する:
 //   filter message = "API リクエスト" | stats count(*), avg(durationMs), pct(durationMs, 99) by route, status
-export function logApiRequest(route: string, status: number, durationMs: number) {
+export function logApiRequest(
+  route: string,
+  status: number,
+  durationMs: number,
+) {
   logger.info("API リクエスト", { route, status, durationMs });
 }

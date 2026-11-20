@@ -28,11 +28,21 @@ export const STATUS_LABEL: Record<QuestStatus, string> = {
   cleared: "クリア済み",
 };
 
+// 重要度の名前(検索条件の表示に使う)と、カードに出すラベル
+export const IMPORTANCE_NAME: Record<Importance, string> = {
+  high: "高",
+  medium: "中",
+  low: "低",
+};
 export const IMPORTANCE_LABEL: Record<Importance, string> = {
-  high: "重要度 高",
-  medium: "重要度 中",
-  low: "重要度 低",
+  high: `重要度 ${IMPORTANCE_NAME.high}`,
+  medium: `重要度 ${IMPORTANCE_NAME.medium}`,
+  low: `重要度 ${IMPORTANCE_NAME.low}`,
 };
 
 // 依頼書に押す印(重要度から決める)
-export const RANK: Record<Importance, string> = { high: "S", medium: "A", low: "B" };
+export const RANK: Record<Importance, string> = {
+  high: "S",
+  medium: "A",
+  low: "B",
+};

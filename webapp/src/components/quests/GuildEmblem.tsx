@@ -2,6 +2,7 @@
 export default function GuildEmblem({
   className = "",
 }: {
+  // 大きさや余白を指定する Tailwind のクラス
   className?: string;
 }) {
   return (

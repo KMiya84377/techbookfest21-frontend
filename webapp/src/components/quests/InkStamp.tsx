@@ -1,3 +1,5 @@
+import { clsx } from "cn";
+
 export default function InkStamp({
   rank,
   cleared,
@@ -7,7 +9,10 @@ export default function InkStamp({
 }) {
   return (
     <span
-      className={`ink-stamp absolute right-[14px] bottom-[19px] w-[89px] opacity-[0.86] [transform:rotate(var(--stamp-tilt))] mix-blend-multiply${cleared ? " is-cleared" : ""}`}
+      className={clsx(
+        "ink-stamp absolute right-[14px] bottom-[19px] w-[89px] opacity-[0.86] [transform:rotate(var(--stamp-tilt))] mix-blend-multiply",
+        cleared && "is-cleared",
+      )}
       aria-hidden="true"
     >
       <svg className="block w-full" viewBox="0 0 110 110" fill="none">

@@ -6,10 +6,10 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as subs from "aws-cdk-lib/aws-sns-subscriptions";
 import { BlocksPresets, BlocksStack, Hosting } from "@aws-blocks/blocks/cdk";
 import type { Construct } from "constructs";
-import { astroHostingAdapter } from "../infra/astroHostingAdapter";
-import { createAgentStacks } from "../infra/agents";
-import { configureStreamingIntegrationTimeout } from "../infra/hostingTimeout";
+import { createBatchAgentStack } from "../../batch-agent/infra/stack";
+import { createChatAgentStack } from "../../chat-agent/infra/stack";
 import { AGENT_RUNTIME_PARAMETER } from "./constants";
+import { configureStreamingIntegrationTimeout } from "./hostingTimeout";
 
 const app = new App();
 
@@ -23,7 +23,9 @@ const web = await BlocksStack.create(app, "QuestBoardWeb", {
   env,
   backendHandlerPath: path.resolve("aws-blocks/index.handler.ts"),
   backendCDKPath: path.resolve("aws-blocks/index.ts"),
-  defaults: BlocksPresets.production,
+  // API Gateway のアクセスログを有効にする(本番の既定は無効)。
+  // アカウント・リージョンで 1 つだけの CloudWatch 用ロールを作るため、同じリージョンの Blocks スタックはこれだけにする
+  defaults: { ...BlocksPresets.production, accessLogging: true },
 });
 
 // BlocksがCDK条件で読み込んだ同じリソースから接続情報を取得する。
@@ -56,15 +58,23 @@ const cfnUserPool = authConstruct.userPool.node.defaultChild;
 if (!(cfnUserPool instanceof cognito.CfnUserPool)) {
   throw new Error("招待制を設定するCognito User Poolが見つかりません");
 }
-cfnUserPool.addPropertyOverride("AdminCreateUserConfig.AllowAdminCreateUserOnly", true);
+cfnUserPool.addPropertyOverride(
+  "AdminCreateUserConfig.AllowAdminCreateUserOnly",
+  true,
+);
 
 // エージェントのスタック(対話用・定期取得用)
-createAgentStacks(
-  app,
+// 定義は、それぞれのエージェントのフォルダ(chat-agent/infra/、batch-agent/infra/)にある
+createChatAgentStack(app, {
   env,
-  { news: newsTableName, userQuests: userQuestTableName },
-  process.env.ALERT_EMAIL,
-);
+  tables: { news: newsTableName, userQuests: userQuestTableName },
+  runtimeParameterName: AGENT_RUNTIME_PARAMETER,
+});
+createBatchAgentStack(app, {
+  env,
+  newsTable: newsTableName,
+  alertEmail: process.env.ALERT_EMAIL,
+});
 
 // Hosting(Astro の SSR)
 const ssrTimeout = Duration.minutes(5);
@@ -75,8 +85,6 @@ const hosting = new Hosting(web, "Hosting", {
   api: web,
   // synth 時に実行される
   buildCommand: "npm run build",
-  // 公式アダプターが Astro 7 を読めないための差し替え
-  customAdapter: astroHostingAdapter,
   // SSR 用 Lambda。API Gatewayの統合タイムアウトも下で同じ値に設定する。
   compute: { timeout: ssrTimeout },
   // 5xx・Lambda エラーのアラーム。通知先は ALERT_EMAIL(未設定なら通知なし)
@@ -87,7 +95,7 @@ const hosting = new Hosting(web, "Hosting", {
       : [],
   },
   // SSR 用 Lambda の環境変数。BLOCKS_STACK_NAME は AWS 上かどうかの判定に、
-  // Cognito の ID は JWT の検証に使う(src/server/blocks/serverConfig.ts の serverConfig)
+  // Cognito の ID は JWT の検証に使う(src/pages/api/_server/blocks/serverConfig.ts の serverConfig)
   environment: {
     BLOCKS_STACK_NAME: web.stackName,
     COGNITO_USER_POOL_ID: userPoolId,
@@ -101,36 +109,53 @@ const ssrFunction = hosting.ssrFunction;
 if (!ssrFunction) throw new Error("Astro SSR用Lambdaがありません");
 
 // SSR 用 Lambda に必要な権限だけを付ける
-dynamodb.Table.fromTableName(web, "News", newsTableName).grantReadData(ssrFunction);
+dynamodb.Table.fromTableName(web, "News", newsTableName).grantReadData(
+  ssrFunction,
+);
 // 名前から参照したテーブルのgrantReadDataには、GSIの権限が含まれない。
 // クエスト一覧が検索するインデックスだけにQueryを許可する。
 ssrFunction.addToRolePolicy(
   new iam.PolicyStatement({
     sid: "NewsFeedIndexQuery",
     actions: ["dynamodb:Query"],
-    resources: [web.formatArn({
-      service: "dynamodb",
-      resource: "table",
-      resourceName: `${newsTableName}/index/ByFeedPublishedAt`,
-    })],
+    resources: [
+      web.formatArn({
+        service: "dynamodb",
+        resource: "table",
+        resourceName: `${newsTableName}/index/ByFeedPublishedAt`,
+      }),
+    ],
   }),
 );
-dynamodb.Table.fromTableName(web, "UserQuests", userQuestTableName).grantReadWriteData(ssrFunction);
-dynamodb.Table.fromTableName(web, "UserSettings", settingsTableName).grantReadWriteData(ssrFunction);
+dynamodb.Table.fromTableName(
+  web,
+  "UserQuests",
+  userQuestTableName,
+).grantReadWriteData(ssrFunction);
+dynamodb.Table.fromTableName(
+  web,
+  "UserSettings",
+  settingsTableName,
+).grantReadWriteData(ssrFunction);
 // 接続先は後続のAgentスタックが作るため、デプロイ時には値を解決しない。
 ssrFunction.addToRolePolicy(
   new iam.PolicyStatement({
     actions: ["ssm:GetParameter"],
-    resources: [web.formatArn({
-      service: "ssm",
-      resource: "parameter",
-      resourceName: AGENT_RUNTIME_PARAMETER.replace(/^\//, ""),
-    })],
+    resources: [
+      web.formatArn({
+        service: "ssm",
+        resource: "parameter",
+        resourceName: AGENT_RUNTIME_PARAMETER.replace(/^\//, ""),
+      }),
+    ],
   }),
 );
 ssrFunction.addToRolePolicy(
   new iam.PolicyStatement({
-    actions: ["bedrock-agentcore:InvokeAgentRuntime", "bedrock-agentcore:InvokeAgentRuntimeForUser"],
+    actions: [
+      "bedrock-agentcore:InvokeAgentRuntime",
+      "bedrock-agentcore:InvokeAgentRuntimeForUser",
+    ],
     resources: [
       web.formatArn({
         service: "bedrock-agentcore",

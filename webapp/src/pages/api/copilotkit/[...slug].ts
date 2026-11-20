@@ -3,17 +3,14 @@ import {
   CopilotRuntime,
   createCopilotRuntimeHandler,
 } from "@copilotkit/runtime/v2";
-import { createConfiguredAgent } from "../../../server/agent/configuredAgent";
-import { authenticate } from "../../../server/auth/authenticate";
+import { createConfiguredAgent } from "../_server/agent/configuredAgent";
+import { authenticate } from "../_server/auth/authenticate";
 import { measureApi } from "../_metrics";
 import {
   REPORT_CATALOG_ID,
   reportCatalogSchema,
 } from "../../../lib/generative-ui/reportCatalog";
-import { userContext } from "../../../server/agent/userContext";
-
-// リクエストごとにサーバーで動かす(静的ファイルにしない)
-export const prerender = false;
+import { userContext } from "../_server/agent/userContext";
 
 async function buildHandler() {
   const agent = await createConfiguredAgent();
@@ -31,23 +28,23 @@ async function buildHandler() {
   const handler = createCopilotRuntimeHandler({
     runtime,
     basePath: "/api/copilotkit",
-    hooks: {
-      onRequest: async ({ request }) => {
-        // 全リクエストで JWT を検証し、失敗したら 401 を返す
-        if (!(await authenticate(request))) {
-          throw new Response("Unauthorized", { status: 401 });
-        }
-      },
-    },
   });
 
   return handler;
 }
-let pendingHandler: ReturnType<typeof buildHandler> | undefined;
+let runtimeHandlerPromise: ReturnType<typeof buildHandler> | undefined;
 function getHandler() {
-  return pendingHandler ??= buildHandler().catch((error) => { pendingHandler = undefined; throw error; });
+  if (!runtimeHandlerPromise) {
+    runtimeHandlerPromise = buildHandler().catch((error) => {
+      // 初期化に失敗した場合は、次のリクエストで再試行する。
+      runtimeHandlerPromise = undefined;
+      throw error;
+    });
+  }
+  return runtimeHandlerPromise;
 }
 
+// 全リクエストで認証し、失敗したら 401 を返す(ランタイムには、認証済みのリクエストだけを渡す)
 // 検証したユーザー ID を、この処理の間だけ持たせる(エージェントへの送信で、本文に入れる)
 // 件数・処理時間は、サブパスをまとめて "copilotkit" として記録する
 export const ALL: APIRoute = ({ request }) =>
@@ -55,7 +52,15 @@ export const ALL: APIRoute = ({ request }) =>
     const userId = await authenticate(request);
     if (!userId) return new Response("Unauthorized", { status: 401 });
     return userContext.run(
-      { userId, ...(import.meta.env.DEV ? { localAuthCookie: request.headers.get("cookie") ?? undefined } : {}) },
-      async () => (await getHandler())(request),
+      {
+        userId,
+        ...(import.meta.env.DEV
+          ? { localAuthCookie: request.headers.get("cookie") ?? undefined }
+          : {}),
+      },
+      async function forwardToRuntime() {
+        const handler = await getHandler();
+        return handler(request);
+      },
     );
   });

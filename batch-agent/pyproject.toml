@@ -1,0 +1,16 @@
+[project]
+name = "questboard-batch"
+version = "0.1.0"
+description = "クエストボードの定期実行用エージェント(HTTP)"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.43.102",
+    "fastapi>=0.141.1",
+    "pydantic>=2.13.5",
+    "strands-agents>=1.57.0",
+    "uvicorn>=0.54.0",
+]
+
+[tool.pytest.ini_options]
+# batch をパッケージとして import できるように、このフォルダを探索パスに入れる
+pythonpath = ["."]

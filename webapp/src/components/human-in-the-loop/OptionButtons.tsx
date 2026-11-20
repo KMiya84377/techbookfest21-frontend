@@ -3,7 +3,7 @@ import { clsx } from "cn";
 import { ToggleGroup } from "@base-ui/react/toggle-group";
 import { Button } from "../ui/button";
 
-export interface OptionButtonItem {
+interface OptionButtonItem {
   id: string;
   label: string;
   description?: string;
@@ -14,6 +14,7 @@ interface Props {
   selectionMode: "single" | "multiple";
   selectedIds: readonly string[];
   onSelectionChange: (selectedIds: string[]) => void;
+  // true なら、すべての選択肢を押せなくする(回答済み、送信中など)
   disabled?: boolean;
 }
 
@@ -38,6 +39,9 @@ export default function OptionButtons({
   onSelectionChange,
   disabled = false,
 }: Props) {
+  // 選択中の選択肢に出す印(単一選択は丸、複数選択はチェック)
+  const selectedMark = selectionMode === "single" ? "●" : "✓";
+
   return (
     <ToggleGroup
       className="grid gap-1.5"
@@ -66,7 +70,7 @@ export default function OptionButtons({
               )}
               aria-hidden="true"
             >
-              {selected ? (selectionMode === "single" ? "●" : "✓") : null}
+              {selected ? selectedMark : null}
             </span>
             <span className="min-w-0">
               <span className="block">{option.label}</span>

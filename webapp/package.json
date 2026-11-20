@@ -13,7 +13,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "seed": "tsx scripts/seed-quests.ts",
+    "seed": "tsx mock/scripts/seed-quests.ts",
     "dev:backend": "tsx aws-blocks/scripts/server.ts",
     "dev:blocks-mock": "astro dev --mode blocks-mock --background",
     "typecheck": "tsc --noEmit",

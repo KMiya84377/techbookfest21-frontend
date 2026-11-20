@@ -18,8 +18,8 @@ const { HttpAgent } = createRequire(import.meta.url)(
 ) as typeof import("@ag-ui/client");
 // 既存のAG-UIテストと同じく、tsxがfast-json-patchの未配布TSを選ばないようCJSで読む。
 const { collectLearningUI } = createRequire(import.meta.url)(
-  "../src/server/learning/collectUI.ts",
-) as typeof import("../src/server/learning/collectUI");
+  "../src/pages/api/_server/learning/collectUI.ts",
+) as typeof import("../src/pages/api/_server/learning/collectUI");
 const history: LearningEntry[] = ["a", "b"].map((questId) => ({
   questId,
   title: questId,

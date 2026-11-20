@@ -1,9 +1,9 @@
 import type { NewsNotification } from "../src/lib/newsNotifications/model";
-import type { NotificationStore } from "../src/server/newsNotifications/store";
+import type { NotificationStore } from "../src/pages/api/_server/newsNotifications/store";
 import {
   LEASE_MS,
   NOTIFICATION_LIST_LIMIT,
-} from "../src/server/newsNotifications/reviewRecord";
+} from "../src/pages/api/_server/newsNotifications/reviewRecord";
 
 // モックでもユーザー分離・排他・既読・重複排除を本番と同じ契約で扱う。
 export function createMemoryNotificationStore(

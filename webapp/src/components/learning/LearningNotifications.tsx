@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import LearningDiagram from "./LearningDiagram";
+import NewsNotificationList from "./NewsNotificationList";
+import LearningInsightList from "./LearningInsightList";
 
 interface Props {
   // 学習内容のつながり(関連分析の図解)
@@ -28,37 +30,6 @@ interface Props {
   onOpenNews: (questId: string) => Promise<void>;
 }
 
-// 通知の一覧の 1 件(関心に合う新着と、学習内容のつながりで共通)
-function NotificationButton({
-  read,
-  title,
-  detail,
-  disabled = false,
-  onClick,
-}: {
-  read: boolean;
-  title: string;
-  detail?: string;
-  disabled?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      variant="unstyled"
-      type="button"
-      disabled={disabled}
-      className="w-full rounded border border-quest-card-line bg-quest-card-header p-3 text-left hover:bg-quest-notice-hover disabled:opacity-60"
-      onClick={onClick}
-    >
-      <span className="block text-xs text-quest-brown">
-        {read ? "確認済み" : "未読"}
-      </span>
-      <span className="mt-1 block text-sm font-semibold">{title}</span>
-      {detail && <span className="mt-1 block text-sm">{detail}</span>}
-    </Button>
-  );
-}
-
 // クエストボード右上の通知ボタンと一覧。図解は、選ぶとダイアログで開く
 export default function LearningNotifications({
   insights,
@@ -74,16 +45,18 @@ export default function LearningNotifications({
   onOpenNews,
 }: Props) {
   const [listOpen, setListOpen] = useState(false);
-  const [selected, setSelected] = useState<LearningInsight | null>(null);
+  const [selectedInsight, setSelectedInsight] = useState<LearningInsight | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   // ニュース詳細・図解へ移るときは、Popoverから通知ボタンへフォーカスを戻さない。
   const handingOffFocus = useRef(false);
+  // Popover を閉じたあとに、通知ボタンへフォーカスを戻すか(true なら戻す。false なら動かさない)
+  const returnFocusToTrigger = () => !handingOffFocus.current;
   const unread =
     insights.filter((insight) => !insight.readAt).length +
     news.filter((item) => !item.readAt).length;
-  const openNews = async (notification: NewsNotification) => {
+  const openNewsNotification = async (notification: NewsNotification) => {
     if (opening) return;
     setOpening(true);
     setOpenError(null);
@@ -102,6 +75,18 @@ export default function LearningNotifications({
       setOpening(false);
     }
   };
+  const openLearningInsight = (insight: LearningInsight) => {
+    handingOffFocus.current = true;
+    setSelectedInsight(insight);
+    setListOpen(false);
+    void onRead(insight);
+  };
+
+  const retryNewsNotifications = () => {
+    setOpenError(null);
+    void onCheckNews();
+  };
+
   return (
     <>
       <Popover.Root
@@ -151,7 +136,7 @@ export default function LearningNotifications({
             <Popover.Popup
               className="max-h-[min(70dvh,480px,var(--available-height))] w-[min(350px,calc(100vw-24px))] overflow-auto rounded border border-quest-frame bg-quest-card p-4 text-quest-card-ink shadow-xl outline-none"
               aria-label="通知一覧"
-              finalFocus={() => !handingOffFocus.current}
+              finalFocus={returnFocusToTrigger}
             >
               <div className="mb-3 flex items-center justify-between gap-2">
                 <Popover.Title render={<h2 />} className="font-semibold">
@@ -164,94 +149,30 @@ export default function LearningNotifications({
                   閉じる
                 </Popover.Close>
               </div>
-              <h3 className="mb-2 text-sm font-semibold">関心に合う新着</h3>
-              {newsBusy && (
-                <p className="mb-2 text-sm" role="status">
-                  新着を確認しています…
-                </p>
-              )}
-              {(newsError || openError) && (
-                <div role="alert" className="mb-2 text-sm">
-                  <p>{openError ?? newsError}</p>
-                  <Button
-                    variant="questOutline"
-                    disabled={newsBusy || opening}
-                    onClick={() => {
-                      setOpenError(null);
-                      void onCheckNews();
-                    }}
-                  >
-                    再確認
-                  </Button>
-                </div>
-              )}
-              {!news.length && !newsBusy && (
-                <p className="mb-3 text-sm">新着の通知はまだありません。</p>
-              )}
-              <ul className="mb-4 space-y-2">
-                {news.map((notification) => (
-                  <li key={notification.id}>
-                    <NotificationButton
-                      read={Boolean(notification.readAt)}
-                      title={notification.title}
-                      detail={notification.reason}
-                      disabled={opening}
-                      onClick={() => void openNews(notification)}
-                    />
-                  </li>
-                ))}
-              </ul>
-              <h3 className="mb-2 text-sm font-semibold">学習内容のつながり</h3>
-              {busy && (
-                <p className="mb-3 text-sm" role="status">
-                  学習内容のつながりを分析しています…
-                </p>
-              )}
-              {error && (
-                <div
-                  role="alert"
-                  className="mb-3 rounded border border-quest-error-box-line p-2 text-sm"
-                >
-                  <p>{error}</p>
-                  <Button
-                    variant="questOutline"
-                    className="mt-2"
-                    disabled={busy}
-                    onClick={() => void onRetry()}
-                  >
-                    再試行
-                  </Button>
-                </div>
-              )}
-              {!insights.length && !busy && (
-                <p className="text-sm leading-relaxed">
-                  通知はまだありません。学習が進むと、学んだニュース同士のつながりをお知らせします。
-                </p>
-              )}
-              <ul className="space-y-2">
-                {insights.map((insight) => (
-                  <li key={insight.id}>
-                    <NotificationButton
-                      read={Boolean(insight.readAt)}
-                      title={insight.diagram.title}
-                      onClick={() => {
-                        handingOffFocus.current = true;
-                        setSelected(insight);
-                        setListOpen(false);
-                        void onRead(insight);
-                      }}
-                    />
-                  </li>
-                ))}
-              </ul>
+              <NewsNotificationList
+                news={news}
+                newsBusy={newsBusy}
+                newsError={newsError}
+                openError={openError}
+                opening={opening}
+                onRetry={retryNewsNotifications}
+                onOpen={(notification) => void openNewsNotification(notification)}
+              />
+              <LearningInsightList
+                insights={insights}
+                busy={busy}
+                error={error}
+                onRetry={onRetry}
+                onOpen={openLearningInsight}
+              />
             </Popover.Popup>
           </Popover.Positioner>
         </Popover.Portal>
       </Popover.Root>
       <Dialog
-        open={selected !== null}
+        open={selectedInsight !== null}
         onOpenChange={(open) => {
-          if (!open) setSelected(null);
+          if (!open) setSelectedInsight(null);
         }}
       >
         <DialogContent
@@ -259,12 +180,12 @@ export default function LearningNotifications({
           className="fixed top-1/2 left-1/2 max-h-[88dvh] w-[min(980px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded border border-quest-frame bg-quest-card p-6 text-quest-card-ink shadow-xl max-[520px]:p-4"
         >
           <DialogTitle className="mb-2 pr-8 text-xl font-semibold">
-            {selected?.diagram.title ?? "学習内容のつながり"}
+            {selectedInsight?.diagram.title ?? "学習内容のつながり"}
           </DialogTitle>
           <DialogDescription className="mb-4 text-sm text-quest-card-muted">
             学習済みのニュースを関連づけた図解です。新しいニュースそのものを生成する機能ではありません。
           </DialogDescription>
-          {selected && <LearningDiagram insight={selected} />}
+          {selectedInsight && <LearningDiagram insight={selectedInsight} />}
         </DialogContent>
       </Dialog>
     </>

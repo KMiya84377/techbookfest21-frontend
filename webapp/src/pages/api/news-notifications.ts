@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { notificationStore } from "../../server/newsNotifications/store";
-import { reviewNewNews } from "../../server/newsNotifications/service";
+import { notificationStore } from "./_server/newsNotifications/store";
+import { reviewNewNews } from "./_server/newsNotifications/service";
 import { badRequest, json, readJson, withUser } from "./_helpers";
 
 // PATCH の本文(既読にする通知のニュース ID)

@@ -3,14 +3,14 @@ import {
   CopilotRuntime,
   createCopilotRuntimeHandler,
 } from "@copilotkit/runtime/v2";
-import { createConfiguredAgent } from "../../../server/agent/configuredAgent";
-import { authenticate } from "../../../server/auth/authenticate";
+import { createConfiguredAgent } from "../_server/agent/configuredAgent";
+import { authenticate } from "../_server/auth/authenticate";
 import { measureApi } from "../_metrics";
 import {
   REPORT_CATALOG_ID,
   reportCatalogSchema,
 } from "../../../lib/generative-ui/reportCatalog";
-import { userContext } from "../../../server/agent/userContext";
+import { userContext } from "../_server/agent/userContext";
 
 async function buildHandler() {
   const agent = await createConfiguredAgent();
@@ -32,12 +32,16 @@ async function buildHandler() {
 
   return handler;
 }
-let pendingHandler: ReturnType<typeof buildHandler> | undefined;
+let runtimeHandlerPromise: ReturnType<typeof buildHandler> | undefined;
 function getHandler() {
-  return (pendingHandler ??= buildHandler().catch((error) => {
-    pendingHandler = undefined;
-    throw error;
-  }));
+  if (!runtimeHandlerPromise) {
+    runtimeHandlerPromise = buildHandler().catch((error) => {
+      // 初期化に失敗した場合は、次のリクエストで再試行する。
+      runtimeHandlerPromise = undefined;
+      throw error;
+    });
+  }
+  return runtimeHandlerPromise;
 }
 
 // 全リクエストで認証し、失敗したら 401 を返す(ランタイムには、認証済みのリクエストだけを渡す)
@@ -54,6 +58,9 @@ export const ALL: APIRoute = ({ request }) =>
           ? { localAuthCookie: request.headers.get("cookie") ?? undefined }
           : {}),
       },
-      async () => (await getHandler())(request),
+      async function forwardToRuntime() {
+        const handler = await getHandler();
+        return handler(request);
+      },
     );
   });

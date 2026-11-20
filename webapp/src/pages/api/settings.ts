@@ -1,5 +1,5 @@
 import { parseUserSettings } from "../../lib/userSettings/model";
-import { userSettingsStore } from "../../server/userSettings/store";
+import { userSettingsStore } from "./_server/userSettings/store";
 import { badRequest, json, readJson, withUser } from "./_helpers";
 
 export const GET = withUser("settings.get", async ({ userId, log }) => {

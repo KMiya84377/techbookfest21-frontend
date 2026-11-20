@@ -8,7 +8,7 @@ import {
 
 // チャットの質問に応じて、詳細に追加された表示(クエストごと)。保存はしない
 export function useDetailExtras(
-  shownRef: RefObject<Quest[] | undefined>,
+  displayedQuestsRef: RefObject<Quest[] | undefined>,
   openId: string | null,
 ) {
   const [detailExtras, setDetailExtras] = useState<
@@ -23,7 +23,7 @@ export function useDetailExtras(
     (questId: string, section: DetailSection): DetailUpdate => {
       const { details, result } = updateOpenedDetail(
         detailExtrasRef.current,
-        shownRef.current,
+        displayedQuestsRef.current,
         openIdRef.current,
         questId,
         section,
@@ -34,7 +34,7 @@ export function useDetailExtras(
       }
       return result;
     },
-    [shownRef],
+    [displayedQuestsRef],
   );
 
   return { detailExtras, updateDetail };

@@ -7,7 +7,7 @@ import {
   type QuestStatus,
 } from "./model";
 
-// クエストボードの検索条件(機能仕様書 F-01)
+// クエストボードの検索条件
 //   指定していない条件は、絞り込まない。条件は、すべて満たすものを表示する
 export interface QuestFilter {
   status?: QuestStatus;
@@ -67,14 +67,23 @@ export function mergeFilter(
   prev: QuestFilter,
   patch: FilterPatch,
 ): QuestFilter {
-  const next: Record<string, unknown> = patch.reset ? {} : { ...prev };
-  const { reset: _reset, ...changes } = patch;
-  for (const [key, value] of Object.entries(changes)) {
-    if (value === undefined) continue;
-    if (value === null) delete next[key];
-    else next[key] = value;
-  }
-  return next as QuestFilter;
+  const next: QuestFilter = patch.reset ? {} : { ...prev };
+  // 未指定なら維持、null なら解除、それ以外なら上書きする。
+  if (patch.status === null) delete next.status;
+  else if (patch.status !== undefined) next.status = patch.status;
+
+  if (patch.services === null) delete next.services;
+  else if (patch.services !== undefined) next.services = patch.services;
+
+  if (patch.importance === null) delete next.importance;
+  else if (patch.importance !== undefined) next.importance = patch.importance;
+
+  if (patch.maxMinutes === null) delete next.maxMinutes;
+  else if (patch.maxMinutes !== undefined) next.maxMinutes = patch.maxMinutes;
+
+  if (patch.sinceDays === null) delete next.sinceDays;
+  else if (patch.sinceDays !== undefined) next.sinceDays = patch.sinceDays;
+  return next;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;

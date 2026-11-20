@@ -9,11 +9,11 @@ import {
   validateRecommendations,
 } from "../src/lib/newsNotifications/model.ts";
 import { createMemoryNotificationStore } from "../mock/notificationStore.ts";
-import { reviewNews } from "../src/server/newsNotifications/review.ts";
+import { reviewNews } from "../src/pages/api/_server/newsNotifications/review.ts";
 import {
   collectRecommendations,
   RECOMMENDATIONS_TOOL,
-} from "../src/server/newsNotifications/collectRecommendations.ts";
+} from "../src/pages/api/_server/newsNotifications/collectRecommendations.ts";
 const { HttpAgent } = createRequire(import.meta.url)(
   "@ag-ui/client",
 ) as typeof import("@ag-ui/client");
@@ -56,20 +56,20 @@ function agentFor(output: unknown, mode = "ok") {
       { type: "TOOL_CALL_ARGS", toolCallId: id, delta: args.slice(12) },
       { type: "TOOL_CALL_END", toolCallId: id },
     ];
-    const events = [
+    const events: Record<string, unknown>[] = [
       { type: "RUN_STARTED", threadId: input.threadId, runId: input.runId },
-      ...(mode === "error"
-        ? [{ type: "RUN_ERROR", message: "model failed" }]
-        : [
-            ...(mode === "missing" ? [] : tool("first")),
-            ...(mode === "duplicate" ? tool("second") : []),
-            {
-              type: "RUN_FINISHED",
-              threadId: input.threadId,
-              runId: input.runId,
-            },
-          ]),
     ];
+    if (mode === "error") {
+      events.push({ type: "RUN_ERROR", message: "model failed" });
+    } else {
+      if (mode !== "missing") events.push(...tool("first"));
+      if (mode === "duplicate") events.push(...tool("second"));
+      events.push({
+        type: "RUN_FINISHED",
+        threadId: input.threadId,
+        runId: input.runId,
+      });
+    }
     return new Response(
       events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""),
       { headers: { "content-type": "text/event-stream" } },
@@ -78,7 +78,7 @@ function agentFor(output: unknown, mode = "ok") {
   return new HttpAgent({ url: "http://unused.test/agui", fetch });
 }
 
-test("UC-05: 実際のAG-UIクライアントで選定ツールの分割イベントを受信する", async () => {
+test("新着通知: 実際のAG-UIクライアントで選定ツールの分割イベントを受信する", async () => {
   assert.deepEqual(
     await collectRecommendations(
       agentFor(selected("a")),

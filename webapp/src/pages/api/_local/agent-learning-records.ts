@@ -1,5 +1,5 @@
-import { listUserRecords } from "../../../server/blocks/records";
-import type { UserQuestItem } from "../../../server/quests/userQuestItem";
+import { listUserQuestRecords } from "../_server/blocks/userQuestRecords";
+import type { UserQuestItem } from "../_server/quests/userQuestItem";
 import { json, localOnly } from "../_helpers";
 
 // ローカル開発で、エージェント(Python)が、週間レポート用の記録を読むための API。
@@ -9,7 +9,7 @@ import { json, localOnly } from "../_helpers";
 export const GET = localOnly(
   "agent-learning-records.get",
   async ({ userId }) => {
-    const items = await listUserRecords<UserQuestItem>(userId);
+    const items = await listUserQuestRecords<UserQuestItem>(userId);
     const records = items.map(
       ({
         newsId,

@@ -33,6 +33,9 @@ export default function LearningDiagram({
   const sources = new Map(
     insight.sources.map((source) => [source.questId, source]),
   );
+  const unavailableUiMessage = insight.ui
+    ? "図解のデータを読み込めません。関係の説明を以下で確認できます。"
+    : "旧形式の通知です。ニュース同士の関係を文章で表示します。";
   return (
     <div className="space-y-4">
       <p className="text-sm leading-relaxed">{insight.diagram.summary}</p>
@@ -56,9 +59,7 @@ export default function LearningDiagram({
         </div>
       ) : (
         <p className="text-sm text-quest-card-muted" role="status">
-          {insight.ui
-            ? "図解のデータを読み込めません。関係の説明を以下で確認できます。"
-            : "旧形式の通知です。ニュース同士の関係を文章で表示します。"}
+          {unavailableUiMessage}
         </p>
       )}
       <ol className="space-y-3" aria-label="ニュース同士の関係">

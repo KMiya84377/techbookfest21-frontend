@@ -13,7 +13,7 @@ AWSニュースをクエストとして表示する一覧・詳細画面と、�
 | [QuestActions.tsx](QuestActions.tsx) | クイズなどのチャット内UIへ、状態参照・クリア・回答記録・詳細表示の操作関数を渡します | UIを描画しません | React Contextと付属の`useQuestActions()`を使います。AG-UIの共有状態やA2UIのメッセージではありません | F-03、第3章3.6.3のクイズから画面を操作し、F-05用の回答記録につなぎます |
 | [QuestLayout.tsx](QuestLayout.tsx) | ニュース表示領域とチャット欄を配置する画面全体の枠です | Generative UI未使用 | ReactとCSS Gridによるレイアウトです。AIエージェントがUI構造を決める部分ではありません | 第3章3.6冒頭の画面構成です |
 | [QuestBoardStatus.tsx](QuestBoardStatus.tsx) | 読み込み中・取得失敗・状態保存失敗の表示と再試行の操作を提供します | Generative UI未使用 | Reactの固定表示と共通`Button`を使います。A2UI未使用です | 一覧・状態保存のための画面部品です。代表5機能に固有の部品ではありません |
-| [BoardChrome.tsx](BoardChrome.tsx) | ボードの装飾とユーザー設定を開くボタンを表示します | Generative UI未使用 | 固定のReact UIと共通`Button`を使います。A2UI未使用です | サンプルアプリの共通画面です |
+| [UserSettingsButton.tsx](../user-setting/UserSettingsButton.tsx) | ユーザー設定を開くボタンを表示します | Generative UI未使用 | 固定のReact UIと共通`Button`を使います。A2UI未使用です | サンプルアプリの共通画面です |
 | [GuildEmblem.tsx](GuildEmblem.tsx) | ボードの紋章を表示します | Generative UI未使用 | コードで用意した固定のSVGです。AIが生成する図解ではありません | サンプルアプリの装飾です |
 | [InkStamp.tsx](InkStamp.tsx) | 重要度のランクやクリア済みの印を表示します | Generative UI未使用 | `rank`と`cleared`に応じて、コードで用意したSVGの表示を切り替えます | サンプルアプリの装飾です |
 

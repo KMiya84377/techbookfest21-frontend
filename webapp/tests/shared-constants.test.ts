@@ -60,8 +60,8 @@ test("難易度と回答の詳しさが、TypeScript と Python で一致する"
   );
 });
 
-// 2 つのエージェントは、それぞれツールを持つ(chat-agent/chat/tools.py と batch-agent/batch/tools.py)
-for (const path of ["chat-agent/chat/tools.py", "batch-agent/batch/tools.py"]) {
+// チャットと定期実行で、同じニュースのフィードを使う。
+for (const path of ["chat-agent/chat/news_source.py", "batch-agent/batch/tools.py"]) {
   test(`ニュースのフィード名が、TypeScript と Python(${path})で一致する`, () => {
     const match = read(path).match(/^NEWS_FEED\s*=\s*"([^"]+)"/m);
     assert.ok(match, "NEWS_FEED が見つかりません");
@@ -84,7 +84,7 @@ for (const header of ["class QuestInput(", "def _news_item("]) {
   test(`ニュースの保存形式(${header})が、2 つのエージェントで一致する`, () => {
     assert.equal(
       pythonTopLevel(read("batch-agent/batch/tools.py"), header),
-      pythonTopLevel(read("chat-agent/chat/tools.py"), header),
+      pythonTopLevel(read("chat-agent/chat/quest_storage.py"), header),
     );
   });
 }

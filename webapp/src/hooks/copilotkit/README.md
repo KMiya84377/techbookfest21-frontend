@@ -1,18 +1,20 @@
 # copilotkit
 
-WebアプリとAIエージェントの状態共有・コンテキスト・ツール登録のカスタムフックを置きます。
+WebアプリとAIエージェントの状態共有・コンテキスト・ツール登録のカスタムフックを置きます。本の第3章3.2〜3.4で説明するCopilotKitのフックを、サンプルアプリでどう使っているかは、このフォルダで確認できます。
 
 ## ファイル
 
-| ファイル | 役割 |
-|---|---|
-| `useSharedAgentState.ts` | 読み書きできる状態共有(`useAgent`)。クエスト一覧と学習設定を共有し、保存後の再取得の要求に応える(記事 3.2) |
-| `useScreenContext.ts` | 読み取り専用の状態共有(`useAgentContext`)。クエスト一覧、開いているクエスト、検索条件を渡す(記事 3.2、F-02) |
-| `useUpdateQuestFilter.tsx` | `update_quest_filter`を登録し、検索条件を変更して結果をチャットに表示する |
-| `useUpdateQuestDetail.tsx` | `update_quest_detail`を登録し、A2UIを詳細へ追記して同じ内容をチャットにも表示する(F-01) |
-| `useReloadQuests.tsx` | `reload_quests`を登録し、一覧の再取得・共有状態の更新・件数の表示を行う |
-| `useShowQuiz.tsx` | `show_quiz`を`useHumanInTheLoop`で登録し、クイズの初回回答を待つ(F-03、記事 3.4) |
-| `useShowChoices.tsx` | `show_choices`を`useHumanInTheLoop`で登録し、候補からの選択結果を待つ(記事 3.4) |
+| ファイル | 役割 | 本との対応 |
+|---|---|---|
+| [useSharedAgentState.ts](useSharedAgentState.ts) | 読み書きできる状態共有(`useAgent()`)。クエスト一覧と学習設定を共有し、保存後の再取得の要求に応える | 第3章3.2 |
+| [useScreenContext.ts](useScreenContext.ts) | 読み取り専用の状態共有(`useAgentContext()`)。クエスト一覧、開いているクエスト、検索条件を渡す | 第3章3.2、F-02(3.6.2) |
+| [useUpdateQuestFilter.tsx](useUpdateQuestFilter.tsx) | `update_quest_filter`を`useFrontendTool()`で登録し、検索条件を変更して結果をチャットに表示する | 第3章3.3 |
+| [useUpdateQuestDetail.tsx](useUpdateQuestDetail.tsx) | `update_quest_detail`を`useFrontendTool()`で登録し、A2UIを詳細へ追記して同じ内容をチャットにも表示する | 第3章3.3、F-01(3.6.1) |
+| [useReloadQuests.tsx](useReloadQuests.tsx) | `reload_quests`を`useFrontendTool()`で登録し、一覧の再取得・共有状態の更新・件数の表示を行う | 第3章3.3 |
+| [useShowQuiz.tsx](useShowQuiz.tsx) | `show_quiz`を`useHumanInTheLoop()`で登録し、クイズの初回回答を待つ | 第3章3.4、F-03(3.6.3) |
+| [useShowChoices.tsx](useShowChoices.tsx) | `show_choices`を`useHumanInTheLoop()`で登録し、候補からの選択結果を待つ | 第3章3.4 |
+
+本の第3章3.4・3.5で紹介する`useInterrupt()`と`useComponent()`は、このアプリでは使っていません。
 
 [`CopilotKitIntegration.tsx`](../../components/copilotkit/CopilotKitIntegration.tsx) が `App.tsx` の `CopilotKitProvider` 内でこれらのフックを呼びます。画面に配置するこのコンポーネントは、`components/copilotkit/` に残しています。
 

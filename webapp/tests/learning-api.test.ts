@@ -4,7 +4,7 @@ import test from "node:test";
 // 新しいmockサーバーに対して実行する。閾値はユーザー設定APIから変更する。
 const base = process.env.LEARNING_TEST_URL;
 test(
-  "UC-04: 保存→件数→関連分析→通知→既読→再取得（AWS・LLMなし）",
+  "学習内容のつながり: 保存→件数→関連分析→通知→既読→再取得（AWS・LLMなし）",
   { skip: !base },
   async () => {
     const request = async (url: string, method = "GET", body?: unknown) => {

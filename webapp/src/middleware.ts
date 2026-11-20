@@ -22,7 +22,7 @@ const directives = [
   "form-action 'self'",
   "frame-ancestors 'self'",
 ];
-export const CONTENT_SECURITY_POLICY = directives.join("; ");
+const CONTENT_SECURITY_POLICY = directives.join("; ");
 
 export const onRequest = defineMiddleware(async (_context, next) => {
   const response = await next();

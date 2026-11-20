@@ -5,7 +5,7 @@ import type { HttpAgentFetchFn } from "@ag-ui/client";
 import {
   collectConnections,
   CONNECTIONS_TOOL,
-} from "../src/server/learning/collectConnections.ts";
+} from "../src/pages/api/_server/learning/collectConnections.ts";
 import type { LearningEntry } from "../src/lib/learning/model.ts";
 
 // tsxのESM解決がfast-json-patchの未配布TSソースを選ぶため、公開CJSエントリを使う。
@@ -42,38 +42,38 @@ function agentFor(output: unknown, error = false, missing = false) {
     );
     assert.deepEqual(JSON.parse(input.context[0].value), history);
     const args = JSON.stringify(output);
-    const events = [
+    const events: Record<string, unknown>[] = [
       { type: "RUN_STARTED", threadId: input.threadId, runId: input.runId },
-      ...(error
-        ? [{ type: "RUN_ERROR", message: "model failed" }]
-        : [
-            ...(!missing
-              ? [
-                  {
-                    type: "TOOL_CALL_START",
-                    toolCallId: "t1",
-                    toolCallName: CONNECTIONS_TOOL,
-                  },
-                  {
-                    type: "TOOL_CALL_ARGS",
-                    toolCallId: "t1",
-                    delta: args.slice(0, 30),
-                  },
-                  {
-                    type: "TOOL_CALL_ARGS",
-                    toolCallId: "t1",
-                    delta: args.slice(30),
-                  },
-                  { type: "TOOL_CALL_END", toolCallId: "t1" },
-                ]
-              : []),
-            {
-              type: "RUN_FINISHED",
-              threadId: input.threadId,
-              runId: input.runId,
-            },
-          ]),
     ];
+    if (error) {
+      events.push({ type: "RUN_ERROR", message: "model failed" });
+    } else {
+      if (!missing) {
+        events.push(
+          {
+            type: "TOOL_CALL_START",
+            toolCallId: "t1",
+            toolCallName: CONNECTIONS_TOOL,
+          },
+          {
+            type: "TOOL_CALL_ARGS",
+            toolCallId: "t1",
+            delta: args.slice(0, 30),
+          },
+          {
+            type: "TOOL_CALL_ARGS",
+            toolCallId: "t1",
+            delta: args.slice(30),
+          },
+          { type: "TOOL_CALL_END", toolCallId: "t1" },
+        );
+      }
+      events.push({
+        type: "RUN_FINISHED",
+        threadId: input.threadId,
+        runId: input.runId,
+      });
+    }
     return new Response(
       events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join(""),
       { headers: { "content-type": "text/event-stream" } },

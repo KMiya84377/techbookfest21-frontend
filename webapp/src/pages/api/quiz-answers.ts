@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { questStore } from "../../server/quests/store";
-import { QuestNotFoundError } from "../../server/quests/errors";
+import { questStore } from "./_server/quests/store";
+import { QuestNotFoundError } from "./_server/quests/errors";
 import { badRequest, json, readJson, withUser } from "./_helpers";
 
 // POST の本文(初回の回答)

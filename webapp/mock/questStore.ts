@@ -1,9 +1,9 @@
 import { buildSampleQuests } from "./sampleQuests";
 import type { Quest } from "../src/lib/quests/model";
 import type { LearningEntry } from "../src/lib/learning/model";
-import type { QuestStore } from "../src/server/quests/store";
-import { QuestNotFoundError } from "../src/server/quests/errors";
-import { MAX_QUIZ_ANSWERS } from "../src/server/quests/userQuestItem";
+import type { QuestStore } from "../src/pages/api/_server/quests/store";
+import { QuestNotFoundError } from "../src/pages/api/_server/quests/errors";
+import { MAX_QUIZ_ANSWERS } from "../src/pages/api/_server/quests/userQuestItem";
 
 // mockモード専用。DynamoDB・LLM・AWS認証情報を使わず同じAPI契約を試す。
 const states = new Map<

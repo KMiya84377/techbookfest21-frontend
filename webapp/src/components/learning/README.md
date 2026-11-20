@@ -25,8 +25,8 @@
 
 ## 図解の生成・保存・再表示
 
-1. [generate.ts](../../server/learning/generate.ts)がニュース同士の関係を分析します。関連がある場合だけ、別の実行でOpen Generative UIの`generateSandboxedUi`を呼ばせます。
-2. [collectUI.ts](../../server/learning/collectUI.ts)が公式middlewareの作る完成済みactivityを検証し、[service.ts](../../server/learning/service.ts)が分析結果とUIをユーザー別に保存します。
+1. [generate.ts](../../pages/api/_server/learning/generate.ts)がニュース同士の関係を分析します。関連がある場合だけ、別の実行でOpen Generative UIの`generateSandboxedUi`を呼ばせます。
+2. [collectUI.ts](../../pages/api/_server/learning/collectUI.ts)が公式middlewareの作る完成済みactivityを検証し、[service.ts](../../pages/api/_server/learning/service.ts)が分析結果とUIをユーザー別に保存します。
 3. 通知を開くと、`LearningDiagram`から`LearningUIRenderer`へ保存済みUIを渡して表示します。図解の読み込み・描画に失敗しても、関係の説明は残します。
 
 [lib/learning/openGenerativeUI.ts](../../lib/learning/openGenerativeUI.ts)で保存形式・サイズ・高さを検証し、表示時には追加のCSPで外部・同一オリジンへの通信を禁止します。HTMLをホスト画面のDOMへ直接挿入せず、ホスト操作用の関数も公開していません。

@@ -28,7 +28,6 @@ function Content({ section }: { section: DetailSection }) {
   );
 }
 
-// QuestDetailとDetailUpdateCardで、同じA2UIを描画する共通部品
 export default function DetailA2UI({ section }: { section: DetailSection }) {
   return (
     <A2UIProvider>

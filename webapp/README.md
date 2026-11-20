@@ -1,67 +1,51 @@
-# AWS Quest Board — Webアプリ
+# Webアプリ
 
 Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、AWS Blocksで認証・保存・ホスティングを定義します。AWS Blocks 0.9.0、共通ホスティングパッケージ0.5.0を使用しています。
 
-## ローカル開発
-
-Node.js 22.12以降を使い、このディレクトリで実行します。
-
-```sh
-npm ci
-npm run seed
-```
-
-seedはローカルのBlocks保存領域へ、共通ニュースを追加します。既存ニュースは上書きしません。保存領域を読み込む前に反映するため、サーバーを起動する前に実行してください。
-
-次の2つを起動します。
-
-```sh
-# ターミナル1：Blocksのローカル認証API
-npm run dev:backend
-
-# ターミナル2：Astroの開発サーバー
-npm run dev -- --background
-```
-
-http://localhost:4321 を開き、ユーザー登録・ログインします。ローカルの確認コードはバックエンドのターミナルへ出ます。AWSのCognito、DynamoDBには接続しません。学習状態や通知は `.bb-data/` に保存します。
-
-AI応答だけをモックにし、Blocksの認証・保存を確認する場合は、Astroの起動を次へ置き換えます。
-
-```sh
-npm run dev:blocks-mock
-```
-
-実際のPythonエージェントへ接続する場合は、別のターミナルで起動し、Astroの環境変数に `AGENT_URL=http://localhost:8080/invocations` を設定します。
-
-```sh
-cd ../chat-agent
-BLOCKS_WEB_URL=http://localhost:4321 uv run python -m chat.main
-```
-
-ローカルのニュース取得・保存ツールは、認証済みリクエストのCookieを使い、Webアプリの `/api/agent-news` 経由でBlocksの保存領域へ接続します。週間レポートの記録は `/api/agent-learning-records` から読みます。どちらも `astro dev` のときだけ登録されるローカル専用のAPIです。Cookieはツール実行用のメタデータとして渡し、モデルへのコンテキストには含めません。AWS上のPythonエージェントは、引き続きDynamoDBへ接続します。
-
-画面・AG-UIだけを確認する従来の `npm run mock` と `npm run dev:mock -- --background` も残しています。このモードは認証を省略するため、Blocksの認証・保存の検証には使いません。
-
 ## 実装の配置
+
+### AWSの構成（第4章）
+
+| 場所 | 内容 | 本との対応 |
+| --- | --- | --- |
+| [aws-blocks/auth.ts](aws-blocks/auth.ts)・[index.ts](aws-blocks/index.ts) | AuthCognitoと認証APIを定義します | 第4章4.3.3 |
+| [aws-blocks/storage.ts](aws-blocks/storage.ts) | DistributedTableによるニュース・学習状態・設定と、AIエージェントの接続設定を定義します | 第4章4.3.3 |
+| [aws-blocks/index.cdk.ts](aws-blocks/index.cdk.ts) | BlocksStackとHosting BlockでWebアプリの配信基盤を定義します。`hostingTimeout.ts`（ストリーミング統合のタイムアウト）は、Hostingの制約を補う部品です | 第4章4.3.3・4.4.3 |
+| [../chat-agent/infra/stack.ts](../chat-agent/infra/stack.ts)・[../batch-agent/infra/stack.ts](../batch-agent/infra/stack.ts) | 対話用・定期取得用のエージェントのAWS構成（AgentCore Runtime、記憶、毎朝の定期取得とその失敗アラーム）。`aws-blocks/index.cdk.ts` から呼びます | 第1章1.4.2・第4章4.4.3 |
+| [../.github/workflows/](../.github/workflows/README.md) | Web・対話用エージェント・定期取得を、別々のワークフローでデプロイします | 第4章4.4.4 |
+
+### サーバー（第1章・第3章・第4章4.4.2）
+
+AstroのNode.jsサーバーで、画面の配信とバックエンド（CopilotKit Runtimeを含む）をまとめて動かします（第4章4.4.2）。
+
+| 場所 | 内容 | 本との対応 |
+| --- | --- | --- |
+| [src/pages/api/copilotkit/](src/pages/api/copilotkit/%5B...slug%5D.ts) | CopilotKit Runtime。A2UIとOpen Generative UIもここで有効にします | 第3章3.1・3.5 |
+| [src/pages/api/](src/pages/api/) | JWT検証後に、クエスト・設定・新着の通知・学習の関連分析・理解度チェックの回答を扱います。一覧は [API設計書](../doc/API設計書.md) です | 第4章4.4.2 |
+| [src/pages/api/_server/](./src/pages/api/_server/README.md) | サーバー(SSR)専用のコードです。AIエージェントへのAG-UIの接続（`agent/`）、認証、保存を置き、ブラウザーのコードからは読み込みません | 第1章（Webアプリ側の接続） |
+| [src/pages/api/_server/blocks/userQuestRecords.ts](./src/pages/api/_server/blocks/userQuestRecords.ts) | 学習状態・分析結果・通知の取得と、versionによる条件付き書き込みをまとめます | － |
+| [src/middleware.ts](src/middleware.ts) | 画面（HTML）の応答にCSPを付けます。通信先を同じオリジンに限り、Open Generative UIが生成したUI（sandboxのiframe）からも、外部への通信・画像・スクリプトの読み込みをさせません | 第3章3.6.4 |
+
+### 画面（第2章・第3章）
+
+| 場所 | 内容 | 本との対応 |
+| --- | --- | --- |
+| [src/components/App.tsx](src/components/App.tsx) | 画面の入口です。`CopilotKitProvider` で、A2UIのカタログとOpen Generative UIのデザインのルールを渡します | 第3章3.1・3.5 |
+| [src/components/copilotkit/](src/components/copilotkit/CopilotKitIntegration.tsx) | CopilotKit連携用のフックをまとめて呼ぶコンポーネントです（表示は出しません） | 第3章3.2〜3.4 |
+| [src/hooks/copilotkit/](src/hooks/copilotkit/README.md) | 状態共有・コンテキスト・フロントエンドツール・Human-in-the-loopの登録フックです | 第3章3.2〜3.4、3.6 |
+| [src/components/generative-ui/](src/components/generative-ui/README.md) | A2UIの描画・カタログと、ツールの結果を表示するカードです | 第2章2.2〜2.4、第3章3.5・3.6 |
+| [src/components/human-in-the-loop/](src/components/human-in-the-loop/README.md) | ユーザーの回答を待つクイズ・選択肢のUIです | 第3章3.4・3.6.3 |
+| [src/components/quests/](src/components/quests/README.md) | ニュースの一覧・詳細画面です | 第3章3.6 |
+| [src/components/learning/](src/components/learning/README.md) | 通知と、学習内容のつながりの図です | 本にない追加機能 |
+| src/components/chat/・user-setting/ | チャット欄と、共通のチャット用カード枠、学習設定のダイアログです | － |
+| src/hooks/ | 画面の状態とAPI呼び出しをまとめたフックです | － |
+| src/lib/ | ブラウザーでも使う型・定数・純粋関数だけを置きます | － |
+
+### 開発用
 
 | 場所 | 内容 |
 | --- | --- |
-| aws-blocks/storage.ts | DistributedTableによるニュース・学習状態・設定と、AIエージェントの接続設定を定義します |
-| aws-blocks/auth.ts・index.ts | AuthCognitoと認証APIを定義します |
-| aws-blocks/index.cdk.ts | BlocksStackとHosting BlockでWebアプリの配信基盤を定義します。`hostingTimeout.ts`（ストリーミング統合のタイムアウト）は、Hostingの制約を補う部品です |
-| aws-blocks/index.cdk.ts から呼ぶ ../chat-agent/infra/stack.ts・../batch-agent/infra/stack.ts | 対話用・定期取得用のエージェントのAWS構成（AgentCore Runtime、記憶、毎朝の定期取得とその失敗アラーム）。それぞれのエージェントのフォルダに置いています |
-| src/server/ | サーバー(SSR)専用のコードです。認証・保存・AgentCore接続を置き、ブラウザーのコードからは読み込みません |
-| src/lib/ | ブラウザーでも使う型・定数・純粋関数だけを置きます |
 | mock/ | mockモードのメモリ上の保存先とAIを置きます。モードのフラグが真のときだけ動的に読み込み、本番ビルドでは空のスタブに差し替えます（`astro.config.mjs` の `strip-mock`） |
-| src/server/blocks/records.ts | 部分更新の代わりに、versionによる条件付き書き込みで競合を扱います |
-| src/middleware.ts | 画面（HTML）の応答にCSPを付けます。通信先を同じオリジンに限り、Open Generative UIが生成したUI（sandboxのiframe）からも、外部への通信・画像・スクリプトの読み込みをさせません |
-| src/pages/api/ | JWT検証後に、クエスト・設定・新着の通知・学習の関連分析・理解度チェックの回答・CopilotKitを扱います。一覧は [API設計書](../doc/API設計書.md) です |
-| src/components/ | 画面を構成します。共通のチャット用カード枠は `chat/` に置きます |
-| src/components/copilotkit/ | CopilotKit連携用のフックを呼ぶコンポーネントです（[詳細](src/components/copilotkit/README.md)） |
-| src/components/human-in-the-loop/ | ユーザーの回答を待つクイズ・選択肢のUIです（[詳細](src/components/human-in-the-loop/README.md)） |
-| src/components/generative-ui/ | A2UIの描画・カタログと、ツールの結果を表示するカードです（[詳細](src/components/generative-ui/README.md)） |
-| src/hooks/ | 画面の状態とAPI呼び出しをまとめたフックです |
-| src/hooks/copilotkit/ | CopilotKitとの状態共有・コンテキスト・フロントエンドツール・Human in the Loopの登録フックです（[詳細](src/hooks/copilotkit/README.md)） |
 | tests/ | Node標準のテストランナーによるテストです |
 
 AWS用のビルドでは `aws-runtime` 条件でBlocksのAWS実装を選びます。Lambdaでモック実装を読み込んだ場合はエラーにし、ローカル保存へ書き込ませません。
@@ -116,6 +100,47 @@ Blocksの認証・保存を含むAPI検証は、ローカルのBlocksサーバ�
 ```sh
 BLOCKS_TEST_URL=http://localhost:4321 npm test
 ```
+
+
+## ローカル開発
+
+Node.js 22.12以降を使い、このディレクトリで実行します。
+
+```sh
+npm ci
+npm run seed
+```
+
+seedはローカルのBlocks保存領域へ、共通ニュースを追加します。既存ニュースは上書きしません。保存領域を読み込む前に反映するため、サーバーを起動する前に実行してください。
+
+次の2つを起動します。
+
+```sh
+# ターミナル1：Blocksのローカル認証API
+npm run dev:backend
+
+# ターミナル2：Astroの開発サーバー
+npm run dev -- --background
+```
+
+http://localhost:4321 を開き、ユーザー登録・ログインします。ローカルの確認コードはバックエンドのターミナルへ出ます。AWSのCognito、DynamoDBには接続しません。学習状態や通知は `.bb-data/` に保存します。
+
+AI応答だけをモックにし、Blocksの認証・保存を確認する場合は、Astroの起動を次へ置き換えます。
+
+```sh
+npm run dev:blocks-mock
+```
+
+実際のPythonエージェントへ接続する場合は、別のターミナルで起動し、Astroの環境変数に `AGENT_URL=http://localhost:8080/invocations` を設定します。
+
+```sh
+cd ../chat-agent
+BLOCKS_WEB_URL=http://localhost:4321 uv run python -m chat.main
+```
+
+ローカルのニュース取得・保存ツールは、認証済みリクエストのCookieを使い、Webアプリの `/api/agent-news` 経由でBlocksの保存領域へ接続します。週間レポートの記録は `/api/agent-learning-records` から読みます。どちらも `astro dev` のときだけ登録されるローカル専用のAPIです。Cookieはツール実行用のメタデータとして渡し、モデルへのコンテキストには含めません。AWS上のPythonエージェントは、引き続きDynamoDBへ接続します。
+
+画面・AG-UIだけを確認する従来の `npm run mock` と `npm run dev:mock -- --background` も残しています。このモードは認証を省略するため、Blocksの認証・保存の検証には使いません。
 
 ## AWSへのデプロイ
 

@@ -16,7 +16,7 @@ from typing import Any
 from boto3.dynamodb.conditions import Key
 from strands import ToolContext, tool
 
-from chat.tools import user_quest_table
+from chat.quest_storage import user_quest_table
 
 # 日付の区切りは、日本時間にする(サンプルアプリの利用者を、日本のユーザーと想定する)
 JST = timezone(timedelta(hours=9))

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { createInsight, insightStatus } from "../../server/learning/service";
-import { readInsight } from "../../server/learning/store";
+import { createInsight, insightStatus } from "./_server/learning/service";
+import { readInsight } from "./_server/learning/store";
 import {
   DEFAULT_LEARNING_REVIEW_EVERY,
   isLearningReviewEvery,
@@ -27,37 +27,50 @@ export const GET = withUser(
   },
 );
 
-const mutate = (action: "generate" | "read") =>
-  withUser(`learning-insights.${action}`, async ({ request, userId, log }) => {
-    const body = (await readJson(request)) as
-      { batch?: unknown; reviewEvery?: unknown } | null | undefined;
-    if (body === undefined) return badRequest();
+type ReviewInput = { batch: number; reviewEvery: number };
 
-    const batch = batchSchema.safeParse(body?.batch);
-    if (!batch.success) {
-      return json({ error: "学習件数の区間が不正です" }, 400);
-    }
-    const every = reviewEverySchema.safeParse(body?.reviewEvery);
-    if (!every.success) {
-      return json({ error: "学習件数の閾値が不正です" }, 400);
-    }
-    const reviewEvery = every.data;
+// 生成と既読処理で共通の入力だけを検証する。不正な場合はエラーレスポンスを返す。
+async function readReviewInput(request: Request): Promise<ReviewInput | Response> {
+  const body = (await readJson(request)) as
+    { batch?: unknown; reviewEvery?: unknown } | null | undefined;
+  if (body === undefined) return badRequest();
 
-    if (action === "read") {
-      try {
-        await readInsight(userId, batch.data, reviewEvery);
-        return json({ ok: true });
-      } catch (error) {
-        log.error("関連分析の通知を既読にできませんでした", {
-          err: error,
-          batch: batch.data,
-        });
-        return json({ error: "通知を既読にできませんでした" }, 500);
-      }
-    }
+  const batch = batchSchema.safeParse(body?.batch);
+  if (!batch.success) {
+    return json({ error: "学習件数の区間が不正です" }, 400);
+  }
+  const every = reviewEverySchema.safeParse(body?.reviewEvery);
+  if (!every.success) {
+    return json({ error: "学習件数の閾値が不正です" }, 400);
+  }
+  return { batch: batch.data, reviewEvery: every.data };
+}
 
+export const PATCH = withUser(
+  "learning-insights.read",
+  async ({ request, userId, log }) => {
+    const input = await readReviewInput(request);
+    if (input instanceof Response) return input;
     try {
-      const result = await createInsight(userId, batch.data, reviewEvery);
+      await readInsight(userId, input.batch, input.reviewEvery);
+      return json({ ok: true });
+    } catch (error) {
+      log.error("関連分析の通知を既読にできませんでした", {
+        err: error,
+        batch: input.batch,
+      });
+      return json({ error: "通知を既読にできませんでした" }, 500);
+    }
+  },
+);
+
+export const POST = withUser(
+  "learning-insights.generate",
+  async ({ request, userId, log }) => {
+    const input = await readReviewInput(request);
+    if (input instanceof Response) return input;
+    try {
+      const result = await createInsight(userId, input.batch, input.reviewEvery);
       return json(
         { ...result, ...(await insightStatus(userId)) },
         result.state === "stale" ? 409 : 200,
@@ -65,7 +78,7 @@ const mutate = (action: "generate" | "read") =>
     } catch (error) {
       log.error("学習内容の関連分析に失敗しました", {
         err: error,
-        batch: batch.data,
+        batch: input.batch,
       });
       return json(
         {
@@ -75,7 +88,5 @@ const mutate = (action: "generate" | "read") =>
         502,
       );
     }
-  });
-
-export const POST = mutate("generate");
-export const PATCH = mutate("read");
+  },
+);

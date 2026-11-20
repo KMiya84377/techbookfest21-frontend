@@ -5,7 +5,8 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from chat.tools import _local_blocks_request, _news_item
+from chat.local_bridge import _local_blocks_request
+from chat.quest_storage import _news_item
 
 
 class BlocksBridgeTests(unittest.TestCase):

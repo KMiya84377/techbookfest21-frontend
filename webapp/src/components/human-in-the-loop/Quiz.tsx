@@ -44,10 +44,10 @@ type Outcome = "correct" | "wrong" | null;
 
 type Props = Partial<QuizProps> & HumanInTheLoopProps;
 
-function parseFirstResult(result?: string): Outcome {
-  const answer = parseToolResult(result, quizAnswerSchema);
-  if (!answer) return null;
-  return answer.correct ? "correct" : "wrong";
+function readSubmittedOutcome(submittedAnswerJson?: string): Outcome {
+  const submittedAnswer = parseToolResult(submittedAnswerJson, quizAnswerSchema);
+  if (!submittedAnswer) return null;
+  return submittedAnswer.correct ? "correct" : "wrong";
 }
 
 // 引数は、ストリーミングで少しずつ届くため、届いていない項目は undefined になる
@@ -61,22 +61,23 @@ export default function Quiz(props: Props) {
     answer,
     explanation,
     respond,
-    result: returned,
+    result: submittedAnswerJson,
   } = props;
   const actions = useQuestActions();
   // 実行中かどうかだけを見る(メッセージのストリーミングごとに描画し直さない)
   const { agent } = useAgent({ updates: [UseAgentUpdate.OnRunStatusChanged] });
   const { copilotkit } = useCopilotKit();
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   // 直近の回答の結果
-  const [result, setResult] = useState<Outcome>(null);
-  // 初回の回答の結果。再回答しても、上書きしない
-  const [firstResult, setFirstResult] = useState<Outcome>(null);
+  const [currentOutcome, setCurrentOutcome] = useState<Outcome>(null);
+  // この画面での初回回答。再回答しても、上書きしない
+  const [firstLocalOutcome, setFirstLocalOutcome] = useState<Outcome>(null);
   // 再読み込みなどで画面の状態が失われても、エージェントに返した内容から、初回の結果を復元する
-  const first = firstResult ?? parseFirstResult(returned);
+  const firstAnswerOutcome =
+    firstLocalOutcome ?? readSubmittedOutcome(submittedAnswerJson);
 
   // 引数は少しずつ届く。answer が選択肢の範囲外のうちは、問題を出さない
-  const ready =
+  const quizReady =
     question &&
     options &&
     options.length >= 2 &&
@@ -84,36 +85,38 @@ export default function Quiz(props: Props) {
     answer >= 0 &&
     answer < options.length &&
     explanation;
-  if (!ready) {
+  if (!quizReady) {
     return <ChatCard loading>問題を作成しています…</ChatCard>;
   }
 
-  const submit = () => {
-    if (selected === null) return;
-    const outcome = selected === answer ? "correct" : "wrong";
-    setResult(outcome);
-    if (first === null) {
-      setFirstResult(outcome);
-      const answered: QuizAnswer = {
-        selectedIndex: selected,
-        selectedOption: options[selected],
+  const submitAnswer = () => {
+    if (selectedIndex === null) return;
+    const outcome = selectedIndex === answer ? "correct" : "wrong";
+    setCurrentOutcome(outcome);
+    if (firstAnswerOutcome === null) {
+      setFirstLocalOutcome(outcome);
+      const userAnswer: QuizAnswer = {
+        selectedIndex,
+        selectedOption: options[selectedIndex],
         correct: outcome === "correct",
       };
-      void respond?.(answered);
+      void respond?.(userAnswer);
       // 週間レポート用に、初回の回答を保存する(questId が、ボードのクエストに一致するときだけ)
       if (questId && actions.statusOf(questId) !== undefined) {
-        actions.recordAnswer(questId, answered.correct);
+        actions.recordAnswer(questId, userAnswer.correct);
       }
     }
   };
-  const retry = () => {
-    setSelected(null);
-    setResult(null);
+  const resetAnswer = () => {
+    setSelectedIndex(null);
+    setCurrentOutcome(null);
   };
-  const locked = result !== null;
+  const choicesLocked = currentOutcome !== null;
+  const outcomeLabel = currentOutcome === "correct" ? "正解です" : "不正解です";
+  const firstAnswerLabel = firstAnswerOutcome === "correct" ? "正解" : "不正解";
 
   // 続けて出題を頼む(ユーザーがチャットに書いたのと同じ形で、エージェントに送る)
-  const askAnother = async () => {
+  const requestAnotherQuiz = async () => {
     if (!questId || agent.isRunning) return;
     agent.addMessage({
       id: crypto.randomUUID(),
@@ -136,43 +139,43 @@ export default function Quiz(props: Props) {
       <OptionButtons
         options={options.map((label, index) => ({ id: String(index), label }))}
         selectionMode="single"
-        selectedIds={selected === null ? [] : [String(selected)]}
+        selectedIds={selectedIndex === null ? [] : [String(selectedIndex)]}
         onSelectionChange={(ids) =>
-          setSelected(ids.length === 0 ? null : Number(ids[0]))
+          setSelectedIndex(ids.length === 0 ? null : Number(ids[0]))
         }
-        disabled={locked}
+        disabled={choicesLocked}
       />
 
-      {result === null ? (
+      {currentOutcome === null ? (
         <Button
           type="button"
           variant="questPrimary"
           size="lg"
           className="mt-2.5"
-          disabled={selected === null}
-          onClick={submit}
+          disabled={selectedIndex === null}
+          onClick={submitAnswer}
         >
           回答する
         </Button>
       ) : (
         <div
-          className={`mt-2.5 rounded-lg px-3 py-2.5 ${RESULT_CLASS[result]}`}
+          className={`mt-2.5 rounded-lg px-3 py-2.5 ${RESULT_CLASS[currentOutcome]}`}
           role="status"
         >
-          <strong>{result === "correct" ? "正解です" : "不正解です"}</strong>
+          <strong>{outcomeLabel}</strong>
           <p className="mt-1">{explanation}</p>
-          {first && (
+          {firstAnswerOutcome && (
             <p className="mt-1 text-xs text-quest-card-muted">
-              初回の回答: {first === "correct" ? "正解" : "不正解"}
+              初回の回答: {firstAnswerLabel}
             </p>
           )}
-          {result === "wrong" && (
+          {currentOutcome === "wrong" && (
             <Button
               type="button"
               variant="questPrimary"
               size="lg"
               className="mt-2.5"
-              onClick={retry}
+              onClick={resetAnswer}
             >
               もう一度答える
             </Button>
@@ -181,7 +184,7 @@ export default function Quiz(props: Props) {
       )}
 
       {/* questId が、ボードのクエストに一致しないとき(エージェントが、ID を間違えたとき)は、出さない */}
-      {result !== null &&
+      {currentOutcome !== null &&
         questId &&
         actions.statusOf(questId) !== undefined && (
           <div
@@ -193,14 +196,14 @@ export default function Quiz(props: Props) {
                 クリア済みです{actions.isReview(questId) && "(復習候補)"}
               </span>
             ) : (
-              // 正解・不正解にかかわらず、回答したらクリアできる(仕様書 F-06)
+              // 正解・不正解にかかわらず、回答したらクリアできる
               // 不正解のままクリアすると、復習候補になる
               <Button
                 type="button"
                 variant="questPrimary"
                 size="lg"
                 className="mt-0"
-                onClick={() => actions.clear(questId, result === "wrong")}
+                onClick={() => actions.clear(questId, currentOutcome === "wrong")}
               >
                 クエストをクリアする
               </Button>
@@ -210,7 +213,7 @@ export default function Quiz(props: Props) {
               variant="questOutline"
               size="lg"
               disabled={agent.isRunning}
-              onClick={() => void askAnother()}
+              onClick={() => void requestAnotherQuiz()}
             >
               もう一問
             </Button>

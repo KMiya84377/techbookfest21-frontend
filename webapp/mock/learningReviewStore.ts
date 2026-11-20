@@ -3,8 +3,8 @@ import {
   canStartReview,
   toInsights,
   type ReviewRecord,
-} from "../src/server/learning/reviewRecord";
-import type { ReviewStore } from "../src/server/learning/store";
+} from "../src/pages/api/_server/learning/reviewRecord";
+import type { ReviewStore } from "../src/pages/api/_server/learning/store";
 
 // mockモード専用。関連分析の実行記録をメモリに持つ(Blocks の保存先と同じ契約)
 const records = new Map<string, ReviewRecord>();

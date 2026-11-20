@@ -6,7 +6,18 @@ import { Dialog } from "@base-ui/react/dialog";
 import { Popover } from "@base-ui/react/popover";
 import { Button } from "../src/components/ui/button";
 import QuestBoard from "../src/components/quests/QuestBoard";
+import UserSettingsButton from "../src/components/user-setting/UserSettingsButton";
 import type { Quest } from "../src/lib/quests/model";
+
+test("ボードの星形装飾を表示せず、ユーザー設定ボタンは維持する", () => {
+  const html = renderToStaticMarkup(
+    createElement(UserSettingsButton, { onOpenSettings: () => {} }),
+  );
+  assert.doesNotMatch(html, /✦|quest-ornament/);
+  assert.equal((html.match(/<button\b/g) ?? []).length, 1);
+  assert.match(html, /aria-label="ユーザー設定を開く"/);
+  assert.match(html, /title="ユーザー設定"/);
+});
 
 test("スタイルなしのButtonはカード・背景のレイアウトを変更しない", () => {
   const html = renderToStaticMarkup(

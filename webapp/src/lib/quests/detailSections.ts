@@ -63,7 +63,7 @@ const messageSchema = z.union([
     .strict(),
 ]);
 
-export const detailSectionSchema = z
+const detailSectionFieldsSchema = z
   .object({
     id: id.describe(
       "新しいidなら末尾へ追記し、同じidならその追記だけを置き換える",
@@ -76,64 +76,119 @@ export const detailSectionSchema = z
         "A2UI v0.9。createSurface、updateComponentsの順に2件。surfaceIdは追記のidと同じ。rootを起点にText/Column/Row/Card/Dividerを組み合わせ、全コンポーネントを参照で接続する。各部品は1箇所からだけ参照し、80部品・12階層まで。更新時も完全な2件を渡す。",
       ),
   })
-  .strict()
-  .superRefine((section, context) => {
-    const [create, update] = section.messages;
-    const invalid = (message: string) =>
-      context.addIssue({ code: "custom", message });
-    if (
-      !create ||
-      !("createSurface" in create) ||
-      !update ||
-      !("updateComponents" in update)
-    ) {
-      invalid("createSurface、updateComponentsの順で指定してください");
+  .strict();
+
+type DetailSectionFields = z.infer<typeof detailSectionFieldsSchema>;
+type ReportValidationError = (message: string) => void;
+
+function validateSurfaceIds(
+  sectionId: string,
+  createSurfaceId: string,
+  updateSurfaceId: string,
+  reportError: ReportValidationError,
+) {
+  if (createSurfaceId !== sectionId || updateSurfaceId !== sectionId) {
+    reportError("surfaceIdは追記のidと一致させてください");
+  }
+}
+
+function buildComponentMap(
+  components: DetailComponent[],
+  reportError: ReportValidationError,
+): Map<string, DetailComponent> {
+  const componentsById = new Map(
+    components.map((component) => [component.id, component]),
+  );
+  if (componentsById.size !== components.length) {
+    reportError("コンポーネントidが重複しています");
+  }
+  return componentsById;
+}
+
+function validateSingleParent(
+  componentsById: Map<string, DetailComponent>,
+  reportError: ReportValidationError,
+) {
+  const referencedIds = new Set<string>();
+  for (const component of componentsById.values()) {
+    for (const childId of childIdsOf(component)) {
+      if (referencedIds.has(childId)) {
+        reportError("同じUI部品を複数箇所から参照できません");
+      }
+      referencedIds.add(childId);
+    }
+  }
+}
+
+function validateComponentTree(
+  componentsById: Map<string, DetailComponent>,
+  reportError: ReportValidationError,
+) {
+  // 確認済みの部品と、現在たどっている途中の部品を分けて循環を検出する。
+  const checkedIds = new Set<string>();
+  const currentPathIds = new Set<string>();
+
+  function visitComponent(componentId: string, depth: number) {
+    if (depth > 12 || currentPathIds.has(componentId)) {
+      reportError("UIの参照が循環しているか、階層が深すぎます");
       return;
     }
-    if (
-      create.createSurface.surfaceId !== section.id ||
-      update.updateComponents.surfaceId !== section.id
-    ) {
-      invalid("surfaceIdは追記のidと一致させてください");
+    if (checkedIds.has(componentId)) return;
+
+    const component = componentsById.get(componentId);
+    if (!component) {
+      reportError(`参照先がありません: ${componentId}`);
+      return;
     }
-    const nodes = new Map(
-      update.updateComponents.components.map((node) => [node.id, node]),
-    );
-    if (nodes.size !== update.updateComponents.components.length)
-      invalid("コンポーネントidが重複しています");
-    // どの部品も、1 か所からだけ参照される
-    const referencedIds = new Set<string>();
-    for (const node of nodes.values()) {
-      for (const childId of childIdsOf(node)) {
-        if (referencedIds.has(childId))
-          invalid("同じUI部品を複数箇所から参照できません");
-        referencedIds.add(childId);
-      }
+    currentPathIds.add(componentId);
+    for (const childId of childIdsOf(component)) {
+      visitComponent(childId, depth + 1);
     }
-    // root からたどり、循環・深すぎる階層・存在しない参照・たどれない部品がないかを確かめる
-    // (visited はたどり終えた部品、active は今たどっている途中の部品)
-    const visited = new Set<string>();
-    const active = new Set<string>();
-    const visit = (nodeId: string, depth: number) => {
-      if (depth > 12 || active.has(nodeId)) {
-        invalid("UIの参照が循環しているか、階層が深すぎます");
-        return;
-      }
-      if (visited.has(nodeId)) return;
-      const node = nodes.get(nodeId);
-      if (!node) {
-        invalid(`参照先がありません: ${nodeId}`);
-        return;
-      }
-      active.add(nodeId);
-      for (const childId of childIdsOf(node)) visit(childId, depth + 1);
-      active.delete(nodeId);
-      visited.add(nodeId);
-    };
-    visit("root", 0);
-    if (visited.size !== nodes.size)
-      invalid("rootから参照されていないUI部品があります");
-  });
+    currentPathIds.delete(componentId);
+    checkedIds.add(componentId);
+  }
+
+  visitComponent("root", 0);
+  if (checkedIds.size !== componentsById.size) {
+    reportError("rootから参照されていないUI部品があります");
+  }
+}
+
+function validateDetailSection(
+  section: DetailSectionFields,
+  context: z.RefinementCtx,
+) {
+  const reportError: ReportValidationError = (message) => {
+    context.addIssue({ code: "custom", message });
+  };
+  const [createMessage, updateMessage] = section.messages;
+  if (
+    !createMessage ||
+    !("createSurface" in createMessage) ||
+    !updateMessage ||
+    !("updateComponents" in updateMessage)
+  ) {
+    reportError("createSurface、updateComponentsの順で指定してください");
+    return;
+  }
+
+  validateSurfaceIds(
+    section.id,
+    createMessage.createSurface.surfaceId,
+    updateMessage.updateComponents.surfaceId,
+    reportError,
+  );
+  const componentsById = buildComponentMap(
+    updateMessage.updateComponents.components,
+    reportError,
+  );
+  validateSingleParent(componentsById, reportError);
+  validateComponentTree(componentsById, reportError);
+}
+
+const detailSectionSchema = detailSectionFieldsSchema.superRefine(
+  validateDetailSection,
+);
 
 export const detailUpdateSchema = z
   .object({

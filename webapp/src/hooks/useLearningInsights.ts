@@ -18,10 +18,29 @@ type ReviewRequest = Pick<LearningProgress, "batch" | "reviewEvery">;
 const requestKey = (request: ReviewRequest) =>
   `${request.reviewEvery}:${request.batch}`;
 
-const pendingRequest = (status: Status): ReviewRequest | null =>
-  status.pendingBatch
-    ? { batch: status.pendingBatch, reviewEvery: status.learning.reviewEvery }
-    : null;
+function pendingRequest(status: Status): ReviewRequest | null {
+  if (!status.pendingBatch) return null;
+  return {
+    batch: status.pendingBatch,
+    reviewEvery: status.learning.reviewEvery,
+  };
+}
+
+async function sendAnalysisRequest(
+  apiFetch: ApiFetch,
+  request: ReviewRequest,
+): Promise<Status> {
+  const response = await apiFetch(INSIGHTS_URL, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  // 409は設定変更で分析区間が古くなった場合。返された最新の状態で続ける。
+  if (!response.ok && response.status !== 409) {
+    throw new Error("学習内容のつながりを分析できませんでした");
+  }
+  return response.json();
+}
 
 // 学習内容の関連分析(図解の通知)の取得と、分析の依頼
 //   クエストをクリアするたび(event)に、区切りの件数に達していれば分析を頼む
@@ -37,10 +56,9 @@ export function useLearningInsights(
   const inFlight = useRef(false);
   const queuedRequest = useRef<ReviewRequest | null>(null);
   const mounted = useRef(false);
-  // run の中から、次の依頼を最新の run で実行するための参照
-  const runner = useRef<(request: ReviewRequest) => Promise<void>>(
-    async () => {},
-  );
+  // 待機中に認証情報などが変わった場合も、次の依頼では最新の通信処理を使う。
+  const apiFetchRef = useRef(apiFetch);
+  apiFetchRef.current = apiFetch;
 
   const refresh = useCallback(async (): Promise<Status> => {
     const response = await apiFetch(INSIGHTS_URL, { cache: "no-store" });
@@ -50,28 +68,22 @@ export function useLearningInsights(
     return status;
   }, [apiFetch]);
 
-  const run = useCallback(
-    async (request: ReviewRequest) => {
-      if (inFlight.current) {
-        queuedRequest.current = request;
-        return;
-      }
+  const runAnalysis = useCallback(async (firstRequest: ReviewRequest) => {
+    if (inFlight.current) {
+      queuedRequest.current = firstRequest;
+      return;
+    }
+
+    let request: ReviewRequest | null = firstRequest;
+    // 1件ずつ処理し、実行中に届いた依頼は次の周回で処理する。
+    while (request) {
       inFlight.current = true;
       if (mounted.current) {
         setBusy(true);
         setError(null);
       }
       try {
-        const response = await apiFetch(INSIGHTS_URL, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(request),
-        });
-        // 409 は、設定が変わって区間が古くなった(stale)。応答の状態で続ける
-        if (!response.ok && response.status !== 409) {
-          throw new Error("学習内容のつながりを分析できませんでした");
-        }
-        const status = (await response.json()) as Status;
+        const status = await sendAnalysisRequest(apiFetchRef.current, request);
         if (mounted.current) setInsights(status.insights);
         const pending = pendingRequest(status);
         if (pending && requestKey(pending) !== requestKey(request)) {
@@ -94,25 +106,25 @@ export function useLearningInsights(
           next &&
           requestKey(next) !== requestKey(request)
         ) {
-          void runner.current(next);
+          request = next;
+        } else {
+          request = null;
         }
       }
-    },
-    [apiFetch],
-  );
-  runner.current = run;
+    }
+  }, []);
 
   // 通知を取得し直し、まだ分析していない区間があれば、分析を頼む
   const refreshAndRunPending = useCallback(
     async (failureMessage: string) => {
       try {
         const pending = pendingRequest(await refresh());
-        if (mounted.current && pending) await runner.current(pending);
+        if (mounted.current && pending) await runAnalysis(pending);
       } catch {
         if (mounted.current) setError(failureMessage);
       }
     },
-    [refresh],
+    [refresh, runAnalysis],
   );
 
   // 表示したときと、設定の「図解を提案する学習件数」が変わったときに取得し直す
@@ -128,11 +140,11 @@ export function useLearningInsights(
   useEffect(() => {
     if (!event) return;
     if (event.progress) {
-      if (event.progress.batch > 0) void runner.current(event.progress);
+      if (event.progress.batch > 0) void runAnalysis(event.progress);
     } else {
       void refreshAndRunPending("保存後の学習件数を取得できませんでした");
     }
-  }, [event, refreshAndRunPending]);
+  }, [event, refreshAndRunPending, runAnalysis]);
 
   const retry = useCallback(async () => {
     setError(null);

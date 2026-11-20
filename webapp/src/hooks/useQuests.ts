@@ -9,35 +9,40 @@ const QUIZ_ANSWERS_URL = "/api/quiz-answers";
 // クエストの取得と、閲覧・クリア状態の保存
 //   クエストは、エージェントを通さず、API から取得する
 export function useQuests(apiFetch: ApiFetch) {
-  const [quests, setQuests] = useState<Quest[] | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [questsFromApi, setQuestsFromApi] = useState<Quest[] | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   // APIから取得した状態に、画面の直近の変更を重ねる
-  const [statuses, setStatuses] = useState<Record<string, QuestStatus>>({});
+  const [localStatusById, setLocalStatusById] = useState<
+    Record<string, QuestStatus>
+  >({});
   // 不正解のままクリアした、復習候補の印
-  const [reviews, setReviews] = useState<Record<string, boolean>>({});
+  const [localReviewById, setLocalReviewById] = useState<
+    Record<string, boolean>
+  >({});
   const [stateError, setStateError] = useState<string | null>(null);
   const [learningEvent, setLearningEvent] = useState<{
     progress: LearningProgress | null;
     version: number;
   } | null>(null);
-  const pendingClears = useRef(new Set<string>());
+  const pendingClearIds = useRef(new Set<string>());
   // 表示中のクエスト(下で、描画のたびに更新する)。エージェントのツールなど、描画の外から読む
-  const shownRef = useRef<Quest[] | undefined>(undefined);
+  const displayedQuestsRef = useRef<Quest[] | undefined>(undefined);
 
   const fetchQuests = useCallback(async (): Promise<Quest[]> => {
-    const res = await apiFetch(QUESTS_URL);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return (await res.json()).quests as Quest[];
+    const response = await apiFetch(QUESTS_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return (await response.json()).quests as Quest[];
   }, [apiFetch]);
 
   // 最初の取得(読み込み中の表示を出す)
-  const load = useCallback(async () => {
-    setFailed(false);
-    setQuests(null);
+  const loadQuests = useCallback(async () => {
+    setLoadFailed(false);
+    setQuestsFromApi(null);
     try {
-      setQuests(await fetchQuests());
+      const quests = await fetchQuests();
+      setQuestsFromApi(quests);
     } catch {
-      setFailed(true);
+      setLoadFailed(true);
     }
   }, [fetchQuests]);
 
@@ -45,8 +50,8 @@ export function useQuests(apiFetch: ApiFetch) {
   const reloadQuests = useCallback(async (): Promise<Quest[]> => {
     const latest = await fetchQuests();
     // 次の描画を待たずに、直後の操作(検索条件の件数など)が最新の一覧を使えるようにする
-    shownRef.current = latest;
-    setQuests(latest);
+    displayedQuestsRef.current = latest;
+    setQuestsFromApi(latest);
     return latest;
   }, [fetchQuests]);
 
@@ -57,13 +62,13 @@ export function useQuests(apiFetch: ApiFetch) {
       status: "viewed" | "cleared",
       review?: boolean,
     ) => {
-      const res = await apiFetch(QUESTS_URL, {
+      const response = await apiFetch(QUESTS_URL, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ ...quest, status, review }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return (await res.json()) as { learning?: LearningProgress | null };
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return (await response.json()) as { learning?: LearningProgress | null };
     },
     [apiFetch],
   );
@@ -72,12 +77,12 @@ export function useQuests(apiFetch: ApiFetch) {
   const recordQuizAnswer = useCallback(
     async (questId: string, correct: boolean) => {
       try {
-        const res = await apiFetch(QUIZ_ANSWERS_URL, {
+        const response = await apiFetch(QUIZ_ANSWERS_URL, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ questId, correct }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
       } catch (error) {
         console.error("理解度チェックの回答を保存できませんでした", error);
       }
@@ -86,65 +91,78 @@ export function useQuests(apiFetch: ApiFetch) {
   );
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void loadQuests();
+  }, [loadQuests]);
 
-  const shown = quests?.map((quest) => ({
+  // APIの取得値に画面内の変更を重ね、表示用の一覧を作る。
+  const displayedQuests = questsFromApi?.map((quest) => ({
     ...quest,
-    status: statuses[quest.id] ?? quest.status,
-    review: reviews[quest.id] ?? quest.review,
+    status: localStatusById[quest.id] ?? quest.status,
+    review: localReviewById[quest.id] ?? quest.review,
   }));
-  shownRef.current = shown;
+  displayedQuestsRef.current = displayedQuests;
 
   // 表示中のクエストを ID で探す。取得し直した直後(次の描画の前)にも最新の一覧で探せるよう、参照から読む
-  const findShown = (id: string) =>
-    shownRef.current?.find((quest) => quest.id === id);
+  const findDisplayedQuest = (id: string) =>
+    displayedQuestsRef.current?.find((quest) => quest.id === id);
 
-  // 詳細を開いたクエストは、閲覧済みにする(クリア済みは、そのまま)
-  const markViewed = (id: string) => {
-    const quest = findShown(id);
-    if (!quest || quest.status !== "todo") return;
-    setStateError(null);
-    setStatuses((current) => ({ ...current, [id]: "viewed" }));
-    void saveQuestState(quest, "viewed").catch((error) => {
+  async function saveViewedQuest(quest: Quest): Promise<void> {
+    try {
+      await saveQuestState(quest, "viewed");
+    } catch (error) {
       console.error("クエストの閲覧状態を保存できませんでした", error);
       setStateError(
         "クエストの閲覧状態を保存できませんでした。再読み込みで再試行してください。",
       );
-    });
+    }
+  }
+
+  // 詳細を開いたクエストは、閲覧済みにする(クリア済みは、そのまま)
+  const markViewed = (id: string) => {
+    const quest = findDisplayedQuest(id);
+    if (!quest || quest.status !== "todo") return;
+    setStateError(null);
+    // 閲覧は先に画面へ反映し、その後に保存する。
+    setLocalStatusById((current) => ({ ...current, [id]: "viewed" }));
+    void saveViewedQuest(quest);
   };
 
+  async function saveClearedQuest(quest: Quest, review: boolean): Promise<void> {
+    try {
+      const response = await saveQuestState(quest, "cleared", review);
+      // クリアは保存成功後に画面へ反映する。失敗した場合は再試行できる。
+      setLocalStatusById((current) => ({ ...current, [quest.id]: "cleared" }));
+      setLocalReviewById((current) => ({ ...current, [quest.id]: review }));
+      setLearningEvent((current) => ({
+        progress: response?.learning ?? null,
+        version: (current?.version ?? 0) + 1,
+      }));
+    } catch (error) {
+      console.error("クエストのクリア状態を保存できませんでした", error);
+      setStateError(
+        "クエストのクリア状態を保存できませんでした。再読み込みで再試行してください。",
+      );
+    } finally {
+      pendingClearIds.current.delete(quest.id);
+    }
+  }
+
   const markCleared = (id: string, review: boolean) => {
-    const quest = findShown(id);
-    if (!quest || quest.status === "cleared" || pendingClears.current.has(id))
+    const quest = findDisplayedQuest(id);
+    if (!quest || quest.status === "cleared" || pendingClearIds.current.has(id)) {
       return;
-    pendingClears.current.add(id);
+    }
+    pendingClearIds.current.add(id);
     setStateError(null);
-    void saveQuestState(quest, "cleared", review)
-      .then((result) => {
-        // 保存に成功するまではクリア済みにしない。失敗時にも再試行できる。
-        setStatuses((current) => ({ ...current, [id]: "cleared" }));
-        setReviews((current) => ({ ...current, [id]: review }));
-        setLearningEvent((current) => ({
-          progress: result?.learning ?? null,
-          version: (current?.version ?? 0) + 1,
-        }));
-      })
-      .catch((error) => {
-        console.error("クエストのクリア状態を保存できませんでした", error);
-        setStateError(
-          "クエストのクリア状態を保存できませんでした。再読み込みで再試行してください。",
-        );
-      })
-      .finally(() => pendingClears.current.delete(id));
+    void saveClearedQuest(quest, review);
   };
 
   return {
-    shown,
-    shownRef,
-    findShown,
-    failed,
-    load,
+    displayedQuests,
+    displayedQuestsRef,
+    findDisplayedQuest,
+    loadFailed,
+    loadQuests,
     reloadQuests,
     stateError,
     setStateError,

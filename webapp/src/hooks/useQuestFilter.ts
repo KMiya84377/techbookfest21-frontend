@@ -10,8 +10,8 @@ import {
   type QuestFilter,
 } from "../lib/quests/filter";
 
-// クエストボードの検索条件。詳細を閉じても、維持する(仕様書 F-03)
-export function useQuestFilter(shownRef: RefObject<Quest[] | undefined>) {
+// クエストボードの検索条件。詳細を閉じても、維持する
+export function useQuestFilter(displayedQuestsRef: RefObject<Quest[] | undefined>) {
   const [filter, setFilter] = useState<QuestFilter>(EMPTY_FILTER);
   const filterRef = useRef(filter);
 
@@ -23,7 +23,7 @@ export function useQuestFilter(shownRef: RefObject<Quest[] | undefined>) {
       const after = mergeFilter(before, patch);
       filterRef.current = after;
       setFilter(after);
-      const all = shownRef.current ?? [];
+      const all = displayedQuestsRef.current ?? [];
       return {
         before: describeFilter(before),
         after: describeFilter(after),
@@ -31,7 +31,7 @@ export function useQuestFilter(shownRef: RefObject<Quest[] | undefined>) {
         total: all.length,
       };
     },
-    [shownRef],
+    [displayedQuestsRef],
   );
 
   return { filter, updateFilter };

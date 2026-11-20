@@ -16,6 +16,19 @@ type SharedQuest = Pick<
   | "summary"
 >;
 
+interface SharedQuestBoardState {
+  quests?: unknown;
+  refreshRequested?: boolean;
+  refreshError?: boolean;
+  [key: string]: unknown;
+}
+
+interface SharedAgentState {
+  questBoard?: SharedQuestBoardState;
+  userSettings?: unknown;
+  [key: string]: unknown;
+}
+
 export const toSharedQuests = (quests: Quest[]): SharedQuest[] =>
   quests.map(
     ({
@@ -65,19 +78,14 @@ export function useSharedAgentState({
   const { agent } = useAgent();
   const agentRef = useRef(agent);
   agentRef.current = agent;
-  const questBoard = (
-    agent.state as {
-      questBoard?: {
-        quests?: unknown;
-        refreshRequested?: boolean;
-      };
-    }
-  ).questBoard;
-  const boardQuestsJson = JSON.stringify(toSharedQuests(quests ?? []));
+  const sharedState = agent.state as SharedAgentState;
+  const questBoard = sharedState.questBoard;
+  const questsToShareJson = JSON.stringify(toSharedQuests(quests ?? []));
   const shareQuestBoard = useCallback((latest: Quest[]) => {
     const currentAgent = agentRef.current;
+    const currentState = currentAgent.state as SharedAgentState;
     currentAgent.setState({
-      ...(currentAgent.state as Record<string, unknown>),
+      ...currentState,
       questBoard: {
         quests: toSharedQuests(latest),
         refreshRequested: false,
@@ -86,14 +94,14 @@ export function useSharedAgentState({
   }, []);
 
   // API が正規データ。初回取得・状態更新後に、エージェントと共有する状態を同期する。
-  useEffect(() => {
+  useEffect(function syncQuestBoard() {
     if (!quests || questBoard?.refreshRequested) return;
-    if (JSON.stringify(questBoard?.quests) === boardQuestsJson) return;
+    if (JSON.stringify(questBoard?.quests) === questsToShareJson) return;
 
     shareQuestBoard(quests);
   }, [
     agent,
-    boardQuestsJson,
+    questsToShareJson,
     quests,
     questBoard?.quests,
     questBoard?.refreshRequested,
@@ -101,10 +109,10 @@ export function useSharedAgentState({
   ]);
 
   // ユーザー設定は明示的な値なので、会話履歴の推測より優先してエージェントへ共有する。
-  useEffect(() => {
+  useEffect(function syncUserSettings() {
     if (!userSettingsReady) return;
     const currentAgent = agentRef.current;
-    const currentState = currentAgent.state as Record<string, unknown>;
+    const currentState = currentAgent.state as SharedAgentState;
     if (
       JSON.stringify(currentState.userSettings) === JSON.stringify(userSettings)
     ) {
@@ -114,27 +122,29 @@ export function useSharedAgentState({
   }, [agent, userSettings, userSettingsReady]);
 
   // エージェントが保存後に共有状態で更新を要求したら、永続 API から正規データを取り直す。
-  useEffect(() => {
+  useEffect(function handleQuestRefreshRequest() {
     if (!questBoard?.refreshRequested) return;
     let cancelled = false;
 
-    void reloadQuests()
-      .then((latest) => {
+    async function reloadAndShareQuests() {
+      try {
+        const latest = await reloadQuests();
         if (cancelled) return;
         shareQuestBoard(latest);
-      })
-      .catch((error) => {
+      } catch (error) {
         if (cancelled) return;
         console.error("共有状態からのクエスト再取得に失敗しました", error);
         const currentAgent = agentRef.current;
-        const currentState = currentAgent.state as Record<string, unknown>;
+        const currentState = currentAgent.state as SharedAgentState;
         const currentBoard = currentState.questBoard;
+        let preservedBoardFields: SharedQuestBoardState = {};
+        if (typeof currentBoard === "object" && currentBoard !== null) {
+          preservedBoardFields = currentBoard;
+        }
         currentAgent.setState({
           ...currentState,
           questBoard: {
-            ...(typeof currentBoard === "object" && currentBoard !== null
-              ? currentBoard
-              : {}),
+            ...preservedBoardFields,
             refreshRequested: false,
             refreshError: true,
           },
@@ -142,7 +152,10 @@ export function useSharedAgentState({
         onRefreshError(
           "クエストボードを更新できませんでした。再読み込みをお試しください。",
         );
-      });
+      }
+    }
+
+    void reloadAndShareQuests();
 
     return () => {
       cancelled = true;

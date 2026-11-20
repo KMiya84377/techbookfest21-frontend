@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { CheckIcon, Settings2Icon } from "lucide-react";
+import { Settings2Icon } from "lucide-react";
 import { clsx } from "cn";
 import { Button } from "../ui/button";
 import {
   ANSWER_DETAIL_OPTIONS,
-  DEFAULT_LEARNING_REVIEW_EVERY,
   DIFFICULTY_OPTIONS,
-  LEARNING_TOPICS,
-  MAX_LEARNING_REVIEW_EVERY,
-  MIN_LEARNING_REVIEW_EVERY,
   type UserSettings,
 } from "../../lib/userSettings/model";
 import {
@@ -17,6 +13,11 @@ import {
   DialogDescription,
   DialogTitle,
 } from "../ui/dialog";
+import {
+  ChoiceFieldset,
+  LearningTopicsFieldset,
+  LearningReviewIntervalFieldset,
+} from "./UserSettingsFields";
 
 interface Props {
   open: boolean;
@@ -27,53 +28,6 @@ interface Props {
   onSave: (settings: UserSettings) => Promise<void>;
 }
 
-// 選択中のボタンの色
-const SELECTED_CLASS = "border-quest-brown bg-quest-selected-bg";
-
-// 説明つきの選択肢から 1 つを選ぶ欄(難易度、回答の詳しさ)
-function ChoiceFieldset<T extends string>({
-  legend,
-  options,
-  value,
-  disabled,
-  onChange,
-}: {
-  legend: string;
-  options: readonly { id: T; label: string; description: string }[];
-  value: T;
-  disabled: boolean;
-  onChange: (value: T) => void;
-}) {
-  return (
-    <fieldset disabled={disabled}>
-      <legend className="text-sm font-semibold">{legend}</legend>
-      <div className="mt-3 grid grid-cols-3 gap-2 max-[420px]:grid-cols-1">
-        {options.map((option) => {
-          const selected = value === option.id;
-          return (
-            <Button
-              key={option.id}
-              type="button"
-              variant="questOutline"
-              aria-pressed={selected}
-              className={clsx(
-                "h-auto min-h-[58px] flex-col items-start whitespace-normal px-3 py-2",
-                selected && SELECTED_CLASS,
-              )}
-              onClick={() => onChange(option.id)}
-            >
-              <span className="font-semibold">{option.label}</span>
-              <span className="text-xs font-normal text-quest-card-muted">
-                {option.description}
-              </span>
-            </Button>
-          );
-        })}
-      </div>
-    </fieldset>
-  );
-}
-
 export default function UserSettingsDialog({
   open,
   onOpenChange,
@@ -82,58 +36,58 @@ export default function UserSettingsDialog({
   loadError,
   onSave,
 }: Props) {
-  const [draft, setDraft] = useState(settings);
+  const [draftSettings, setDraftSettings] = useState(settings);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const [saving, setSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saveSucceeded, setSaveSucceeded] = useState(false);
 
   useEffect(() => {
     if (!open || loading) return;
-    setDraft(settingsRef.current);
+    setDraftSettings(settingsRef.current);
     setSaveError(null);
-    setSaved(false);
+    setSaveSucceeded(false);
   }, [open, loading]);
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
+  const saveSettings = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (loading || saving) return;
-    setSaving(true);
+    if (loading || isSaving) return;
+    setIsSaving(true);
     setSaveError(null);
-    setSaved(false);
+    setSaveSucceeded(false);
     try {
-      await onSave(draft);
-      setSaved(true);
+      await onSave(draftSettings);
+      setSaveSucceeded(true);
     } catch {
       setSaveError(
         "設定を保存できませんでした。時間をおいて再度お試しください。",
       );
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   };
 
   // 下書きの一部を変える(保存済みの表示は消す)
-  const updateDraft = (change: Partial<UserSettings>) => {
-    setDraft((current) => ({ ...current, ...change }));
-    setSaved(false);
+  const updateDraftSettings = (change: Partial<UserSettings>) => {
+    setDraftSettings((current) => ({ ...current, ...change }));
+    setSaveSucceeded(false);
   };
 
   const toggleTopic = (topicId: UserSettings["learningTopics"][number]) => {
-    setDraft((current) => ({
+    setDraftSettings((current) => ({
       ...current,
       learningTopics: current.learningTopics.includes(topicId)
         ? current.learningTopics.filter((item) => item !== topicId)
         : [...current.learningTopics, topicId],
     }));
-    setSaved(false);
+    setSaveSucceeded(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="fixed top-1/2 left-1/2 max-h-[min(88dvh,780px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[3px] border border-quest-frame bg-quest-card p-0 text-quest-card-ink shadow-[0_18px_55px_var(--quest-dialog-shadow)]">
-        <form onSubmit={(event) => void submit(event)}>
+        <form onSubmit={(event) => void saveSettings(event)}>
           <div className="border-b border-quest-card-line bg-quest-card-header px-6 py-5 pr-12 max-[520px]:px-4">
             <div className="flex items-center gap-2 text-quest-brown">
               <Settings2Icon className="size-4" aria-hidden="true" />
@@ -165,92 +119,36 @@ export default function UserSettingsDialog({
               </p>
             )}
 
-            <fieldset disabled={loading || saving}>
-              <legend className="text-sm font-semibold">学びたい分野</legend>
-              <p className="mt-1 text-xs leading-relaxed text-quest-card-muted">
-                何も選ばない場合は、AWS全般を対象にします。
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {LEARNING_TOPICS.map((topic) => {
-                  const selected = draft.learningTopics.includes(topic.id);
-                  return (
-                    <Button
-                      key={topic.id}
-                      type="button"
-                      variant="questOutline"
-                      size="sm"
-                      aria-pressed={selected}
-                      className={selected ? SELECTED_CLASS : ""}
-                      onClick={() => toggleTopic(topic.id)}
-                    >
-                      {selected && (
-                        <CheckIcon className="size-3.5" aria-hidden="true" />
-                      )}
-                      {topic.label}
-                    </Button>
-                  );
-                })}
-              </div>
-            </fieldset>
-
+            <LearningTopicsFieldset
+              topics={draftSettings.learningTopics}
+              disabled={loading || isSaving}
+              onToggle={toggleTopic}
+            />
             <ChoiceFieldset
               legend="学習の難易度"
               options={DIFFICULTY_OPTIONS}
-              value={draft.difficulty}
-              disabled={loading || saving}
-              onChange={(difficulty) => updateDraft({ difficulty })}
+              value={draftSettings.difficulty}
+              disabled={loading || isSaving}
+              onChange={(difficulty) => updateDraftSettings({ difficulty })}
             />
 
             <ChoiceFieldset
               legend="回答の詳しさ"
               options={ANSWER_DETAIL_OPTIONS}
-              value={draft.answerDetail}
-              disabled={loading || saving}
-              onChange={(answerDetail) => updateDraft({ answerDetail })}
+              value={draftSettings.answerDetail}
+              disabled={loading || isSaving}
+              onChange={(answerDetail) => updateDraftSettings({ answerDetail })}
             />
 
-            <fieldset disabled={loading || saving}>
-              <label
-                htmlFor="learning-review-every"
-                className="text-sm font-semibold"
-              >
-                図解を提案する学習件数
-              </label>
-              <div className="mt-3 flex items-center gap-2">
-                <input
-                  id="learning-review-every"
-                  type="number"
-                  min={MIN_LEARNING_REVIEW_EVERY}
-                  max={MAX_LEARNING_REVIEW_EVERY}
-                  step={1}
-                  required
-                  aria-describedby="learning-review-help"
-                  value={
-                    Number.isFinite(draft.learningReviewEvery)
-                      ? draft.learningReviewEvery
-                      : ""
-                  }
-                  onChange={(event) => {
-                    updateDraft({
-                      learningReviewEvery: event.currentTarget.valueAsNumber,
-                    });
-                  }}
-                  className="w-24 rounded border border-quest-frame bg-white px-3 py-2 text-sm"
-                />
-                <span className="text-sm">件ごと</span>
-              </div>
-              <p
-                id="learning-review-help"
-                className="mt-2 text-xs leading-relaxed text-quest-card-muted"
-              >
-                学習したニュースのつながりを分析して図解を提案します。
-                {MIN_LEARNING_REVIEW_EVERY}〜{MAX_LEARNING_REVIEW_EVERY}
-                件で設定できます（初期値：{DEFAULT_LEARNING_REVIEW_EVERY}件）。
-                少なくすると分析の頻度が上がります。
-              </p>
-            </fieldset>
+            <LearningReviewIntervalFieldset
+              value={draftSettings.learningReviewEvery}
+              disabled={loading || isSaving}
+              onChange={(learningReviewEvery) =>
+                updateDraftSettings({ learningReviewEvery })
+              }
+            />
 
-            {(saveError || saved) && (
+            {(saveError || saveSucceeded) && (
               <p
                 className={clsx(
                   "text-sm",
@@ -267,7 +165,7 @@ export default function UserSettingsDialog({
             <Button
               type="button"
               variant="questOutline"
-              disabled={saving}
+              disabled={isSaving}
               onClick={() => onOpenChange(false)}
             >
               閉じる
@@ -275,9 +173,9 @@ export default function UserSettingsDialog({
             <Button
               type="submit"
               variant="questPrimary"
-              disabled={loading || saving}
+              disabled={loading || isSaving}
             >
-              {saving ? "保存中…" : "設定を保存"}
+              {isSaving ? "保存中…" : "設定を保存"}
             </Button>
           </div>
         </form>

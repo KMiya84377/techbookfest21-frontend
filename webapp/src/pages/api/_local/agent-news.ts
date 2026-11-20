@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { news, newsSchema, userQuests } from "../../../../aws-blocks/storage";
-import { conditionalFailure } from "../../../server/blocks/records";
-import { listQuests } from "../../../server/quests/repository";
+import { isConditionalWriteConflict } from "../_server/blocks/userQuestRecords";
+import { listQuests } from "../_server/quests/repository";
 import { json, localOnly, readJson } from "../_helpers";
 
 // ローカル開発で、エージェント(Python)がニュースを保存・確認するための API。
@@ -35,7 +35,7 @@ export const POST = localOnly(
         await news.put(item, { ifNotExists: true });
         saved.push(item.newsId);
       } catch (error) {
-        if (!conditionalFailure(error)) throw error;
+        if (!isConditionalWriteConflict(error)) throw error;
         skipped_existing.push(item.newsId);
       }
       try {
@@ -44,7 +44,7 @@ export const POST = localOnly(
           { ifNotExists: true },
         );
       } catch (error) {
-        if (!conditionalFailure(error)) throw error;
+        if (!isConditionalWriteConflict(error)) throw error;
       }
       assigned.push(item.newsId);
     }

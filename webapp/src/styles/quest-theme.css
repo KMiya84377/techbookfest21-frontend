@@ -46,9 +46,7 @@
   --quest-badge-chat: #5a4a1f;
   --quest-unread-badge: #9a493b;
   --quest-busy-dot: #d3b276;
-  /* ボードの飾りとスクロールバー */
-  --quest-ornament: #aa8955;
-  --quest-ornament-shadow: #000;
+  /* スクロールバー */
   --quest-scrollbar-thumb: #9b7847;
   --quest-scrollbar-track: #312217;
   /* ボタン(ui/button.tsx の quest 系の variant) */

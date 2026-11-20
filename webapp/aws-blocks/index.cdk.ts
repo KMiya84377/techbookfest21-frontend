@@ -95,7 +95,7 @@ const hosting = new Hosting(web, "Hosting", {
       : [],
   },
   // SSR 用 Lambda の環境変数。BLOCKS_STACK_NAME は AWS 上かどうかの判定に、
-  // Cognito の ID は JWT の検証に使う(src/server/blocks/serverConfig.ts の serverConfig)
+  // Cognito の ID は JWT の検証に使う(src/pages/api/_server/blocks/serverConfig.ts の serverConfig)
   environment: {
     BLOCKS_STACK_NAME: web.stackName,
     COGNITO_USER_POOL_ID: userPoolId,

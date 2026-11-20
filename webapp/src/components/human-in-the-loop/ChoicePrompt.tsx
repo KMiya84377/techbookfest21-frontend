@@ -41,32 +41,33 @@ export default function ChoicePrompt({
   options,
   selectionMode,
   respond,
-  result: returned,
+  result: submittedSelectionJson,
 }: Props) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [sending, setSending] = useState(false);
-  const [sendFailed, setSendFailed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitFailed, setSubmitFailed] = useState(false);
   // 届きかけ・壊れた結果は null になり、選択肢の表示を続ける
-  const response = parseToolResult(returned, choicePromptResultSchema);
+  const submittedSelection = parseToolResult(submittedSelectionJson, choicePromptResultSchema);
 
-  const ready =
+  const choicesReady =
     question && options && options.length >= 2 && selectionMode !== undefined;
-  if (!ready) {
+  if (!choicesReady) {
     return <ChatCard loading>選択肢を準備しています…</ChatCard>;
   }
 
   const selectedOptions = options.filter((option) =>
     selectedIds.includes(option.id),
   );
-  const submit = async () => {
-    if (!respond || selectedOptions.length === 0 || sending) return;
-    setSending(true);
-    setSendFailed(false);
+  const submitLabel = isSubmitting ? "送信中…" : "選択する";
+  const submitSelection = async () => {
+    if (!respond || selectedOptions.length === 0 || isSubmitting) return;
+    setIsSubmitting(true);
+    setSubmitFailed(false);
     try {
       await respond({ selectedOptions });
     } catch {
-      setSending(false);
-      setSendFailed(true);
+      setIsSubmitting(false);
+      setSubmitFailed(true);
     }
   };
 
@@ -81,12 +82,12 @@ export default function ChoicePrompt({
         selectionMode={selectionMode}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
-        disabled={Boolean(returned) || sending}
+        disabled={Boolean(submittedSelectionJson) || isSubmitting}
       />
-      {response ? (
+      {submittedSelection ? (
         <p className="mt-2.5 text-xs text-quest-card-muted" role="status">
           選択しました:{" "}
-          {response.selectedOptions.map((option) => option.label).join("、")}
+          {submittedSelection.selectedOptions.map((option) => option.label).join("、")}
         </p>
       ) : (
         <Button
@@ -94,13 +95,13 @@ export default function ChoicePrompt({
           variant="questPrimary"
           size="lg"
           className="mt-2.5"
-          disabled={selectedOptions.length === 0 || !respond || sending}
-          onClick={() => void submit()}
+          disabled={selectedOptions.length === 0 || !respond || isSubmitting}
+          onClick={() => void submitSelection()}
         >
-          {sending ? "送信中…" : "選択する"}
+          {submitLabel}
         </Button>
       )}
-      {sendFailed && (
+      {submitFailed && (
         <p className="mt-2 text-xs text-destructive" role="alert">
           選択を送信できませんでした。もう一度お試しください。
         </p>

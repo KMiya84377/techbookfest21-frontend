@@ -1,8 +1,5 @@
-import { useState, type CSSProperties } from "react";
-import { clsx } from "cn";
+import { useState } from "react";
 import {
-  IMPORTANCE_LABEL,
-  RANK,
   STATUS_LABEL,
   type Quest,
   type QuestStatus,
@@ -17,20 +14,13 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import GuildEmblem from "./GuildEmblem";
-import InkStamp from "./InkStamp";
+import QuestCard from "./QuestCard";
 
 const STATUSES: QuestStatus[] = ["todo", "viewed", "cleared"];
 const TABS: { key: "all" | QuestStatus; label: string }[] = [
   { key: "all", label: "すべて" },
   ...STATUSES.map((status) => ({ key: status, label: STATUS_LABEL[status] })),
 ];
-
-// 状態の表示の色と、先頭の印
-const STATUS_CLASS: Record<QuestStatus, string> = {
-  cleared: "text-quest-status-cleared before:content-['✓']",
-  viewed: "text-quest-status-viewed before:content-['◇']",
-  todo: "text-quest-status-todo before:content-['◇']",
-};
 
 const IMPORTANCE_ORDER = { high: 0, medium: 1, low: 2 } as const;
 
@@ -49,40 +39,6 @@ const SCATTER_CLASS = [
   "max-[600px]:[--quest-width:320px] max-[600px]:gap-y-[27px] max-[600px]:px-[7px] max-[600px]:pt-[26px] max-[600px]:pb-[35px] max-[600px]:[&>button:nth-child(n)]:mt-0 max-[600px]:[&>button:nth-child(n)]:ml-0 max-[600px]:[&>button:nth-child(n)]:w-[min(var(--quest-width),100%)] max-[600px]:[&>button:nth-child(3n)]:left-[7px]",
 ].join(" ");
 
-const QUEST_CARD_CLASS = [
-  // 基本
-  "group relative block w-[var(--quest-width)] min-w-0 mt-[var(--shift)] cursor-pointer border-0 bg-transparent p-0 text-left text-[var(--ink)] [font:inherit] [transform:rotate(var(--tilt))] [transform-origin:var(--pin-left)_14px] transition-transform duration-300 [-webkit-tap-highlight-color:transparent]",
-  // ホバー・フォーカス
-  "hover:z-[3] hover:[transform:rotate(calc(var(--tilt)*0.35))_translateY(-5px)] focus-visible:z-[3] focus-visible:outline-2 focus-visible:outline-offset-[8px] focus-visible:outline-quest-focus-card focus-visible:[transform:rotate(calc(var(--tilt)*0.35))_translateY(-5px)]",
-  // 動きを減らす設定
-  "motion-reduce:transition-none motion-reduce:hover:[transform:rotate(var(--tilt))] motion-reduce:focus-visible:[transform:rotate(var(--tilt))]",
-].join(" ");
-
-const QUEST_SHEET_CLASS = [
-  // 基本
-  "quest-sheet relative block [--quest-curl:32px] [transform-origin:var(--pin-left)_14px] [filter:drop-shadow(2px_8px_6px_var(--quest-sheet-shadow))] transition-[--quest-curl,filter] duration-300 ease-[ease] animate-[paper-breeze_var(--breeze-duration)_ease-in-out_var(--breeze-delay)_infinite]",
-  // ホバー・フォーカス中(親)
-  "group-hover:[--quest-curl:42px] group-focus-visible:[--quest-curl:42px] group-hover:[filter:drop-shadow(3px_12px_9px_var(--quest-sheet-shadow-hover))] group-focus-visible:[filter:drop-shadow(3px_12px_9px_var(--quest-sheet-shadow-hover))] group-hover:[animation-play-state:paused] group-focus-visible:[animation-play-state:paused]",
-  // 動きを減らす設定
-  "motion-reduce:animate-none motion-reduce:transition-none",
-].join(" ");
-
-// IDから決めるので、絞り込みや状態の更新でも同じ紙の個性を保つ。
-function paperStyle(id: string): CSSProperties {
-  const seed = Array.from(id).reduce(
-    (hash, char) => (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0,
-    7,
-  );
-  return {
-    "--tilt": `${((seed % 61) / 10 - 3) * 1.35}deg`,
-    "--shift": `${(seed % 19) - 9}px`,
-    "--pin-left": `${42 + (seed % 19)}%`,
-    "--breeze-delay": `${-(seed % 130) / 10}s`,
-    "--breeze-duration": `${8 + (seed % 6)}s`,
-    "--stamp-tilt": `${-19 + (seed % 28)}deg`,
-  } as CSSProperties;
-}
-
 interface Props {
   quests: Quest[];
   filter: QuestFilter;
@@ -98,11 +54,49 @@ export default function QuestBoard({
 }: Props) {
   const [windEnabled, setWindEnabled] = useState(true);
   // 重要度の高いクエストを、先に表示する
-  const shown = applyFilter(quests, filter).sort(
+  const filteredQuests = applyFilter(quests, filter).sort(
     (a, b) => IMPORTANCE_ORDER[a.importance] - IMPORTANCE_ORDER[b.importance],
   );
   const conditions = describeFilter(filter);
   const activeTab = filter.status ?? "all";
+
+  // クエストの領域に出すもの: クエストがない、条件に合うものがない、一覧のどれか
+  const renderQuests = () => {
+    if (quests.length === 0)
+      return (
+        <p className="px-0 py-8 text-[var(--board-text)]">
+          クエストがまだありません。チャットで、クエストを探せます。
+        </p>
+      );
+    if (filteredQuests.length === 0)
+      return (
+        <div className="px-0 py-8 text-[var(--board-text)]">
+          <p>
+            条件に合うクエストがありません。条件を減らすか、期間を広げてください。
+          </p>
+          <Button
+            type="button"
+            variant="questActive"
+            size="sm"
+            onClick={() => onFilterChange({ reset: true })}
+          >
+            条件をすべて解除する
+          </Button>
+        </div>
+      );
+    return (
+      <div className={SCATTER_CLASS}>
+        {filteredQuests.map((quest) => (
+          <QuestCard
+            key={quest.id}
+            quest={quest}
+            windEnabled={windEnabled}
+            onOpen={onOpen}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <section className="relative min-h-full" aria-label="クエストボード">
@@ -115,7 +109,7 @@ export default function QuestBoard({
             className="text-[10px] text-[var(--board-muted)]"
             aria-live="polite"
           >
-            {shown.length} 件の依頼
+            {filteredQuests.length} 件の依頼
             {conditions.length > 0 && ` / 全 ${quests.length} 件`}
           </span>
         </div>
@@ -171,112 +165,7 @@ export default function QuestBoard({
         </div>
       )}
 
-      {quests.length === 0 ? (
-        <p className="px-0 py-8 text-[var(--board-text)]">
-          クエストがまだありません。チャットで、クエストを探せます。
-        </p>
-      ) : shown.length === 0 ? (
-        <div className="px-0 py-8 text-[var(--board-text)]">
-          <p>
-            条件に合うクエストがありません。条件を減らすか、期間を広げてください。
-          </p>
-          <Button
-            type="button"
-            variant="questActive"
-            size="sm"
-            onClick={() => onFilterChange({ reset: true })}
-          >
-            条件をすべて解除する
-          </Button>
-        </div>
-      ) : (
-        <div className={SCATTER_CLASS}>
-          {shown.map((quest) => (
-            <Button
-              variant="unstyled"
-              key={quest.id}
-              type="button"
-              className={clsx(
-                QUEST_CARD_CLASS,
-                "quest",
-                `status-${quest.status}`,
-                `importance-${quest.importance}`,
-              )}
-              style={paperStyle(quest.id)}
-              onClick={() => onOpen(quest.id)}
-            >
-              <span
-                className="quest-pin absolute top-2 left-[var(--pin-left)] z-[3] size-[10px] rounded-full border border-quest-pin-line"
-                aria-hidden="true"
-              />
-              <span
-                className={clsx(
-                  QUEST_SHEET_CLASS,
-                  !windEnabled && "animate-none",
-                )}
-              >
-                <span className="quest-paper relative flex aspect-[1/1.4142] min-h-0 flex-col px-[23px] pt-[30px] pb-[23px]">
-                  <span
-                    className="quest-fold pointer-events-none absolute inset-0"
-                    aria-hidden="true"
-                  />
-                  <span className="flex flex-wrap justify-between gap-[5px] mb-[13px] border-b border-quest-sheet-header-line pb-[10px] font-mono text-[8px] tracking-[0.16em] text-quest-sheet-header-ink">
-                    <span className="font-quest-display text-[9px] tracking-[0.19em]">
-                      GUILD REQUEST
-                    </span>
-                    <span>
-                      {quest.publishedAt.slice(0, 10).replaceAll("-", ".")}
-                    </span>
-                  </span>
-                  <span className="block">
-                    <span className="block font-quest-tavern text-[clamp(17px,1.4vw,21px)] leading-[1.6] font-semibold tracking-[0.025em] [overflow-wrap:anywhere] [text-wrap:pretty] max-[600px]:text-[20px]">
-                      {quest.title}
-                    </span>
-                  </span>
-                  <span className="mt-3 block font-quest-copy text-[12px] leading-[1.9] text-quest-sheet-summary [overflow-wrap:anywhere]">
-                    {quest.summary}
-                  </span>
-                  <span className="mt-[17px] flex flex-wrap gap-x-[10px] gap-y-[5px] pr-[54px] font-mono text-[10px] leading-[1.6] text-quest-sheet-services">
-                    {quest.services.map((service) => (
-                      <span
-                        key={service}
-                        className="border-b border-quest-sheet-services-line"
-                      >
-                        {service}
-                      </span>
-                    ))}
-                  </span>
-                  <span className="mt-auto grid grid-cols-1 gap-[5px] pt-[19px] pr-[85px] text-[10px]">
-                    <span
-                      className={clsx(
-                        "font-quest-tavern text-[10px] before:mr-[5px]",
-                        STATUS_CLASS[quest.status],
-                      )}
-                    >
-                      {STATUS_LABEL[quest.status]}
-                      {quest.review && " · 復習"}
-                    </span>
-                    <span className="font-quest-tavern text-[10px] text-quest-sheet-minutes">
-                      所要 約 {quest.minutes} 分
-                    </span>
-                    <span className="text-[9px] text-quest-sheet-importance">
-                      {IMPORTANCE_LABEL[quest.importance]}
-                    </span>
-                  </span>
-                  <InkStamp
-                    rank={RANK[quest.importance]}
-                    cleared={quest.status === "cleared"}
-                  />
-                </span>
-                <span
-                  className="quest-turn pointer-events-none absolute right-0 bottom-0 size-[var(--quest-curl)] [filter:drop-shadow(-2px_-2px_2px_var(--quest-sheet-turn-shadow))]"
-                  aria-hidden="true"
-                />
-              </span>
-            </Button>
-          ))}
-        </div>
-      )}
+      {renderQuests()}
       <footer className="relative z-[1] flex flex-wrap justify-between gap-[15px] px-0 pt-[5px] pb-6 font-quest-tavern text-[11px] tracking-[0.04em] text-quest-board-footer max-[600px]:text-[10px]">
         <Button
           variant="ghost"

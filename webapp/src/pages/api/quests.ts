@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { questStore } from "../../server/quests/store";
-import { loadProgress } from "../../server/learning/service";
-import { QuestNotFoundError } from "../../server/quests/errors";
+import { questStore } from "./_server/quests/store";
+import { loadProgress } from "./_server/learning/service";
+import { QuestNotFoundError } from "./_server/quests/errors";
 import { badRequest, json, readJson, withUser } from "./_helpers";
 
 // PATCH の本文(保存するクエストの状態)

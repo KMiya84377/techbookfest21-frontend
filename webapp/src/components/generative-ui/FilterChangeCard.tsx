@@ -5,7 +5,7 @@ import {
 } from "../../lib/copilotkit/toolResult";
 import { Alert, AlertTitle } from "../ui/alert";
 
-// エージェントが、メイン領域の検索条件を変えたことを、チャットに示す(仕様書 SR-05)
+// エージェントが、メイン領域の検索条件を変えたことを、チャットに示す
 export default function FilterChangeCard({ status, result }: ToolResultProps) {
   const change = parseToolResult(result, filterChangeSchema);
 

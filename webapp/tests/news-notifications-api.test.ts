@@ -3,7 +3,7 @@ import test from "node:test";
 
 const base = process.env.NEWS_TEST_URL;
 test(
-  "UC-05: APIで選定→通知→詳細取得→既読→再選定の重複排除（AWS・LLMなし）",
+  "新着通知: APIで選定→通知→詳細取得→既読→再選定の重複排除（AWS・LLMなし）",
   { skip: !base },
   async () => {
     const request = async (method = "GET", body?: unknown) => {

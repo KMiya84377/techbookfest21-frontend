@@ -1,88 +1,62 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Authenticator, onAuthChange } from "@aws-blocks/blocks/ui";
+import { authenticatorOptions } from "./authenticatorOptions";
 import { authApi, session } from "../../../aws-blocks/authClient";
 
-type Children = (getToken: () => string) => ReactNode;
+// ログイン後に、アクセストークンを返す関数(getToken)を受け取って、画面を作る関数
+type RenderWithToken = (getToken: () => string) => ReactNode;
 
 // ログインするまで、Blocks のログイン画面を出す。ログイン後は、アクセストークンを返す関数を子へ渡す
-export default function AuthGate({ children }: { children: Children }) {
-  const mount = useRef<HTMLDivElement>(null);
-  const token = useRef("");
+export default function AuthGate({ children }: { children: RenderWithToken }) {
+  const authenticatorMount = useRef<HTMLDivElement>(null);
+  const accessTokenRef = useRef("");
 
   const [signedIn, setSignedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let active = true;
-    const host = mount.current;
-    host?.replaceChildren(
-      Authenticator(authApi, {
-        // 公開環境は招待制。自己登録の禁止自体はCognito側でも強制する。
-        hideActions: import.meta.env.PROD ? ["signUp"] : [],
-        headings: {
-          signedOut: "クエストボードにログイン",
-          signingUp: "ユーザー登録",
-        },
-        actions: {
-          signIn: {
-            submitLabel: "ログイン",
-            fields: {
-              username: { label: "メールアドレス" },
-              password: { label: "パスワード" },
-            },
-          },
-          signUp: {
-            submitLabel: "ユーザー登録",
-            fields: {
-              username: { label: "メールアドレス" },
-              password: { label: "パスワード" },
-            },
-          },
-          resetPassword: { submitLabel: "パスワードを忘れた場合" },
-          confirmSignUp: {
-            submitLabel: "登録を確認",
-            fields: { code: { label: "確認コード" } },
-          },
-          resendSignUpCode: { submitLabel: "確認コードを再送信" },
-        },
-      }),
-    );
+    let isMounted = true;
+    const host = authenticatorMount.current;
+    host?.replaceChildren(Authenticator(authApi, authenticatorOptions));
 
     // セッションから、アクセストークンを取得し直す
-    const refresh = async () => {
+    async function refreshSession() {
       try {
         const result = await session.fetchSession();
-        token.current = result.accessToken;
-        if (active) {
+        accessTokenRef.current = result.accessToken;
+        if (isMounted) {
           setSignedIn(Boolean(result.accessToken));
           setError(null);
         }
       } catch {
-        if (active) {
-          token.current = "";
+        if (isMounted) {
+          accessTokenRef.current = "";
           setSignedIn(false);
           setError("ログイン情報を取得できませんでした");
         }
       }
-    };
+    }
 
-    const unsubscribe = onAuthChange(authApi, async (user) => {
-      if (user) await refresh();
-      else if (active) {
-        token.current = "";
-        setSignedIn(false);
-      }
-    });
+    const unsubscribe = onAuthChange(
+      authApi,
+      async function handleAuthChange(user) {
+        if (user) await refreshSession();
+        else if (isMounted) {
+          accessTokenRef.current = "";
+          setSignedIn(false);
+        }
+      },
+    );
 
     // サーバー側のセッションのトークンに追従するため、ログイン中は 5 分ごとに取得し直す
     const timer = setInterval(
       () => {
-        if (token.current) void refresh();
+        if (accessTokenRef.current) void refreshSession();
       },
       5 * 60 * 1000,
     );
     return () => {
-      active = false;
+      isMounted = false;
       unsubscribe();
       clearInterval(timer);
       host?.replaceChildren();
@@ -106,11 +80,11 @@ export default function AuthGate({ children }: { children: Children }) {
               現在は招待された方のみご利用いただけます。
             </p>
           )}
-          <div ref={mount} />
+          <div ref={authenticatorMount} />
           {error && <p role="alert">{error}</p>}
         </section>
       </div>
-      {signedIn && children(() => token.current)}
+      {signedIn && children(() => accessTokenRef.current)}
     </>
   );
 }

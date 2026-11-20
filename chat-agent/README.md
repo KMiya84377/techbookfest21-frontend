@@ -11,6 +11,22 @@ uv run --with pytest python -m pytest tests
 
 AWSの構成(Runtime・記憶・IAM)は、`infra/stack.ts` のCDKで定義しています。CDKのアプリは `webapp/` にあり、`webapp/aws-blocks/index.cdk.ts` から呼ばれます(`npm run deploy:agent`)。
 
+## 本との対応
+
+| 本の章・節 | 内容 | ファイル |
+| --- | --- | --- |
+| 第1章1.4.1 | Strands Agentsのエージェントを`StrandsAgent`でAG-UIに対応させ、`create_strands_app`で`POST /invocations`と`GET /ping`を公開する。会話履歴は、`StrandsAgentConfig`の`session_manager_provider`でAgentCore Memoryに保存する | [chat/main.py](chat/main.py) |
+| 第1章1.4.2 | AgentCore RuntimeのプロトコルにAG-UIを指定する(`protocolConfiguration: AGUI`) | [infra/stack.ts](infra/stack.ts) |
+| 第3章3.6.3〜3.6.5 | F-03のクイズ(`show_quiz`)、F-04の図解(`generateSandboxedUi`)、F-05の週間レポート(A2UIの部品の使い方)を、システムプロンプトで指示する | [chat/main.py](chat/main.py)の`SYSTEM_PROMPT` |
+| 第3章3.6.5 | F-05の週間レポートの数値を、ツールのコードで集計する | [chat/weekly_stats.py](chat/weekly_stats.py) |
+
+本にない追加機能のファイルは、次のとおりです。
+
+- 表示先の推奨(Jev UIルーター): [chat/ui_router.py](chat/ui_router.py)・[chat/jev_client.py](chat/jev_client.py)（下の「Jev UIルーターを有効にする」）
+- 新着ニュースの選定: [chat/news_review.py](chat/news_review.py)（下の「新着ニュースの選定」）
+- 学習内容の関連分析: [chat/learning_review.py](chat/learning_review.py)
+- 学習設定の受け取り: [chat/user_settings.py](chat/user_settings.py)
+
 ## Jev UIルーターを有効にする
 
 JevはホストされたAPIとして呼び出します。AgentCore Runtimeやアプリの実行基盤は追加せず、Strands Agentの`before_model_call`介入で、モデルを呼ぶ前に、この依頼に合う表示先(CopilotKitのUIツール)をJevに聞きます。結果は「表示先の推奨」として、その回のモデル呼び出しの間だけシステムプロンプトに足します。Jevは推奨するだけで、どのツールを呼ぶか、ツール引数や表示内容の生成は、Strands Agentが担当します。

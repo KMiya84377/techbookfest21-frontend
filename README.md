@@ -57,7 +57,6 @@
 | [webapp/](webapp/README.md) | Webアプリ(Astro・React・CopilotKit)と、AWS Blocksの定義 |
 | [chat-agent/](chat-agent/README.md) | チャット用のAIエージェント(Strands Agents、AG-UI) |
 | [batch-agent/](batch-agent/README.md) | 毎朝ニュースを取得する、定期実行用のAIエージェント |
-| [doc/](doc/) | API設計書など |
 | [.github/workflows/](.github/workflows/README.md) | デプロイのワークフロー(GitHub Actions) |
 
 ## 使い方

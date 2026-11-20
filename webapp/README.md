@@ -21,7 +21,7 @@ AstroのNode.jsサーバーで、画面の配信とバックエンド（CopilotK
 | 場所 | 内容 | 本との対応 |
 | --- | --- | --- |
 | [src/pages/api/copilotkit/](src/pages/api/copilotkit/%5B...slug%5D.ts) | CopilotKit Runtime。A2UIとOpen Generative UIもここで有効にします | 第3章3.1・3.5 |
-| [src/pages/api/](src/pages/api/) | JWT検証後に、クエスト・設定・新着の通知・学習の関連分析・理解度チェックの回答を扱います。一覧は [API設計書](../doc/API設計書.md) です | 第4章4.4.2 |
+| [src/pages/api/](src/pages/api/) | JWT検証後に、クエスト・設定・新着の通知・学習の関連分析・理解度チェックの回答を扱います | 第4章4.4.2 |
 | [src/pages/api/_server/](./src/pages/api/_server/README.md) | サーバー(SSR)専用のコードです。AIエージェントへのAG-UIの接続（`agent/`）、認証、保存を置き、ブラウザーのコードからは読み込みません | 第1章（Webアプリ側の接続） |
 | [src/pages/api/_server/blocks/userQuestRecords.ts](./src/pages/api/_server/blocks/userQuestRecords.ts) | 学習状態・分析結果・通知の取得と、versionによる条件付き書き込みをまとめます | － |
 | [src/middleware.ts](src/middleware.ts) | 画面（HTML）の応答にCSPを付けます。通信先を同じオリジンに限り、Open Generative UIが生成したUI（sandboxのiframe）からも、外部への通信・画像・スクリプトの読み込みをさせません | 第3章3.6.4 |
@@ -82,8 +82,6 @@ AIエージェントが返したニュースIDと理由を検証し、通知と�
 保存UIにはサイズと高さの上限を設ける。分析とUI生成はそれぞれ最大45秒で、関係がある場合はモデル実行が2段階になる。AWSでの所要時間・配信経路のタイムアウトは別途確認が必要。今回はAWS設定やタイムアウトを変更していない。
 
 旧通知にはUIが保存されていないため、既読や履歴を維持したまま関係を文章で表示する。旧通知の自動再生成・DBデータの削除は行わない。mockモードは保存済みUIの形を模した固定データを返すもので、実AIによる生成ではない。
-
-詳細と検証結果は [`doc/learning-open-generative-ui.md`](../doc/learning-open-generative-ui.md) を参照。
 
 ## 検証
 

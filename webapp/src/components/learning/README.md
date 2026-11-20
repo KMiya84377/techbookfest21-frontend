@@ -31,4 +31,4 @@
 
 [lib/learning/openGenerativeUI.ts](../../lib/learning/openGenerativeUI.ts)で保存形式・サイズ・高さを検証し、表示時には追加のCSPで外部・同一オリジンへの通信を禁止します。HTMLをホスト画面のDOMへ直接挿入せず、ホスト操作用の関数も公開していません。
 
-本のF-04との違いや検証範囲は、[Webアプリ全体のREADME](../../../README.md#2つの図解の違い)と[移行・検証記録](../../../../doc/learning-open-generative-ui.md)を参照してください。
+本のF-04との違いは、[Webアプリ全体のREADME](../../../README.md#2つの図解の違い)を参照してください。

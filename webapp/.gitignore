@@ -16,9 +16,9 @@ pnpm-debug.log*
 __pycache__/
 
 
-# environment variables
+# environment variables(.env.local・.env.development なども含める)
 .env
-.env.production
+.env.*
 
 # macOS-specific files
 .DS_Store
@@ -26,11 +26,16 @@ __pycache__/
 # jetbrains setting folder
 .idea/
 
-# AWS Blocks local data / synthesis outputs
+# AWS CDK Blocks local data / synthesis outputs
+.cdk-blocks-sandbox/
+.cdk-blocks/local/
+.hosting/
+cdk.out/
+blocks-outputs.json
+cdk-blocks/client.js
+cdk-blocks/blocks.spec.json
+
+# AWS Blocks(名称変更前)のローカルデータ
 .blocks/
 .blocks-sandbox/
 .bb-data/
-cdk.out/
-blocks-outputs.json
-aws-blocks/client.js
-aws-blocks/blocks.spec.json

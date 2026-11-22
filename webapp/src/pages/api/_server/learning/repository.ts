@@ -13,7 +13,7 @@ import {
 } from "./reviewRecord";
 import type { ReviewStore } from "./store";
 
-// Blocks(DistributedTable)の保存先。mock モードとの切り替えは store.ts
+// Blocks(KVStore)の保存先。mock モードとの切り替えは store.ts
 export const blocksReviewStore: ReviewStore = {
   async getReview(userId, batch, every) {
     return (

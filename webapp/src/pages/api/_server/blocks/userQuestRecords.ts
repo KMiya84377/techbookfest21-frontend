@@ -1,9 +1,5 @@
-import {
-  getConsistentItem,
-  isAwsBlock,
-  listConsistentUserItems,
-} from "./consistentReads";
-import { userQuests } from "../../../../../aws-blocks/storage";
+import { isAwsBlock, listConsistentUserItems } from "./consistentReads";
+import { userQuests } from "../../../../../cdk-blocks/storage";
 
 type RecordKeys = {
   userId: string;
@@ -21,19 +17,14 @@ export function isConditionalWriteConflict(error: unknown): boolean {
 }
 
 // UserQuestテーブルには、学習状態・分析結果・通知を保存する。
-// AWSでは保存直後の内容も読めるようにし、ローカルではBlocksの保存先を読む。
+// get()は強い整合性の読み取りなので、保存直後の内容も読める。
 export async function getUserQuestRecord<T extends object>(
   userId: string,
   newsId: string,
 ): Promise<StoredRecord<T> | null> {
-  let record;
-  if (isAwsBlock(userQuests)) {
-    record = await getConsistentItem(userQuests, { userId, newsId });
-  } else {
-    record = await userQuests.get({ userId, newsId });
-  }
+  const record = await userQuests.get({ userId, newsId });
   // 保存する項目は用途ごとに異なるため、呼び出し元が型を指定する。
-  return record as StoredRecord<T> | null;
+  return record as unknown as StoredRecord<T> | null;
 }
 
 export async function listUserQuestRecords<T extends object>(
@@ -50,8 +41,8 @@ export async function listUserQuestRecords<T extends object>(
     ...(prefix ? { newsId: { beginsWith: prefix } } : {}),
   };
   const records: StoredRecord<T>[] = [];
-  for await (const item of userQuests.query({ where })) {
-    records.push(item as StoredRecord<T>);
+  for await (const entry of userQuests.query({ where })) {
+    records.push(entry.value as unknown as StoredRecord<T>);
   }
   return records;
 }
@@ -80,12 +71,13 @@ export async function updateUserQuestRecord<T extends object>(
 
     // 読み取った後に別の処理が更新していたら、上書きせず競合エラーにする。
     try {
+      const key = { userId, newsId };
       if (currentRecord) {
-        await userQuests.put(record, {
+        await userQuests.put(key, record, {
           ifFieldEquals: { version: currentRecord.version },
         });
       } else {
-        await userQuests.put(record, { ifNotExists: true });
+        await userQuests.put(key, record, { ifNotExists: true });
       }
       return record;
     } catch (error) {

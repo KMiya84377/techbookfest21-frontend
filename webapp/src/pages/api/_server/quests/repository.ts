@@ -1,5 +1,5 @@
-import { NEWS_FEED } from "../../../../../aws-blocks/constants";
-import { news, userQuests } from "../../../../../aws-blocks/storage";
+import { NEWS_FEED } from "../../../../../cdk-blocks/constants";
+import { news, userQuests } from "../../../../../cdk-blocks/storage";
 import type { Quest } from "../../../../lib/quests/model";
 import { toQuest, type NewsItem } from "./newsItem";
 import { MAX_QUIZ_ANSWERS, type UserQuestItem } from "./userQuestItem";
@@ -28,13 +28,13 @@ async function listLearningHistory(
 
 export async function listQuests(userId: string): Promise<Quest[]> {
   const items: NewsItem[] = [];
-  for await (const item of news.query({
+  for await (const entry of news.query({
     index: "ByFeedPublishedAt",
     where: { feed: { equals: NEWS_FEED } },
     order: "desc",
     limit: 200,
   }))
-    items.push(item as unknown as NewsItem);
+    items.push(entry.value as unknown as NewsItem);
   const states = await userQuests.getBatch(
     items.map((item) => ({ userId, newsId: item.newsId })),
   );
@@ -102,7 +102,7 @@ export async function recordQuizAnswer(
   }));
 }
 
-// Blocks(DistributedTable)の保存先。mock モードとの切り替えは store.ts
+// Blocks(KVStore)の保存先。mock モードとの切り替えは store.ts
 export const blocksQuestStore: QuestStore = {
   list: listQuests,
   saveState: updateQuestState,

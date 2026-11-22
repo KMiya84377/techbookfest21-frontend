@@ -10,7 +10,7 @@ import {
   type HumanInTheLoopProps,
 } from "../../lib/copilotkit/toolResult";
 import { Button } from "../ui/button";
-import { useQuestActions } from "../quests/QuestActions";
+import { useQuestActions } from "../../hooks/useQuestActions";
 import ChatCard from "../chat/ChatCard";
 import OptionButtons from "./OptionButtons";
 

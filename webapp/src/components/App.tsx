@@ -13,11 +13,13 @@ import { useLearningInsights } from "../hooks/useLearningInsights";
 import { useUserSettings } from "../hooks/useUserSettings";
 import AuthGate from "./auth/AuthGate";
 import ChatPanel from "./chat/ChatPanel";
-import ChatSuggestions from "./chat/ChatSuggestions";
 import MobileChatButton from "./chat/MobileChatButton";
-import CopilotKitIntegration from "./copilotkit/CopilotKitIntegration";
+import { useCopilotKitIntegration } from "../hooks/copilotkit/useCopilotKitIntegration";
 import { reportCatalog } from "./generative-ui/ReportCatalog";
-import { QuestActionsContext, type QuestActions } from "./quests/QuestActions";
+import {
+  QuestActionsContext,
+  type QuestActions,
+} from "../contexts/QuestActionsContext";
 import QuestBoard from "./quests/QuestBoard";
 import {
   QuestLoadFailed,
@@ -35,6 +37,24 @@ const RUNTIME_URL = "/api/copilotkit";
 
 // getToken: アクセストークンを返す関数。渡さないとき(mock モード)は、認証ヘッダーを付けない
 function Workspace({ getToken }: { getToken?: () => string }) {
+  return (
+    <CopilotKitProvider
+      runtimeUrl={RUNTIME_URL}
+      headers={
+        getToken ? () => ({ Authorization: `Bearer ${getToken()}` }) : undefined
+      }
+      a2ui={{ catalog: reportCatalog }}
+      openGenerativeUI={{
+        designSkill: QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL,
+      }}
+    >
+      <QuestWorkspace getToken={getToken} />
+    </CopilotKitProvider>
+  );
+}
+
+// CopilotKitのフックと画面は、Providerの内側で動かす。
+function QuestWorkspace({ getToken }: { getToken?: () => string }) {
   const apiFetch = useApiFetch(getToken);
   const {
     displayedQuests,
@@ -103,6 +123,19 @@ function Workspace({ getToken }: { getToken?: () => string }) {
     focusChat: () => chatRef.current?.querySelector("textarea")?.focus(),
   };
 
+  useCopilotKitIntegration({
+    quests: displayedQuests ?? null,
+    openedId: openId,
+    filter,
+    updateFilter,
+    reloadQuests,
+    onRefreshError: setStateError,
+    detailExtras,
+    updateDetail,
+    userSettings,
+    userSettingsReady: !settingsLoading && !settingsLoadError,
+  });
+
   // ボードの領域に出すもの: 取得に失敗した、読み込み中、クエストボードのどれか
   const renderBoard = () => {
     if (loadFailed) return <QuestLoadFailed onRetry={loadQuests} />;
@@ -118,88 +151,64 @@ function Workspace({ getToken }: { getToken?: () => string }) {
   };
 
   return (
-    <CopilotKitProvider
-      runtimeUrl={RUNTIME_URL}
-      headers={
-        getToken ? () => ({ Authorization: `Bearer ${getToken()}` }) : undefined
-      }
-      a2ui={{ catalog: reportCatalog }}
-      openGenerativeUI={{
-        designSkill: QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL,
-      }}
-    >
-      <QuestActionsContext.Provider value={actions}>
-        <CopilotKitIntegration
-          quests={displayedQuests ?? null}
-          openedId={openId}
-          filter={filter}
-          updateFilter={updateFilter}
-          reloadQuests={reloadQuests}
-          onRefreshError={setStateError}
-          detailExtras={detailExtras}
-          updateDetail={updateDetail}
-          userSettings={userSettings}
-          userSettingsReady={!settingsLoading && !settingsLoadError}
-        />
-        <ChatSuggestions />
-        <QuestLayout>
-          <main className="board-area relative isolate min-w-0 overflow-hidden border-[11px] max-[520px]:border-[7px] max-[900px]:min-h-[660px]">
-            <UserSettingsButton onOpenSettings={() => setSettingsOpen(true)} />
-            <LearningNotifications
-              insights={learningInsights.insights}
-              busy={learningInsights.busy}
-              error={learningInsights.error}
-              onRetry={learningInsights.retry}
-              onRead={learningInsights.markRead}
-              news={newsNotifications.notifications}
-              newsBusy={newsNotifications.busy}
-              newsError={newsNotifications.error}
-              onCheckNews={newsNotifications.check}
-              onReadNews={newsNotifications.markRead}
-              onOpenNews={openNews}
-            />
-            {!mobileChatOpen && (
-              <MobileChatButton onOpen={() => setMobileChatOpen(true)} />
-            )}
-            {stateError && (
-              <StateErrorBanner
-                message={stateError}
-                onClose={() => setStateError(null)}
-              />
-            )}
-            <div
-              aria-hidden={Boolean(opened)}
-              inert={Boolean(opened)}
-              className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:var(--quest-scrollbar-thumb)_var(--quest-scrollbar-track)] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]"
-            >
-              {renderBoard()}
-            </div>
-            {opened && (
-              <QuestDetail
-                quest={opened}
-                extras={detailExtras[opened.id]}
-                onClose={close}
-              />
-            )}
-          </main>
-          <ChatPanel
-            open={mobileChatOpen}
-            onClose={closeMobileChat}
-            threadId={threadId}
-            onNewThread={startNewThread}
-            ref={chatRef}
+    <QuestActionsContext.Provider value={actions}>
+      <QuestLayout>
+        <main className="board-area relative isolate min-w-0 overflow-hidden border-[11px] max-[520px]:border-[7px] max-[900px]:min-h-[660px]">
+          <UserSettingsButton onOpenSettings={() => setSettingsOpen(true)} />
+          <LearningNotifications
+            insights={learningInsights.insights}
+            busy={learningInsights.busy}
+            error={learningInsights.error}
+            onRetry={learningInsights.retry}
+            onRead={learningInsights.markRead}
+            news={newsNotifications.notifications}
+            newsBusy={newsNotifications.busy}
+            newsError={newsNotifications.error}
+            onCheckNews={newsNotifications.check}
+            onReadNews={newsNotifications.markRead}
+            onOpenNews={openNews}
           />
-        </QuestLayout>
-        <UserSettingsDialog
-          open={settingsOpen}
-          onOpenChange={setSettingsOpen}
-          settings={userSettings}
-          loading={settingsLoading}
-          loadError={settingsLoadError}
-          onSave={saveUserSettings}
+          {!mobileChatOpen && (
+            <MobileChatButton onOpen={() => setMobileChatOpen(true)} />
+          )}
+          {stateError && (
+            <StateErrorBanner
+              message={stateError}
+              onClose={() => setStateError(null)}
+            />
+          )}
+          <div
+            aria-hidden={Boolean(opened)}
+            inert={Boolean(opened)}
+            className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:var(--quest-scrollbar-thumb)_var(--quest-scrollbar-track)] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]"
+          >
+            {renderBoard()}
+          </div>
+          {opened && (
+            <QuestDetail
+              quest={opened}
+              extras={detailExtras[opened.id]}
+              onClose={close}
+            />
+          )}
+        </main>
+        <ChatPanel
+          open={mobileChatOpen}
+          onClose={closeMobileChat}
+          threadId={threadId}
+          onNewThread={startNewThread}
+          ref={chatRef}
         />
-      </QuestActionsContext.Provider>
-    </CopilotKitProvider>
+      </QuestLayout>
+      <UserSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={userSettings}
+        loading={settingsLoading}
+        loadError={settingsLoadError}
+        onSave={saveUserSettings}
+      />
+    </QuestActionsContext.Provider>
   );
 }
 

@@ -12,8 +12,8 @@
 
 ## 連携
 
-`../copilotkit/CopilotKitIntegration.tsx`が[useShowQuiz.tsx](../../hooks/copilotkit/useShowQuiz.tsx)・[useShowChoices.tsx](../../hooks/copilotkit/useShowChoices.tsx)を呼び、各ツールを登録します。回答待ちの間は`respond`を表示部品へ渡し、ユーザーが回答するとエージェントの処理を再開します。
+[`useCopilotKitIntegration.ts`](../../hooks/copilotkit/useCopilotKitIntegration.ts)が[useShowQuiz.tsx](../../hooks/copilotkit/useShowQuiz.tsx)・[useShowChoices.tsx](../../hooks/copilotkit/useShowChoices.tsx)を呼び、各ツールを登録します。回答待ちの間は`respond`を表示部品へ渡し、ユーザーが回答するとエージェントの処理を再開します。
 
 チャット内の共通のカード枠は `../chat/ChatCard.tsx`、通常の表示部品は [`../generative-ui/`](../generative-ui/README.md) です。
 
-新しい回答待ちのUIを足す場合は、引数のスキーマと表示部品をこのフォルダに作ります。`../../hooks/copilotkit/`に専用フックを作って`useHumanInTheLoop()`で登録し、`CopilotKitIntegration`から呼びます。
+新しい回答待ちのUIを足す場合は、引数のスキーマと表示部品をこのフォルダに作ります。`../../hooks/copilotkit/`に専用フックを作って`useHumanInTheLoop()`で登録し、`useCopilotKitIntegration`から呼びます。

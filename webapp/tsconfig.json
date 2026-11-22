@@ -9,7 +9,7 @@
   "exclude": [
     "dist",
     "cdk.out",
-    ".blocks"
+    ".cdk-blocks"
   ],
   "compilerOptions": {
     "jsx": "react-jsx",

@@ -1,13 +1,15 @@
-import {
-  AppSetting,
-  DistributedTable,
-  Scope,
-  getSdkIdentifiers,
-} from "@aws-blocks/blocks";
+import { AppSetting, KVStore, Scope, getSdkIdentifiers } from "aws-cdk-blocks";
 import { z } from "zod";
-import { AGENT_RUNTIME_PARAMETER, NEWS_FEED } from "./constants";
+import {
+  AGENT_RUNTIME_PARAMETER,
+  BLOCKS_SCOPE,
+  NEWS_FEED,
+  NEWS_TABLE_ID,
+  USER_QUESTS_TABLE_ID,
+  USER_SETTINGS_TABLE_ID,
+} from "./constants";
 
-export const scope = new Scope("quests");
+export const scope = new Scope(BLOCKS_SCOPE);
 
 // ニュースの共通情報(ユーザーに依存しない)
 export const newsSchema = z
@@ -35,7 +37,7 @@ export const newsSchema = z
   })
   .strict();
 
-export const news = new DistributedTable(scope, "news", {
+export const news = new KVStore(scope, NEWS_TABLE_ID, {
   schema: newsSchema,
   key: { partitionKey: "newsId" },
   indexes: {
@@ -44,20 +46,24 @@ export const news = new DistributedTable(scope, "news", {
 });
 
 // 学習状態・通知・排他レコードを、これまでと同じキーで保存する。
-// 1つのテーブルに複数の種類を入れる(newsId の接頭辞で区別する)ため、項目は絞らない。
-export const userQuests = new DistributedTable(scope, "user-quests", {
-  schema: z
-    .object({
-      userId: z.string(),
-      newsId: z.string(),
-      version: z.number().optional(),
-    })
-    .passthrough(),
+// 1つのテーブルに複数の種類を入れる(newsId の接頭辞で区別する)ため、キー以外の項目は絞らず、そのまま保存する。
+// 型は、キーとversionだけにする(KVStoreは、キーの項目を型から決める。余分な項目を許す型だと、決められない)。
+type UserQuestKeys = { userId: string; newsId: string; version?: number };
+const userQuestSchema = z
+  .object({
+    userId: z.string(),
+    newsId: z.string(),
+    version: z.number().optional(),
+  })
+  .loose() as unknown as z.ZodType<UserQuestKeys, UserQuestKeys>;
+
+export const userQuests = new KVStore(scope, USER_QUESTS_TABLE_ID, {
+  schema: userQuestSchema,
   key: { partitionKey: "userId", sortKey: "newsId" },
 });
 
 // 項目の意味と許される値は、src/lib/userSettings/model.ts で検証する。
-export const settings = new DistributedTable(scope, "user-settings", {
+export const settings = new KVStore(scope, USER_SETTINGS_TABLE_ID, {
   schema: z
     .object({
       userId: z.string(),

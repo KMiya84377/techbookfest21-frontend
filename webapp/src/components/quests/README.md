@@ -10,7 +10,7 @@ AWSニュースをクエストとして表示する一覧・詳細画面と、�
 |---|---|---|---|---|
 | [QuestBoard.tsx](QuestBoard.tsx) | クエストを絞り込み、一覧から詳細を開きます | Generative UI未使用 | Reactの固定画面です。共通`Button`とBase UIを使った`ToggleGroup`で操作します。A2UI未使用です | 第3章3.6の基本画面です。F-01〜F-04で扱うニュースを選びます |
 | [QuestDetail.tsx](QuestDetail.tsx) | ニュースの要約・比較・影響と、チャットからの追記を表示します | 基本画面はGenerative UI未使用。追記は宣言型です | 基本画面はReactです。追記は`DetailA2UI`を通じてCopilotKitの`A2UIProvider`・`A2UIRenderer`でA2UI v0.9を描画します | F-01、第3章3.6.1の表示先です。F-02、第3章3.6.2で参照するニュースの画面でもあります |
-| [QuestActions.tsx](QuestActions.tsx) | クイズなどのチャット内UIへ、状態参照・クリア・回答記録・詳細表示の操作関数を渡します | UIを描画しません | React Contextと付属の`useQuestActions()`を使います。AG-UIの共有状態やA2UIのメッセージではありません | F-03、第3章3.6.3のクイズから画面を操作し、F-05用の回答記録につなぎます |
+| [QuestActionsContext.ts](../../contexts/QuestActionsContext.ts)・[useQuestActions.ts](../../hooks/useQuestActions.ts) | クイズなどのチャット内UIへ、状態参照・クリア・回答記録・詳細表示の操作関数を渡します | UIを描画しません | React Contextと付属の`useQuestActions()`を使います。AG-UIの共有状態やA2UIのメッセージではありません | F-03、第3章3.6.3のクイズから画面を操作し、F-05用の回答記録につなぎます |
 | [QuestLayout.tsx](QuestLayout.tsx) | ニュース表示領域とチャット欄を配置する画面全体の枠です | Generative UI未使用 | ReactとCSS Gridによるレイアウトです。AIエージェントがUI構造を決める部分ではありません | 第3章3.6冒頭の画面構成です |
 | [QuestBoardStatus.tsx](QuestBoardStatus.tsx) | 読み込み中・取得失敗・状態保存失敗の表示と再試行の操作を提供します | Generative UI未使用 | Reactの固定表示と共通`Button`を使います。A2UI未使用です | 一覧・状態保存のための画面部品です。代表5機能に固有の部品ではありません |
 | [UserSettingsButton.tsx](../user-setting/UserSettingsButton.tsx) | ユーザー設定を開くボタンを表示します | Generative UI未使用 | 固定のReact UIと共通`Button`を使います。A2UI未使用です | サンプルアプリの共通画面です |

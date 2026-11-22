@@ -1,5 +1,5 @@
 import { createAgentCoreAgent, createLocalAgent } from "./agentcore";
-import { agentRuntimeSetting } from "../../../../../aws-blocks/storage";
+import { agentRuntimeSetting } from "../../../../../cdk-blocks/storage";
 
 // 対話用 Runtime の ARN(SSM のパラメーター)。デプロイのときにしか変わらないので、
 // Lambda の実行環境の中で 1 度だけ読む(失敗したら、次の呼び出しで読み直す)

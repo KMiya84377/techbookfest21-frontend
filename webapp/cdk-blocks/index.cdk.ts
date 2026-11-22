@@ -1,15 +1,21 @@
 import * as path from "node:path";
-import { App, CfnOutput, Duration } from "aws-cdk-lib";
+import { App, CfnOutput } from "aws-cdk-lib";
+import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as subs from "aws-cdk-lib/aws-sns-subscriptions";
-import { BlocksPresets, BlocksStack, Hosting } from "@aws-blocks/blocks/cdk";
-import type { Construct } from "constructs";
+import { computeScopeFullId } from "aws-cdk-blocks";
+import { BlocksPresets, BlocksStack } from "aws-cdk-blocks/cdk";
 import { createBatchAgentStack } from "../../batch-agent/infra/stack";
 import { createChatAgentStack } from "../../chat-agent/infra/stack";
-import { AGENT_RUNTIME_PARAMETER } from "./constants";
-import { configureStreamingIntegrationTimeout } from "./hostingTimeout";
+import {
+  AGENT_RUNTIME_PARAMETER,
+  NEWS_TABLE_ID,
+  USER_QUESTS_TABLE_ID,
+  USER_SETTINGS_TABLE_ID,
+  WEB_STACK_NAME,
+} from "./constants";
+import { createHosting } from "./hosting";
 
 const app = new App();
 
@@ -19,32 +25,28 @@ const env = {
 };
 
 // Web スタック(Blocks: 認証・データ保存・Hosting)
-const web = await BlocksStack.create(app, "QuestBoardWeb", {
+const web = await BlocksStack.create(app, WEB_STACK_NAME, {
   env,
-  backendHandlerPath: path.resolve("aws-blocks/index.handler.ts"),
-  backendCDKPath: path.resolve("aws-blocks/index.ts"),
-  // API Gateway のアクセスログを有効にする(本番の既定は無効)。
-  // アカウント・リージョンで 1 つだけの CloudWatch 用ロールを作るため、同じリージョンの Blocks スタックはこれだけにする
-  defaults: { ...BlocksPresets.production, accessLogging: true },
+  backendHandlerPath: path.resolve("cdk-blocks/index.handler.ts"),
+  backendCDKPath: path.resolve("cdk-blocks/index.ts"),
+  defaults: {
+    ...BlocksPresets.production,
+    accessLogging: true,
+    logRetention: RetentionDays.ONE_MONTH,
+  },
 });
 
-// BlocksがCDK条件で読み込んだ同じリソースから接続情報を取得する。
+// BlocksがCDK条件で読み込む、バックエンドの定義(認証・スコープ)。スタックを作った後に読み込む。
 const { auth } = await import("./auth");
-const { news, userQuests, settings } = await import("./storage");
+const { scope } = await import("./storage");
 
-// 公開ランタイム用のgetSdkIdentifiersはCDKでは登録されないため、生成されたConstructから参照する。
-const tableOf = (block: object) => {
-  const table = (block as Construct).node
-    .findAll()
-    .find((child): child is dynamodb.Table => child instanceof dynamodb.Table);
-  if (!table) throw new Error("BlocksのDynamoDBテーブルが見つかりません");
-  return table;
-};
+// DynamoDBのテーブル名は、Blockのスコープとidから決まる(KVStoreの仕様)。
+const tableName = (id: string) => computeScopeFullId({ id, parent: scope });
+const newsTableName = tableName(NEWS_TABLE_ID);
+const userQuestTableName = tableName(USER_QUESTS_TABLE_ID);
+const settingsTableName = tableName(USER_SETTINGS_TABLE_ID);
 
-const newsTableName = tableOf(news).tableName;
-const userQuestTableName = tableOf(userQuests).tableName;
-const settingsTableName = tableOf(settings).tableName;
-
+// CognitoのユーザープールとクライアントのIDを取り出す(Lambdaの環境変数と、招待制の設定に使う)。
 const authConstruct = auth as unknown as {
   userPool: cognito.IUserPool;
   userPoolClient: cognito.IUserPoolClient;
@@ -63,47 +65,25 @@ cfnUserPool.addPropertyOverride(
   true,
 );
 
-// エージェントのスタック(対話用・定期取得用)
-// 定義は、それぞれのエージェントのフォルダ(chat-agent/infra/、batch-agent/infra/)にある
+// チャット用エージェントのスタックを作成
 createChatAgentStack(app, {
   env,
-  tables: { news: newsTableName, userQuests: userQuestTableName },
+  tables: {
+    news: newsTableName,
+    userQuests: userQuestTableName
+  },
   runtimeParameterName: AGENT_RUNTIME_PARAMETER,
 });
+
+// バッチ実行用エージェントのスタックを作成
 createBatchAgentStack(app, {
   env,
   newsTable: newsTableName,
   alertEmail: process.env.ALERT_EMAIL,
 });
 
-// Hosting(Astro の SSR)
-const ssrTimeout = Duration.minutes(5);
-const hosting = new Hosting(web, "Hosting", {
-  root: path.resolve("."),
-  framework: "astro",
-  // /aws-blocks/... を同じドメインで中継する(CORS 不要)
-  api: web,
-  // synth 時に実行される
-  buildCommand: "npm run build",
-  // SSR 用 Lambda。API Gatewayの統合タイムアウトも下で同じ値に設定する。
-  compute: { timeout: ssrTimeout },
-  // 5xx・Lambda エラーのアラーム。通知先は ALERT_EMAIL(未設定なら通知なし)
-  // CloudFront のアラームは、us-east-1 の補助スタック(QuestBoardWeb-CfMonitoring-*)に作られる
-  monitoring: {
-    subscriptions: process.env.ALERT_EMAIL
-      ? [new subs.EmailSubscription(process.env.ALERT_EMAIL)]
-      : [],
-  },
-  // SSR 用 Lambda の環境変数。BLOCKS_STACK_NAME は AWS 上かどうかの判定に、
-  // Cognito の ID は JWT の検証に使う(src/pages/api/_server/blocks/serverConfig.ts の serverConfig)
-  environment: {
-    BLOCKS_STACK_NAME: web.stackName,
-    COGNITO_USER_POOL_ID: userPoolId,
-    COGNITO_CLIENT_ID: userPoolClientId,
-  },
-});
-
-configureStreamingIntegrationTimeout(hosting, ssrTimeout);
+// Hosting(Astro の SSR)を作成
+const hosting = createHosting(web, { userPoolId, userPoolClientId });
 
 const ssrFunction = hosting.ssrFunction;
 if (!ssrFunction) throw new Error("Astro SSR用Lambdaがありません");
@@ -112,6 +92,7 @@ if (!ssrFunction) throw new Error("Astro SSR用Lambdaがありません");
 dynamodb.Table.fromTableName(web, "News", newsTableName).grantReadData(
   ssrFunction,
 );
+
 // 名前から参照したテーブルのgrantReadDataには、GSIの権限が含まれない。
 // クエスト一覧が検索するインデックスだけにQueryを許可する。
 ssrFunction.addToRolePolicy(
@@ -132,12 +113,13 @@ dynamodb.Table.fromTableName(
   "UserQuests",
   userQuestTableName,
 ).grantReadWriteData(ssrFunction);
+
 dynamodb.Table.fromTableName(
   web,
   "UserSettings",
   settingsTableName,
 ).grantReadWriteData(ssrFunction);
-// 接続先は後続のAgentスタックが作るため、デプロイ時には値を解決しない。
+
 ssrFunction.addToRolePolicy(
   new iam.PolicyStatement({
     actions: ["ssm:GetParameter"],
@@ -150,6 +132,7 @@ ssrFunction.addToRolePolicy(
     ],
   }),
 );
+
 ssrFunction.addToRolePolicy(
   new iam.PolicyStatement({
     actions: [
@@ -166,7 +149,6 @@ ssrFunction.addToRolePolicy(
   }),
 );
 
-// 出力
 const outputs = {
   NewsTableName: newsTableName,
   UserQuestTableName: userQuestTableName,

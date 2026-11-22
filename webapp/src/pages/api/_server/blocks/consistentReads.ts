@@ -1,10 +1,6 @@
-import { getSdkIdentifiers } from "@aws-blocks/blocks";
+import { getSdkIdentifiers } from "aws-cdk-blocks";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  QueryCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 let client: DynamoDBDocumentClient | undefined;
 
@@ -24,21 +20,9 @@ export function isAwsBlock(block: { fullId: string }): boolean {
   return !tableName.startsWith("mock-");
 }
 
-// DistributedTableにはConsistentRead指定がない(0.9.0の型定義で確認)。
-// 排他・既読・設定の読み取りは、AWS上だけ同じテーブルを強い整合性で読む。
-export async function getConsistentItem(
-  block: { fullId: string },
-  key: Record<string, unknown>,
-) {
-  const command = new GetCommand({
-    TableName: getTableName(block),
-    Key: key,
-    ConsistentRead: true,
-  });
-  const result = await getDatabaseClient().send(command);
-  return result.Item ?? null;
-}
-
+// KVStoreのget()は、既定で強い整合性の読み取りになる(READMEで確認)。
+// 一方、query()は結果整合性のため、保存直後の一覧が必要な読み取りは、AWS上だけ同じテーブルを直接、強い整合性で読む。
+// ブロックの内部用の項目(_bkv_で始まる名前)は、取り除く。
 export async function listConsistentUserItems(
   block: { fullId: string },
   userId: string,
@@ -64,7 +48,13 @@ export async function listConsistentUserItems(
       ExpressionAttributeValues: values,
     });
     const result = await getDatabaseClient().send(command);
-    items.push(...(result.Items ?? []));
+    for (const item of result.Items ?? []) {
+      items.push(
+        Object.fromEntries(
+          Object.entries(item).filter(([name]) => !name.startsWith("_bkv_")),
+        ),
+      );
+    }
     startKey = result.LastEvaluatedKey;
   } while (startKey);
   return items;

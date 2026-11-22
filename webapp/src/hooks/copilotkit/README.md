@@ -16,7 +16,7 @@ WebアプリとAIエージェントの状態共有・コンテキスト・ツー
 
 本の第3章3.4・3.5で紹介する`useInterrupt()`と`useComponent()`は、このアプリでは使っていません。
 
-[`CopilotKitIntegration.tsx`](../../components/copilotkit/CopilotKitIntegration.tsx) が `App.tsx` の `CopilotKitProvider` 内でこれらのフックを呼びます。画面に配置するこのコンポーネントは、`components/copilotkit/` に残しています。
+[`useCopilotKitIntegration.ts`](useCopilotKitIntegration.ts) がこれらのフックをまとめて呼びます。`App.tsx`の`QuestWorkspace`から、`CopilotKitProvider`配下で呼び出します。
 
 ## フロントエンドツール
 
@@ -26,7 +26,7 @@ WebアプリとAIエージェントの状態共有・コンテキスト・ツー
 | `update_quest_detail` | [useUpdateQuestDetail.tsx](useUpdateQuestDetail.tsx) | AIがA2UIで構成したUIを、開いている詳細へ追記・更新し、同じUIをチャットにも表示する |
 | `reload_quests` | [useReloadQuests.tsx](useReloadQuests.tsx) | クエストを取得し直す(通常は共有状態の `refreshRequested` で自動更新される) |
 
-ツール登録のフックは、フロントエンドツール・Human in the Loopともに1ツールにつき1ファイルです。各フックにツール名・説明・引数スキーマの指定・`render`をまとめ、`CopilotKitIntegration`から個別に呼びます。フロントエンドツールでは`handler`も定義します。共通の型や検証・反映処理は`lib`、表示部品は`components`に置きます。
+ツール登録のフックは、フロントエンドツール・Human in the Loopともに1ツールにつき1ファイルです。各フックにツール名・説明・引数スキーマの指定・`render`をまとめ、`useCopilotKitIntegration`から個別に呼びます。フロントエンドツールでは`handler`も定義します。共通の型や検証・反映処理は`lib`、表示部品は`components`に置きます。
 
 `show_quiz`は[useShowQuiz.tsx](useShowQuiz.tsx)、`show_choices`は[useShowChoices.tsx](useShowChoices.tsx)で登録します。
 
@@ -40,6 +40,6 @@ WebアプリとAIエージェントの状態共有・コンテキスト・ツー
 1. 引数のスキーマ(zod)を決めます。
 2. 結果を表示する場合は、`../../components/generative-ui/` に表示部品を作ります。
 3. このフォルダに専用のカスタムフックを作り、`useFrontendTool()`で登録します。`handler`で画面の処理を呼び出し、`render`で結果を表示します。
-4. `CopilotKitIntegration.tsx`から新しいフックを呼びます。エージェント側で特別な使い分けが必要な場合は、`chat-agent/`のプロンプトやツール定義も確認します。
+4. `useCopilotKitIntegration.ts`から新しいフックを呼びます。エージェント側で特別な使い分けが必要な場合は、`chat-agent/`のプロンプトやツール定義も確認します。
 
-ユーザーの回答を待つツールも、このフォルダに専用フックを作って`useHumanInTheLoop()`で登録します。表示部品は`../../components/human-in-the-loop/`に置き、`CopilotKitIntegration`から新しいフックを呼びます。
+ユーザーの回答を待つツールも、このフォルダに専用フックを作って`useHumanInTheLoop()`で登録します。表示部品は`../../components/human-in-the-loop/`に置き、`useCopilotKitIntegration`から新しいフックを呼びます。

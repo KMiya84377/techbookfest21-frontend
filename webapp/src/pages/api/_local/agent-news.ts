@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { news, newsSchema, userQuests } from "../../../../aws-blocks/storage";
+import { news, newsSchema, userQuests } from "../../../../cdk-blocks/storage";
 import { isConditionalWriteConflict } from "../_server/blocks/userQuestRecords";
 import { listQuests } from "../_server/quests/repository";
 import { json, localOnly, readJson } from "../_helpers";
@@ -32,17 +32,18 @@ export const POST = localOnly(
     const assigned: string[] = [];
     for (const item of parsed.data) {
       try {
-        await news.put(item, { ifNotExists: true });
+        await news.put({ newsId: item.newsId }, item, { ifNotExists: true });
         saved.push(item.newsId);
       } catch (error) {
         if (!isConditionalWriteConflict(error)) throw error;
         skipped_existing.push(item.newsId);
       }
       try {
-        await userQuests.put(
-          { userId, newsId: item.newsId, status: "todo", version: 1 },
-          { ifNotExists: true },
-        );
+        // 学習状態の記録(未着手)。キー以外の項目は、スキーマで絞らず保存する。
+        const state = { status: "todo", version: 1 };
+        await userQuests.put({ userId, newsId: item.newsId }, state, {
+          ifNotExists: true,
+        });
       } catch (error) {
         if (!isConditionalWriteConflict(error)) throw error;
       }

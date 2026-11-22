@@ -1,5 +1,5 @@
-import { Metrics } from "@aws-blocks/blocks";
-import { scope } from "../../../aws-blocks/storage";
+import { Metrics } from "aws-cdk-blocks";
+import { scope } from "../../../cdk-blocks/storage";
 import { logApiRequest } from "./_logger";
 
 // サーバー(Astro の SSR)側のメトリクス。1行の EMF(埋め込みメトリクス形式)の JSON を標準出力に出し、

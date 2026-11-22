@@ -12,7 +12,7 @@ import {
   type ReviewRecord,
 } from "./reviewRecord";
 
-// Blocks(DistributedTable)の保存先。mock モードとの切り替えは store.ts
+// Blocks(KVStore)の保存先。mock モードとの切り替えは store.ts
 export const blocksNotificationStore: NotificationStore = {
   async claim(userId) {
     const token = crypto.randomUUID();

@@ -25,10 +25,44 @@
 | 第3章 3.2〜3.4 | 状態共有、フロントエンドツール、Human-in-the-loop | [webapp/src/hooks/copilotkit/](webapp/src/hooks/copilotkit/README.md) |
 | 第3章 3.5 | Generative UI(A2UI、Open Generative UI) | [webapp/src/components/generative-ui/](webapp/src/components/generative-ui/README.md) |
 | 第3章 3.6 | サンプルアプリでのCopilotKitの設計(F-01〜F-05) | 下の「[機能ごとの実装](#機能ごとの実装)」 |
-| 第4章 4.3.3 | AWS Blocks(認証、データ保存、Hosting) | [webapp/aws-blocks/](webapp/README.md#実装の配置) |
+| 第4章 4.3.3 | AWS Blocks(認証、データ保存、Hosting)。現在の名称は[AWS CDK Blocks](#aws-blocksからaws-cdk-blocksへの名称変更) | [webapp/cdk-blocks/](webapp/README.md#実装の配置) |
 | 第4章 4.4.2 | Webアプリとバックエンドを、AstroのNode.jsサーバーにまとめる | [webapp/src/pages/api/](webapp/README.md#実装の配置) |
-| 第4章 4.4.3 | Hosting Blockでの配信と、CDKで定義した定期取得 | [webapp/aws-blocks/index.cdk.ts](webapp/aws-blocks/index.cdk.ts)、[batch-agent/infra/stack.ts](batch-agent/infra/stack.ts) |
+| 第4章 4.4.3 | Hosting Blockでの配信と、CDKで定義した定期取得 | [webapp/cdk-blocks/hosting.ts](webapp/cdk-blocks/hosting.ts)、[webapp/cdk-blocks/index.cdk.ts](webapp/cdk-blocks/index.cdk.ts)、[batch-agent/infra/stack.ts](batch-agent/infra/stack.ts) |
 | 第4章 4.4.4 | WebアプリとAIエージェントを、別のワークフローでデプロイする | [.github/workflows/](.github/workflows/README.md) |
+
+## AWS BlocksからAWS CDK Blocksへの名称変更
+
+本で紹介しているAWS Blocksは、2026年11月に[AWS CDK Blocks](https://github.com/aws/cdk-blocks)へ名称が変わりました(本は、変更前のAWS Blocks 0.9.0で書いています)。このリポジトリは、**AWS CDK Blocks 1.0.0(`aws-cdk-blocks`)に移行済み**です。本の記述とコードを見比べるときは、次の対応を参考にしてください。
+
+| 項目 | 本の記述(AWS Blocks 0.9.0) | このリポジトリ(AWS CDK Blocks 1.0.0) |
+| --- | --- | --- |
+| npmパッケージ | `@aws-blocks/blocks`、`@aws-blocks/hosting` | `aws-cdk-blocks`、`@aws-cdk-blocks/hosting` |
+| バックエンドのフォルダ | `aws-blocks/` | [`cdk-blocks/`](webapp/cdk-blocks/) |
+| 認証のBlock | `AuthCognito` | `Auth`([cdk-blocks/auth.ts](webapp/cdk-blocks/auth.ts)) |
+| キーバリューのBlock | `DistributedTable` | `KVStore`([cdk-blocks/storage.ts](webapp/cdk-blocks/storage.ts))。書き込みは`put(キー, 値)`の形で、`get()`は強い整合性の読み取りが既定 |
+| API・ローカルデータの場所 | `/aws-blocks/api`、`.bb-data/` | `/cdk-blocks/api`、`.cdk-blocks/local/` |
+
+### 統合されたBlock
+
+AWS CDK Blocks 1.0.0では、旧版で別々だったBlockが、用途ごとに1つにまとまりました。旧Blockのパッケージは削除され、互換のレイヤーはありません。
+
+| 用途 | 旧(AWS Blocks 0.9.0) | 新(AWS CDK Blocks 1.0.0) |
+| --- | --- | --- |
+| 認証 | `AuthBasic`、`AuthCognito`、`AuthOIDC` | `Auth`(このリポジトリは、旧`AuthCognito`と同じ、既定のCognitoを使用) |
+| キーバリュー(DynamoDB) | `DistributedTable` | `KVStore` |
+
+本の4.3.3の「認証は`AuthCognito`、データ管理は`DistributedTable`など」は、「認証は`Auth`、データ管理は`KVStore`など」と読み替えてください。
+
+### 変わっていないもの
+
+変わっていないものは、次のとおりです。
+
+- 構成(CloudFront → API Gateway(REST API、レスポンス転送: STREAM) → Lambda → AgentCore Runtime)。本の図のまま、API Gatewayを通ります。
+- DynamoDBのテーブルのキー(`newsId`、`userId`＋`newsId`、`userId`)と、ニュースのインデックス名(`ByFeedPublishedAt`)。Pythonのエージェントは、これらを直接読み書きします。
+
+AWS CDK Blocksの利用状況は、既定でAWSに送られます(CDK CLIのテレメトリの設定に従います。送られる内容は、プロジェクトのIDやコマンドの結果など。名前・メールアドレス・ARN・ソースコードは含まれません)。止めるときは、`cdk cli-telemetry --disable`を実行するか、環境変数`CDK_DISABLE_CLI_TELEMETRY=1`を設定します([詳細](https://docs.aws.amazon.com/cdk/v2/guide/cli-telemetry.html#telemetry-opt-out))。
+
+移行の手順は、公式の[古いアプリのアップグレード](https://github.com/aws/cdk-blocks/blob/main/docs/guides/upgrading-older-apps.md)、[`Auth`への移行](https://github.com/aws/cdk-blocks/blob/main/packages/bb-auth/MIGRATION.md)、[`KVStore`の変更履歴](https://github.com/aws/cdk-blocks/blob/main/packages/bb-kv-store/CHANGELOG.md)を参照してください。
 
 ## 機能ごとの実装
 
@@ -54,7 +88,7 @@
 
 | フォルダ | 内容 |
 | --- | --- |
-| [webapp/](webapp/README.md) | Webアプリ(Astro・React・CopilotKit)と、AWS Blocksの定義 |
+| [webapp/](webapp/README.md) | Webアプリ(Astro・React・CopilotKit)と、AWS CDK Blocksの定義 |
 | [chat-agent/](chat-agent/README.md) | チャット用のAIエージェント(Strands Agents、AG-UI) |
 | [batch-agent/](batch-agent/README.md) | 毎朝ニュースを取得する、定期実行用のAIエージェント |
 | [.github/workflows/](.github/workflows/README.md) | デプロイのワークフロー(GitHub Actions) |

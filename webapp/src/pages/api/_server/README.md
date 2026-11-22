@@ -14,7 +14,7 @@ Webアプリのバックエンド処理を置きます。APIから呼ばれ、�
 | ------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `agent`             | AgentCoreまたはローカルのAG-UIエージェントへの接続、実行結果の取得、認証済みユーザー情報の引き渡し | [configuredAgent.ts](./agent/configuredAgent.ts)、[agentcore.ts](./agent/agentcore.ts)、[userContext.ts](./agent/userContext.ts) |
 | `auth`              | Cognitoのトークン検証とユーザーの特定。開発時にはローカル認証・モックへ切り替える                  | [authenticate.ts](./auth/authenticate.ts)                                                                                    |
-| `blocks`            | AWS Blocksの接続設定と、ユーザー別データの取得・更新に使う共通処理                                 | [serverConfig.ts](./blocks/serverConfig.ts)、[userQuestRecords.ts](./blocks/userQuestRecords.ts)                                                 |
+| `blocks`            | AWS CDK Blocksの接続設定と、ユーザー別データの取得・更新に使う共通処理                                 | [serverConfig.ts](./blocks/serverConfig.ts)、[userQuestRecords.ts](./blocks/userQuestRecords.ts)                                                 |
 | `quests`            | ニュース、クエストの状態、学習履歴の取得・保存                                                     | [store.ts](./quests/store.ts)、[repository.ts](./quests/repository.ts)                                                         |
 | `userSettings`      | 学習分野・難易度・分析件数など、ユーザー設定の取得・保存                                           | [store.ts](./userSettings/store.ts)、[repository.ts](./userSettings/repository.ts)                                             |
 | `learning`          | 学習履歴に基づくニュース同士の関連分析、Open Generative UIによる図解の生成・保存、通知状態の管理   | [service.ts](./learning/service.ts)、[generate.ts](./learning/generate.ts)                                                     |
@@ -25,7 +25,7 @@ Webアプリのバックエンド処理を置きます。APIから呼ばれ、�
 `quests`・`userSettings`・`learning`・`newsNotifications`は、保存先を同じ形で分けています。
 
 - `store.ts`：保存先の型（interface）と、Blocksかmockモードのメモリかの選択。サービスとAPIは、ここから読み込みます。
-- `repository.ts`：Blocks（DistributedTable）での実装。
+- `repository.ts`：Blocks（KVStore）での実装。
 - `reviewRecord.ts`（`learning`・`newsNotifications`）：Blocksとmockの両方が使う、記録の型・キー・定数。
 
 ## UserQuestテーブルの読み書き

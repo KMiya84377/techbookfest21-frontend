@@ -1,6 +1,6 @@
 # Webアプリ
 
-Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、AWS Blocksで認証・保存・ホスティングを定義します。AWS Blocks 0.9.0、共通ホスティングパッケージ0.5.0を使用しています。
+Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、[AWS CDK Blocks](https://github.com/aws/cdk-blocks)(`aws-cdk-blocks` 1.0.0。本で紹介しているAWS Blocksの現在の名称)で認証・保存・ホスティングを定義します。名称の違いは、[トップのREADME](../README.md#aws-blocksからaws-cdk-blocksへの名称変更)を参照してください。
 
 ## 実装の配置
 
@@ -8,10 +8,11 @@ Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、AWS Bl
 
 | 場所 | 内容 | 本との対応 |
 | --- | --- | --- |
-| [aws-blocks/auth.ts](aws-blocks/auth.ts)・[index.ts](aws-blocks/index.ts) | AuthCognitoと認証APIを定義します | 第4章4.3.3 |
-| [aws-blocks/storage.ts](aws-blocks/storage.ts) | DistributedTableによるニュース・学習状態・設定と、AIエージェントの接続設定を定義します | 第4章4.3.3 |
-| [aws-blocks/index.cdk.ts](aws-blocks/index.cdk.ts) | BlocksStackとHosting BlockでWebアプリの配信基盤を定義します。`hostingTimeout.ts`（ストリーミング統合のタイムアウト）は、Hostingの制約を補う部品です | 第4章4.3.3・4.4.3 |
-| [../chat-agent/infra/stack.ts](../chat-agent/infra/stack.ts)・[../batch-agent/infra/stack.ts](../batch-agent/infra/stack.ts) | 対話用・定期取得用のエージェントのAWS構成（AgentCore Runtime、記憶、毎朝の定期取得とその失敗アラーム）。`aws-blocks/index.cdk.ts` から呼びます | 第1章1.4.2・第4章4.4.3 |
+| [cdk-blocks/auth.ts](cdk-blocks/auth.ts)・[index.ts](cdk-blocks/index.ts) | `Auth`（Cognito）と認証APIを定義します。ユーザープールの変更できない設定は、`cdk-blocks/baselines/`に記録し、変更を止めます | 第4章4.3.3 |
+| [cdk-blocks/storage.ts](cdk-blocks/storage.ts) | `KVStore`によるニュース・学習状態・設定と、AIエージェントの接続設定を定義します | 第4章4.3.3 |
+| [cdk-blocks/hosting.ts](cdk-blocks/hosting.ts) | Hosting BlockでAstroのSSRの配信基盤を定義します。Hostingが公開していないストリーミング統合のタイムアウト（5分）も、ここで設定します | 第4章4.3.3・4.4.3 |
+| [cdk-blocks/index.cdk.ts](cdk-blocks/index.cdk.ts) | CDKアプリの入口です。BlocksStack、Hosting、エージェントのスタックを組み立て、SSR用Lambdaの権限を付けます | 第4章4.3.3・4.4.3 |
+| [../chat-agent/infra/stack.ts](../chat-agent/infra/stack.ts)・[../batch-agent/infra/stack.ts](../batch-agent/infra/stack.ts) | 対話用・定期取得用のエージェントのAWS構成（AgentCore Runtime、記憶、毎朝の定期取得とその失敗アラーム）。`cdk-blocks/index.cdk.ts` から呼びます | 第1章1.4.2・第4章4.4.3 |
 | [../.github/workflows/](../.github/workflows/README.md) | Web・対話用エージェント・定期取得を、別々のワークフローでデプロイします | 第4章4.4.4 |
 
 ### サーバー（第1章・第3章・第4章4.4.2）
@@ -121,7 +122,7 @@ npm run dev:backend
 npm run dev -- --background
 ```
 
-http://localhost:4321 を開き、ユーザー登録・ログインします。ローカルの確認コードはバックエンドのターミナルへ出ます。AWSのCognito、DynamoDBには接続しません。学習状態や通知は `.bb-data/` に保存します。
+http://localhost:4321 を開き、ユーザー登録・ログインします。ローカルの確認コードはバックエンドのターミナルへ出ます。AWSのCognito、DynamoDBには接続しません。学習状態や通知は `.cdk-blocks/local/data/` に保存します。
 
 AI応答だけをモックにし、Blocksの認証・保存を確認する場合は、Astroの起動を次へ置き換えます。
 

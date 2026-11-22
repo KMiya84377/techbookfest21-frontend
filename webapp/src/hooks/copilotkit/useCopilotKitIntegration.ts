@@ -7,15 +7,16 @@ import type {
 import type { DetailSection } from "../../lib/quests/detailSections";
 import type { UpdateDetail } from "../../lib/quests/detailTools";
 import type { UserSettings } from "../../lib/userSettings/model";
-import { useShowQuiz } from "../../hooks/copilotkit/useShowQuiz";
-import { useShowChoices } from "../../hooks/copilotkit/useShowChoices";
-import { useUpdateQuestFilter } from "../../hooks/copilotkit/useUpdateQuestFilter";
-import { useUpdateQuestDetail } from "../../hooks/copilotkit/useUpdateQuestDetail";
-import { useReloadQuests } from "../../hooks/copilotkit/useReloadQuests";
-import { useScreenContext } from "../../hooks/copilotkit/useScreenContext";
-import { useSharedAgentState } from "../../hooks/copilotkit/useSharedAgentState";
+import { useShowQuiz } from "./useShowQuiz";
+import { useShowChoices } from "./useShowChoices";
+import { useUpdateQuestFilter } from "./useUpdateQuestFilter";
+import { useUpdateQuestDetail } from "./useUpdateQuestDetail";
+import { useReloadQuests } from "./useReloadQuests";
+import { useScreenContext } from "./useScreenContext";
+import { useSharedAgentState } from "./useSharedAgentState";
+import { useChatSuggestions } from "./useChatSuggestions";
 
-interface Props {
+interface Options {
   // API から取得したボードのクエストと、詳細を開いているクエストの ID、適用中の検索条件
   quests: Quest[] | null;
   openedId: string | null;
@@ -35,12 +36,12 @@ interface Props {
   userSettingsReady: boolean;
 }
 
-// 画面と AI エージェントをつなぐ設定をまとめる(表示は何も出さない)。CopilotKitProvider の中に置く
+// 画面とAIエージェントをつなぐ設定をまとめる。CopilotKitProvider配下で呼ぶ。
 //   - useSharedAgentState: 読み書きできる状態共有(useAgent)
 //   - useScreenContext: 読み取り専用の状態共有(useAgentContext)
 //   - 各Human in the Loopツール: クイズ・選択肢の回答待ち
 //   - 各フロントエンドツール: 検索条件の更新・詳細への追記・一覧の再取得
-export default function CopilotKitIntegration({
+export function useCopilotKitIntegration({
   quests,
   openedId,
   filter,
@@ -51,7 +52,7 @@ export default function CopilotKitIntegration({
   updateDetail,
   userSettings,
   userSettingsReady,
-}: Props) {
+}: Options) {
   const { shareQuestBoard } = useSharedAgentState({
     quests,
     reloadQuests,
@@ -65,5 +66,5 @@ export default function CopilotKitIntegration({
   useUpdateQuestFilter(updateFilter);
   useUpdateQuestDetail(updateDetail);
   useReloadQuests({ reloadQuests, shareQuestBoard });
-  return null;
+  useChatSuggestions();
 }

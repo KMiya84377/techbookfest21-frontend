@@ -44,7 +44,7 @@ async function quizScenario(submittedAnswerJson?: string) {
     "../ui/button": { Button: "button" },
     "../chat/ChatCard": { __esModule: true, default: "chat-card" },
     "./OptionButtons": { __esModule: true, default: "options" },
-    "../quests/QuestActions": {
+    "../../hooks/useQuestActions": {
       useQuestActions: () => ({
         statusOf: () => "todo", isReview: () => false,
         recordAnswer: (id: string, correct: boolean) => records.push({ id, correct }),

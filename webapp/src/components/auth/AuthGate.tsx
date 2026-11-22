@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Authenticator, onAuthChange } from "@aws-blocks/blocks/ui";
+import { Authenticator, onAuthChange } from "aws-cdk-blocks/ui";
 import { authenticatorOptions } from "./authenticatorOptions";
-import { authApi, session } from "../../../aws-blocks/authClient";
+import { authApi, session } from "../../../cdk-blocks/authClient";
 
 // ログイン後に、アクセストークンを返す関数(getToken)を受け取って、画面を作る関数
 type RenderWithToken = (getToken: () => string) => ReactNode;

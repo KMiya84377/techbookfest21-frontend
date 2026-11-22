@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { NEWS_FEED } from "../aws-blocks/constants.ts";
+import { NEWS_FEED } from "../cdk-blocks/constants.ts";
 import {
   ANSWER_DETAILS,
   DIFFICULTIES,

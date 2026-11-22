@@ -1,15 +1,10 @@
 import assert from "node:assert/strict";
 import test, { afterEach, mock } from "node:test";
 import type { APIContext } from "astro";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { settings, userQuests } from "../cdk-blocks/storage";
+import { getSdkIdentifiers } from "aws-cdk-blocks";
 import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  QueryCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { settings, userQuests } from "../aws-blocks/storage";
-import { getSdkIdentifiers } from "@aws-blocks/blocks";
-import {
-  getConsistentItem,
   listConsistentUserItems,
   isAwsBlock,
 } from "../src/pages/api/_server/blocks/consistentReads";
@@ -21,26 +16,6 @@ import { DEFAULT_USER_SETTINGS } from "../src/lib/userSettings/model";
 import { loadIsolatedModule } from "./helpers/loadIsolatedModule";
 
 afterEach(() => mock.restoreAll());
-
-test("DynamoDBの1件取得は強い整合性・テーブル名・キーを維持する", async () => {
-  const key = { userId: "u", newsId: "n" };
-  const send = mock.method(
-    DynamoDBDocumentClient.prototype,
-    "send",
-    async (command: GetCommand) => {
-      assert.ok(command instanceof GetCommand);
-      assert.deepEqual(command.input, {
-        TableName: getSdkIdentifiers(userQuests).tableName,
-        Key: key,
-        ConsistentRead: true,
-      });
-      return { Item: { ...key, version: 1 } };
-    },
-  );
-  assert.deepEqual(await getConsistentItem(userQuests, key), { ...key, version: 1 });
-  send.mock.mockImplementation(async () => ({}));
-  assert.equal(await getConsistentItem(userQuests, key), null);
-});
 
 test("DynamoDBの一覧取得は接頭辞とページ送りを維持する", async () => {
   const nextKey = { userId: "u", newsId: "prefix#1" };
@@ -87,7 +62,8 @@ test("ユーザー設定は保存値を検証し、未保存・不正な値な�
   assert.deepEqual(await getUserSettings("u"), changed);
   const put = mock.method(settings, "put", async () => {});
   await putUserSettings("u", changed);
-  const record = put.mock.calls[0].arguments[0];
+  const [key, record] = put.mock.calls[0].arguments;
+  assert.deepEqual(key, { userId: "u" });
   assert.ok(record);
   assert.equal(record.userId, "u");
   assert.equal(record.learningReviewEvery, 10);
@@ -182,7 +158,7 @@ async function configuredAgent(
         createAgentCoreAgent: (arn: string) => ({ arn }),
         createLocalAgent: (url: string) => ({ url }),
       },
-      "../../../../../aws-blocks/storage": { agentRuntimeSetting: { get } },
+      "../../../../../cdk-blocks/storage": { agentRuntimeSetting: { get } },
     },
     {
       "import.meta.env": JSON.stringify(env),

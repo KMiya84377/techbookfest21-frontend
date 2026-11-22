@@ -1,5 +1,5 @@
-import { createContext, useContext } from "react";
-import type { QuestStatus } from "../../lib/quests/model";
+import { createContext } from "react";
+import type { QuestStatus } from "../lib/quests/model";
 
 // チャット内の部品(理解度チェックなど)が、クエストボードの状態を読み、操作するための窓口
 export interface QuestActions {
@@ -27,4 +27,3 @@ const noop: QuestActions = {
 
 export const QuestActionsContext = createContext<QuestActions>(noop);
 
-export const useQuestActions = () => useContext(QuestActionsContext);

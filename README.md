@@ -12,6 +12,15 @@
 - **週間レポート**: 1週間の学習の回答数や正解率を、チャットで振り返れます。
 - **学習設定**: 学びたい分野、難易度、回答の詳しさを設定できます。
 
+## フォルダ構成
+
+| フォルダ | 内容 |
+| --- | --- |
+| [webapp/](webapp/README.md) | Webアプリ(Astro・React・CopilotKit)と、AWS CDK Blocksの定義 |
+| [chat-agent/](chat-agent/README.md) | チャット用のAIエージェント(Strands Agents、AG-UI) |
+| [batch-agent/](batch-agent/README.md) | 毎朝ニュースを取得する、定期実行用のAIエージェント |
+| [.github/workflows/](.github/workflows/README.md) | デプロイのワークフロー(GitHub Actions) |
+
 ## 本の章とコードの対応
 
 | 章 | 節 | 内容 | 見るところ |
@@ -62,28 +71,3 @@ AWS CDK Blocks 1.0.0では、旧版で別々だったBlockが、用途ごとに1
 本の第4章では、Lambda Web Functions（LWF）の対応ランタイムを「Node.jsのみ」と説明しています。その後、2026年11月20日に、Python 3.15のパブリックプレビュー対応が発表されました（[AWS公式発表](https://aws.amazon.com/about-aws/whats-new/2026/11/aws-lambda-python-315/)）。
 
 2026年11月22日時点では正式提供ではなく、AWSはプレビュー版を本番環境で利用しないよう案内しています（[対応ランタイム](https://docs.aws.amazon.com/lambda/latest/dg/web-functions-runtimes.md)）。
-
-## 本にない追加機能
-
-| 機能 | 説明 |
-| --- | --- |
-| 関心に合う新着の通知 | [webapp/README.md](webapp/README.md#関心に合う新着の通知) |
-| 学習内容のつながりの図 | [webapp/src/components/learning/](webapp/src/components/learning/) |
-| 表示先の推奨(Jev UIルーター) | [chat-agent/README.md](chat-agent/README.md#jev-uiルーターを有効にする) |
-
-## フォルダ構成
-
-| フォルダ | 内容 |
-| --- | --- |
-| [webapp/](webapp/README.md) | Webアプリ(Astro・React・CopilotKit)と、AWS CDK Blocksの定義 |
-| [chat-agent/](chat-agent/README.md) | チャット用のAIエージェント(Strands Agents、AG-UI) |
-| [batch-agent/](batch-agent/README.md) | 毎朝ニュースを取得する、定期実行用のAIエージェント |
-| [.github/workflows/](.github/workflows/README.md) | デプロイのワークフロー(GitHub Actions) |
-
-## 使い方
-
-ローカルでの起動、AWSへのデプロイは、各フォルダのREADMEを参照ください。
-
-- [Webアプリ](webapp/README.md)
-- [チャット用エージェント](chat-agent/README.md)
-- [定期実行用エージェント](batch-agent/README.md)

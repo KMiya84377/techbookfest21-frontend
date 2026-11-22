@@ -27,7 +27,7 @@ export default defineConfig({
   ],
   vite: {
     server: { proxy: {
-      "/aws-blocks/api": { target: process.env.BLOCKS_API_URL ?? "http://127.0.0.1:3000", changeOrigin: false },
+      "/cdk-blocks/api": { target: process.env.BLOCKS_API_URL ?? "http://127.0.0.1:3000", changeOrigin: false },
       "/.blocks-sandbox": { target: process.env.BLOCKS_API_URL ?? "http://127.0.0.1:3000", changeOrigin: false },
     } },
     resolve: {

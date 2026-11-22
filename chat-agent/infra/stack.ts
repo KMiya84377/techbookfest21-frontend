@@ -1,5 +1,5 @@
 // チャット用エージェントの AWS 構成(CDK)。CDK のアプリは webapp/ にあり、
-// webapp/aws-blocks/index.cdk.ts がこの関数を呼んで、QuestBoardAgent スタックを作る。
+// webapp/cdk-blocks/index.cdk.ts がこの関数を呼んで、QuestBoardAgent スタックを作る。
 // 依存(aws-cdk-lib)は webapp/node_modules のものを使う(webapp/tsconfig.json の paths)。
 import * as path from "node:path";
 import {

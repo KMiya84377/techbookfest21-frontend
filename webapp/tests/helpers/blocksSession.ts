@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 
-// 公開0.1.12のローカルCognito保存形式を使うテスト用ヘルパー。実AWSには使わない。
+// AWS CDK Blocks 1.0.0のローカルCognito保存形式(.cdk-blocks/local/data/…/state.json)を使うテスト用ヘルパー。実AWSには使わない。
 export async function blocksSession(base: string) {
   assert.ok(
     ["localhost", "127.0.0.1"].includes(new URL(base).hostname),
@@ -11,7 +11,7 @@ export async function blocksSession(base: string) {
   const username = `test-${crypto.randomUUID()}@example.test`,
     password = "LocalTest123!";
   async function rpc(action: string, values: Record<string, string>) {
-    const response = await fetch(base + "/aws-blocks/api", {
+    const response = await fetch(base + "/cdk-blocks/api", {
       method: "POST",
       headers: { "content-type": "application/json", cookie },
       body: JSON.stringify({
@@ -31,9 +31,14 @@ export async function blocksSession(base: string) {
   }
   await rpc("signUp", { username, password });
   const local = JSON.parse(
-    await readFile(".bb-data/quests-auth/state.json", "utf8"),
+    await readFile(".cdk-blocks/local/data/quests-auth/state.json", "utf8"),
   );
-  const code = local.codes[`signUp:${username}`].code;
+  // ユーザーと確認コードは、メールアドレスではなく、ユーザーID(userSub)をキーに保存される。
+  const user = Object.values<{ userSub: string; attributes: { email: string } }>(
+    local.users,
+  ).find((item) => item.attributes.email === username);
+  assert.ok(user, "登録したユーザーがローカルの保存先にありません");
+  const code = local.codes[`signUp:${user.userSub}`].code;
   await rpc("confirmSignUp", { username, code });
   assert.equal((await rpc("signIn", { username, password })).state, "signedIn");
   async function request(path: string, method = "GET", body?: unknown) {

@@ -10,7 +10,7 @@ AWSへのデプロイのワークフローです。本の第4章4.4.4のとお�
 | [deploy-agent.yml](deploy-agent.yml) | `QuestBoardAgent` | チャット用エージェント(AgentCore Runtime・記憶) | `npm run deploy:agent` |
 | [deploy-batch.yml](deploy-batch.yml) | `QuestBoardBatch` | 定期取得用エージェント(AgentCore Runtime・Scheduler・アラーム) | `npm run deploy:batch` |
 
-スタックの定義は、[webapp/aws-blocks/index.cdk.ts](../../webapp/aws-blocks/index.cdk.ts)(Web)、[chat-agent/infra/stack.ts](../../chat-agent/infra/stack.ts)(チャット用)、[batch-agent/infra/stack.ts](../../batch-agent/infra/stack.ts)(定期取得用)です。
+スタックの定義は、[webapp/cdk-blocks/index.cdk.ts](../../webapp/cdk-blocks/index.cdk.ts)(Web)、[chat-agent/infra/stack.ts](../../chat-agent/infra/stack.ts)(チャット用)、[batch-agent/infra/stack.ts](../../batch-agent/infra/stack.ts)(定期取得用)です。
 
 3つのワークフローの共通点は、次のとおりです。
 
@@ -33,6 +33,11 @@ AWSへのデプロイのワークフローです。本の第4章4.4.4のとお�
 
 ## 初回の順番
 
-最初は、Web → チャット用 → 定期取得用の順に実行します。2つのエージェントのスタックは、Webスタックが作るテーブル名を参照するためです。チャット用エージェントの接続先(RuntimeのARN)は、チャット用のスタックがSSMパラメーターに保存し、Webアプリが実行時に読みます。
+デプロイの順番に、CloudFormationの依存はありません(エージェントのスタックは、Webスタックのテーブルを、名前の文字列で参照します。名前は[constants.ts](../../webapp/cdk-blocks/constants.ts)の定数から決まり、`synth`した結果との一致は`tests/blocks-template.test.ts`で確かめます)。ただし、実際に動かすには、次の順に実行してください。
+
+1. Web(テーブルと認証ができる)
+2. チャット用・定期取得用(テーブルが存在しないと、エージェントが読み書きできない)
+
+チャット用エージェントの接続先(RuntimeのARN)は、チャット用のスタックがSSMパラメーターに保存し、Webアプリが実行時に読みます。チャット用を先に実行しても、Webアプリは、実行時にSSMを読むだけなので、Webのデプロイは失敗しません。
 
 2回目以降は、変更したものだけを実行します。

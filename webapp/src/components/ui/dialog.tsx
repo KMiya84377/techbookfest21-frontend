@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
-import { cn } from "cn";
+import { cn, clsx } from "cn";
 import { Button } from "./button";
 
 const Dialog = DialogPrimitive.Root;
@@ -16,7 +16,9 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Backdrop
     ref={ref}
     className={cn(
-      "fixed inset-0 z-40 bg-quest-backdrop/65 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
+      "fixed inset-0 z-40 bg-quest-backdrop/65",
+      "data-[starting-style]:opacity-0",
+      "data-[ending-style]:opacity-0",
       "transition-opacity duration-200",
       className,
     )}
@@ -45,7 +47,13 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
               render={<Button variant="unstyled" />}
               type="button"
               aria-label="閉じる"
-              className="absolute right-3 top-3 inline-flex size-7 items-center justify-center rounded-sm text-[var(--ink)] opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wax)]"
+              className={clsx(
+                "absolute right-3 top-3 inline-flex size-7 items-center justify-center rounded-sm",
+                "text-[var(--ink)] opacity-70 transition-opacity",
+                "hover:opacity-100",
+                "focus-visible:outline-2 focus-visible:outline-offset-2",
+                "focus-visible:outline-[var(--wax)]",
+              )}
             >
               <XIcon className="size-4" />
               <span className="sr-only">閉じる</span>

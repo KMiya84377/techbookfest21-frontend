@@ -86,7 +86,12 @@ export default function UserSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="fixed top-1/2 left-1/2 max-h-[min(88dvh,780px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[3px] border border-quest-frame bg-quest-card p-0 text-quest-card-ink shadow-[0_18px_55px_var(--quest-dialog-shadow)]">
+      <DialogContent className={clsx(
+        "fixed top-1/2 left-1/2 max-h-[min(88dvh,780px)] w-[min(560px,calc(100vw-24px))]",
+        "-translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[3px] border",
+        "border-quest-frame bg-quest-card p-0 text-quest-card-ink",
+        "shadow-[0_18px_55px_var(--quest-dialog-shadow)]",
+      )}>
         <form onSubmit={(event) => void saveSettings(event)}>
           <div className="border-b border-quest-card-line bg-quest-card-header px-6 py-5 pr-12 max-[520px]:px-4">
             <div className="flex items-center gap-2 text-quest-brown">
@@ -161,7 +166,11 @@ export default function UserSettingsDialog({
             )}
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-quest-card-line bg-quest-settings-footer-bg px-6 py-4 max-[520px]:px-4">
+          <div className={clsx(
+            "flex justify-end gap-2 border-t border-quest-card-line bg-quest-settings-footer-bg px-6",
+            "py-4",
+            "max-[520px]:px-4",
+          )}>
             <Button
               type="button"
               variant="questOutline"

@@ -10,7 +10,7 @@ const authenticateLocal: Authenticate = async (request) => {
   const cookie = request.headers.get("cookie");
   if (!cookie) return null;
   const response = await fetch(
-    new URL("/aws-blocks/api", serverConfig().apiUrl!),
+    new URL("/cdk-blocks/api", serverConfig().apiUrl!),
     {
       method: "POST",
       headers: { "content-type": "application/json", cookie },

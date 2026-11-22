@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { afterEach, mock } from "node:test";
-import { news, userQuests } from "../aws-blocks/storage";
+import { news, userQuests } from "../cdk-blocks/storage";
 import { isAwsBlock } from "../src/pages/api/_server/blocks/consistentReads";
 import {
   getUserQuestRecord,
@@ -19,7 +19,7 @@ import { PREFIX, REVIEW_KEY } from "../src/pages/api/_server/newsNotifications/r
 
 type Key = { userId: string; newsId: string };
 type RecordItem = Key & { version?: number; [key: string]: unknown };
-type WriteCondition = Parameters<typeof userQuests.put>[1];
+type WriteCondition = Parameters<typeof userQuests.put>[2];
 
 function conflict() {
   const error = new Error("別の処理が更新しました");
@@ -38,8 +38,8 @@ function memoryTable() {
   const put = mock.method(
     userQuests,
     "put",
-    async (record: RecordItem, condition?: WriteCondition) => {
-      const current = records.get(keyOf(record));
+    async (key: Key, record: RecordItem, condition?: WriteCondition) => {
+      const current = records.get(keyOf(key));
       if (condition?.ifNotExists && current) throw conflict();
       if (
         condition?.ifFieldEquals &&
@@ -47,7 +47,7 @@ function memoryTable() {
       ) {
         throw conflict();
       }
-      records.set(keyOf(record), structuredClone(record));
+      records.set(keyOf(key), structuredClone(record));
     },
   );
   mock.method(userQuests, "query", async function* (options: {
@@ -56,7 +56,8 @@ function memoryTable() {
     for (const record of records.values()) {
       if (record.userId !== options.where.userId.equals) continue;
       const prefix = options.where.newsId?.beginsWith ?? "";
-      if (record.newsId.startsWith(prefix)) yield structuredClone(record);
+      if (record.newsId.startsWith(prefix))
+        yield { key: record, value: structuredClone(record) };
     }
   });
   return {

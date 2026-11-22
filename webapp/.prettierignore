@@ -1,0 +1,2 @@
+# synth が自動で書く、Authのベースライン(手で編集・整形しない。内容は、タブ字下げのJSON)
+cdk-blocks/baselines/

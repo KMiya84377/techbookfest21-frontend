@@ -104,7 +104,7 @@ test("一覧の再取得直後は、再描画の前でも最新のクエスト�
 });
 
 type SharedOptions = Parameters<
-  typeof import("../src/hooks/copilotkit/useSharedAgentState").useSharedAgentState
+  typeof import("../src/hooks/useSharedAgentState").useSharedAgentState
 >[0];
 
 async function sharedScenario(
@@ -122,8 +122,8 @@ async function sharedScenario(
     },
   };
   const { useSharedAgentState } = await loadIsolatedModule<
-    typeof import("../src/hooks/copilotkit/useSharedAgentState")
-  >("src/hooks/copilotkit/useSharedAgentState.ts", {
+    typeof import("../src/hooks/useSharedAgentState")
+  >("src/hooks/useSharedAgentState.ts", {
     react: harness.react,
     "@copilotkit/react-core/v2": { useAgent: () => ({ agent }) },
   });

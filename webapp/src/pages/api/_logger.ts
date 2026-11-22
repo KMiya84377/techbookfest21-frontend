@@ -1,5 +1,5 @@
-import { Logger } from "@aws-blocks/blocks";
-import { scope } from "../../../aws-blocks/storage";
+import { Logger } from "aws-cdk-blocks";
+import { scope } from "../../../cdk-blocks/storage";
 
 // サーバー(Astro の SSR)側の共通ロガー。1行のJSONを標準出力に出し、Lambda が CloudWatch Logs に送る。
 // ブラウザーのコードでは使えない(hooks/・components/ では console を使う)。

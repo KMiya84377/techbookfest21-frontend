@@ -24,7 +24,9 @@ export async function collectConnections(
     tool: {
       name: CONNECTIONS_TOOL,
       description:
-        "学習済みニュース同士の関係図を返す。nodesは関連するニュースのquestId、edgesは根拠のある関係。関連がなければhasConnections=falseとする。",
+        "学習済みニュース同士の関係図を返す。" +
+        "nodesは関連するニュースのquestId、edgesは根拠のある関係。" +
+        "関連がなければhasConnections=falseとする。",
       parameters: z.toJSONSchema(connectionsSchema),
     },
     context: {

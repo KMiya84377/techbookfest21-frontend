@@ -31,14 +31,15 @@ test("選択肢の送信中と回答済みは選べず、送信失敗時だけ�
   const pending = Promise.withResolvers<void>();
   const sent: unknown[] = [];
   let fails = true;
-  const { default: ChoicePrompt } = await loadIsolatedModule<
-    typeof import("../src/components/human-in-the-loop/ChoicePrompt")
-  >("src/components/human-in-the-loop/ChoicePrompt.tsx", {
+  const { ChoicePrompt } = await loadIsolatedModule<
+    typeof import("../src/hooks/human-in-the-loop/useShowChoices")
+  >("src/hooks/human-in-the-loop/useShowChoices.tsx", {
     react: harness.react, "react/jsx-runtime": jsxRuntime, zod: { z },
+    "@copilotkit/react-core/v2": {},
     "../../lib/copilotkit/toolResult": { parseToolResult },
-    "../ui/button": { Button: "button" },
-    "../chat/ChatCard": { __esModule: true, default: "chat-card" },
-    "./OptionButtons": { __esModule: true, default: "options" },
+    "../../components/ui/button": { Button: "button" },
+    "../../components/chat/ChatCard": { __esModule: true, default: "chat-card" },
+    "../../components/human-in-the-loop/OptionButtons": { __esModule: true, default: "options" },
   });
   const options = [{ id: "a", label: "A" }, { id: "b", label: "B" }];
   const props = {
@@ -131,6 +132,7 @@ test("通知からニュース・図解を開くときだけ、フォーカス�
     typeof import("../src/components/learning/LearningNotifications")
   >("src/components/learning/LearningNotifications.tsx", {
     react: harness.react, "react/jsx-runtime": jsxRuntime,
+    cn: { clsx },
     "@base-ui/react/popover": { Popover: {
       Root: "popover", Trigger: "trigger", Portal: "portal", Positioner: "positioner",
       Popup: "popup", Title: "title", Close: "close",

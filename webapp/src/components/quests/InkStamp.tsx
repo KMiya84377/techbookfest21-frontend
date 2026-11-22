@@ -10,7 +10,8 @@ export default function InkStamp({
   return (
     <span
       className={clsx(
-        "ink-stamp absolute right-[14px] bottom-[19px] w-[89px] opacity-[0.86] [transform:rotate(var(--stamp-tilt))] mix-blend-multiply",
+        "ink-stamp absolute right-[14px] bottom-[19px] w-[89px] opacity-[0.86]",
+        "[transform:rotate(var(--stamp-tilt))] mix-blend-multiply",
         cleared && "is-cleared",
       )}
       aria-hidden="true"

@@ -1,3 +1,4 @@
+import { clsx } from "cn";
 import { useState } from "react";
 import {
   STATUS_LABEL,
@@ -26,17 +27,28 @@ const IMPORTANCE_ORDER = { high: 0, medium: 1, low: 2 } as const;
 
 const SCATTER_CLASS = [
   // 基本
-  "relative z-[1] grid [--quest-width:360px] grid-cols-[repeat(auto-fit,minmax(var(--quest-width),var(--quest-width)))] items-start justify-center gap-x-[27px] gap-y-7 px-2 pt-[26px] pb-10 [perspective:1600px]",
+  "relative z-[1] grid [--quest-width:360px]",
+  "grid-cols-[repeat(auto-fit,minmax(var(--quest-width),var(--quest-width)))] items-start",
+  "justify-center gap-x-[27px] gap-y-7 px-2 pt-[26px] pb-10 [perspective:1600px]",
   // 4 枚ごとのずらし
-  "[&>button:nth-child(4n+2)]:mt-12 [&>button:nth-child(4n+3)]:left-3 [&>button:nth-child(4n+4)]:mt-[15px] [&>button:nth-child(4n+4)]:left-[-8px]",
+  "[&>button:nth-child(4n+2)]:mt-12",
+  "[&>button:nth-child(4n+3)]:left-3",
+  "[&>button:nth-child(4n+4)]:mt-[15px] [&>button:nth-child(4n+4)]:left-[-8px]",
   // 1750px 以上
   "min-[1750px]:grid-cols-[repeat(3,var(--quest-width))]",
   // 901〜1160px
-  "min-[901px]:max-[1160px]:[--quest-width:340px] min-[901px]:max-[1160px]:mx-auto min-[901px]:max-[1160px]:max-w-[460px]",
+  "min-[901px]:max-[1160px]:[--quest-width:340px] min-[901px]:max-[1160px]:mx-auto",
+  "min-[901px]:max-[1160px]:max-w-[460px]",
   // 900px 以下
-  "max-[900px]:[--quest-width:340px] max-[900px]:grid-cols-[minmax(0,min(var(--quest-width),100%))] max-[900px]:[&>button]:w-[min(var(--quest-width),100%)]",
+  "max-[900px]:[--quest-width:340px]",
+  "max-[900px]:grid-cols-[minmax(0,min(var(--quest-width),100%))]",
+  "max-[900px]:[&>button]:w-[min(var(--quest-width),100%)]",
   // 600px 以下
-  "max-[600px]:[--quest-width:320px] max-[600px]:gap-y-[27px] max-[600px]:px-[7px] max-[600px]:pt-[26px] max-[600px]:pb-[35px] max-[600px]:[&>button:nth-child(n)]:mt-0 max-[600px]:[&>button:nth-child(n)]:ml-0 max-[600px]:[&>button:nth-child(n)]:w-[min(var(--quest-width),100%)] max-[600px]:[&>button:nth-child(3n)]:left-[7px]",
+  "max-[600px]:[--quest-width:320px] max-[600px]:gap-y-[27px] max-[600px]:px-[7px]",
+  "max-[600px]:pt-[26px] max-[600px]:pb-[35px] max-[600px]:[&>button:nth-child(n)]:mt-0",
+  "max-[600px]:[&>button:nth-child(n)]:ml-0",
+  "max-[600px]:[&>button:nth-child(n)]:w-[min(var(--quest-width),100%)]",
+  "max-[600px]:[&>button:nth-child(3n)]:left-[7px]",
 ].join(" ");
 
 interface Props {
@@ -128,7 +140,18 @@ export default function QuestBoard({
           {TABS.map((tab) => (
             <ToggleGroupItem
               key={tab.key}
-              className="min-h-8 rounded-[1px] border border-transparent bg-transparent px-[9px] py-1 text-[11px] text-quest-tab-ink shadow-none max-[600px]:min-h-[38px] data-[pressed=true]:border-quest-tab-selected-line data-[pressed=true]:bg-quest-tab-selected-bg data-[pressed=true]:text-quest-tab-selected-ink data-[pressed=true]:shadow-[inset_0_0_8px_var(--quest-tab-selected-glow)] hover:bg-quest-tab-hover-bg hover:text-quest-tab-hover-ink focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-quest-focus-tab"
+              className={clsx(
+                "min-h-8 rounded-[1px] border border-transparent bg-transparent px-[9px] py-1 text-[11px]",
+                "text-quest-tab-ink shadow-none",
+                "max-[600px]:min-h-[38px]",
+                "data-[pressed=true]:border-quest-tab-selected-line",
+                "data-[pressed=true]:bg-quest-tab-selected-bg",
+                "data-[pressed=true]:text-quest-tab-selected-ink",
+                "data-[pressed=true]:shadow-[inset_0_0_8px_var(--quest-tab-selected-glow)]",
+                "hover:bg-quest-tab-hover-bg hover:text-quest-tab-hover-ink",
+                "focus-visible:outline-2 focus-visible:outline-offset-3",
+                "focus-visible:outline-quest-focus-tab",
+              )}
               value={tab.key}
             >
               {tab.label}
@@ -166,11 +189,21 @@ export default function QuestBoard({
       )}
 
       {renderQuests()}
-      <footer className="relative z-[1] flex flex-wrap justify-between gap-[15px] px-0 pt-[5px] pb-6 font-quest-tavern text-[11px] tracking-[0.04em] text-quest-board-footer max-[600px]:text-[10px]">
+      <footer className={clsx(
+        "relative z-[1] flex flex-wrap justify-between gap-[15px] px-0 pt-[5px] pb-6",
+        "font-quest-tavern text-[11px] tracking-[0.04em] text-quest-board-footer",
+        "max-[600px]:text-[10px]",
+      )}>
         <Button
           variant="ghost"
           size="xs"
-          className="h-auto rounded-none border-0 border-b border-quest-board-footer-line bg-transparent px-0 py-1 text-[9px] font-mono font-normal text-quest-board-footer shadow-none hover:bg-transparent hover:text-quest-board-footer focus-visible:outline-2 focus-visible:outline-offset-[5px] focus-visible:outline-[var(--brass)]"
+          className={clsx(
+            "h-auto rounded-none border-0 border-b border-quest-board-footer-line bg-transparent px-0",
+            "py-1 text-[9px] font-mono font-normal text-quest-board-footer shadow-none",
+            "hover:bg-transparent hover:text-quest-board-footer",
+            "focus-visible:outline-2 focus-visible:outline-offset-[5px]",
+            "focus-visible:outline-[var(--brass)]",
+          )}
           type="button"
           aria-pressed={windEnabled}
           onClick={() => setWindEnabled((enabled) => !enabled)}
@@ -179,7 +212,10 @@ export default function QuestBoard({
         </Button>
       </footer>
       <div
-        className="pointer-events-none mx-auto mt-[-14px] flex w-[165px] flex-col items-center gap-[10px] text-quest-board-emblem opacity-[0.22]"
+        className={clsx(
+          "pointer-events-none mx-auto mt-[-14px] flex w-[165px] flex-col items-center gap-[10px]",
+          "text-quest-board-emblem opacity-[0.22]",
+        )}
         aria-hidden="true"
       >
         <GuildEmblem className="w-[115px]" />

@@ -1,4 +1,4 @@
-import { NEWS_FEED } from "../../../../../aws-blocks/constants";
+import { NEWS_FEED } from "../../../../../cdk-blocks/constants";
 import type { Quest } from "../../../../lib/quests/model";
 import type { UserQuestItem } from "./userQuestItem";
 

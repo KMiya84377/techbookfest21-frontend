@@ -29,22 +29,23 @@ async function quizScenario(submittedAnswerJson?: string) {
     isRunning: false,
     addMessage(message: unknown) { messages.push(message); },
   };
-  const { default: Quiz } = await loadIsolatedModule<
-    typeof import("../src/components/human-in-the-loop/Quiz")
-  >("src/components/human-in-the-loop/Quiz.tsx", {
+  const { Quiz, useShowQuiz } = await loadIsolatedModule<
+    typeof import("../src/hooks/human-in-the-loop/useShowQuiz")
+  >("src/hooks/human-in-the-loop/useShowQuiz.tsx", {
     react: harness.react,
     "react/jsx-runtime": jsxRuntime,
     zod: { z },
     "@copilotkit/react-core/v2": {
+      useHumanInTheLoop: (tool: { name: string }) => assert.equal(tool.name, "show_quiz"),
       UseAgentUpdate: { OnRunStatusChanged: "run-status" },
       useAgent: () => ({ agent }),
       useCopilotKit: () => ({ copilotkit: { runAgent: async () => { runs++; } } }),
     },
     "../../lib/copilotkit/toolResult": { parseToolResult },
-    "../ui/button": { Button: "button" },
-    "../chat/ChatCard": { __esModule: true, default: "chat-card" },
-    "./OptionButtons": { __esModule: true, default: "options" },
-    "../quests/QuestActions": {
+    "../../components/ui/button": { Button: "button" },
+    "../../components/chat/ChatCard": { __esModule: true, default: "chat-card" },
+    "../../components/human-in-the-loop/OptionButtons": { __esModule: true, default: "options" },
+    "../useQuestActions": {
       useQuestActions: () => ({
         statusOf: () => "todo", isReview: () => false,
         recordAnswer: (id: string, correct: boolean) => records.push({ id, correct }),
@@ -53,6 +54,7 @@ async function quizScenario(submittedAnswerJson?: string) {
       }),
     },
   });
+  useShowQuiz();
   const props = {
     questId: "quest", question: "問題", options: ["誤答", "正答"],
     answer: 1, explanation: "解説", result: submittedAnswerJson,

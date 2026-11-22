@@ -1,3 +1,4 @@
+import { clsx } from "cn";
 import { Settings2Icon } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -12,7 +13,12 @@ export default function UserSettingsButton({
       type="button"
       variant="questTavern"
       size="icon"
-      className="absolute top-[7px] right-[39px] z-[6] size-[30px] rounded-full border-quest-corner-button-line bg-quest-corner-button-bg p-0 text-quest-corner-button-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-quest-focus"
+      className={clsx(
+        "absolute top-[7px] right-[39px] z-[6] size-[30px] rounded-full",
+        "border-quest-corner-button-line bg-quest-corner-button-bg p-0",
+        "text-quest-corner-button-ink",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-quest-focus",
+      )}
       aria-label="ユーザー設定を開く"
       title="ユーザー設定"
       onClick={onOpenSettings}

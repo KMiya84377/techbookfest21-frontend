@@ -1,6 +1,6 @@
 # Webアプリ
 
-Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、AWS Blocksで認証・保存・ホスティングを定義します。AWS Blocks 0.9.0、共通ホスティングパッケージ0.5.0を使用しています。
+Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、[AWS CDK Blocks](https://github.com/aws/cdk-blocks)(`aws-cdk-blocks` 1.0.0。本で紹介しているAWS Blocksの現在の名称)で認証・保存・ホスティングを定義します。名称の違いは、[トップのREADME](../README.md#aws-blocksからaws-cdk-blocksへの名称変更)を参照してください。
 
 ## 実装の配置
 
@@ -8,10 +8,11 @@ Astro・React・CopilotKit V2で画面とCopilotKit Runtimeを動かし、AWS Bl
 
 | 場所 | 内容 | 本との対応 |
 | --- | --- | --- |
-| [aws-blocks/auth.ts](aws-blocks/auth.ts)・[index.ts](aws-blocks/index.ts) | AuthCognitoと認証APIを定義します | 第4章4.3.3 |
-| [aws-blocks/storage.ts](aws-blocks/storage.ts) | DistributedTableによるニュース・学習状態・設定と、AIエージェントの接続設定を定義します | 第4章4.3.3 |
-| [aws-blocks/index.cdk.ts](aws-blocks/index.cdk.ts) | BlocksStackとHosting BlockでWebアプリの配信基盤を定義します。`hostingTimeout.ts`（ストリーミング統合のタイムアウト）は、Hostingの制約を補う部品です | 第4章4.3.3・4.4.3 |
-| [../chat-agent/infra/stack.ts](../chat-agent/infra/stack.ts)・[../batch-agent/infra/stack.ts](../batch-agent/infra/stack.ts) | 対話用・定期取得用のエージェントのAWS構成（AgentCore Runtime、記憶、毎朝の定期取得とその失敗アラーム）。`aws-blocks/index.cdk.ts` から呼びます | 第1章1.4.2・第4章4.4.3 |
+| [cdk-blocks/auth.ts](cdk-blocks/auth.ts)・[index.ts](cdk-blocks/index.ts) | `Auth`（Cognito）と認証APIを定義します。ユーザープールの変更できない設定は、`cdk-blocks/baselines/`に記録し、変更を止めます | 第4章4.3.3 |
+| [cdk-blocks/storage.ts](cdk-blocks/storage.ts) | `KVStore`によるニュース・学習状態・設定と、AIエージェントの接続設定を定義します | 第4章4.3.3 |
+| [cdk-blocks/hosting.ts](cdk-blocks/hosting.ts) | Hosting BlockでAstroのSSRの配信基盤を定義します。Hostingが公開していないストリーミング統合のタイムアウト（5分）も、ここで設定します | 第4章4.3.3・4.4.3 |
+| [cdk-blocks/index.cdk.ts](cdk-blocks/index.cdk.ts) | CDKアプリの入口です。BlocksStack、Hosting、エージェントのスタックを組み立て、SSR用Lambdaの権限を付けます | 第4章4.3.3・4.4.3 |
+| [../chat-agent/infra/stack.ts](../chat-agent/infra/stack.ts)・[../batch-agent/infra/stack.ts](../batch-agent/infra/stack.ts) | 対話用・定期取得用のエージェントのAWS構成（AgentCore Runtime、記憶、毎朝の定期取得とその失敗アラーム）。`cdk-blocks/index.cdk.ts` から呼びます | 第1章1.4.2・第4章4.4.3 |
 | [../.github/workflows/](../.github/workflows/README.md) | Web・対話用エージェント・定期取得を、別々のワークフローでデプロイします | 第4章4.4.4 |
 
 ### サーバー（第1章・第3章・第4章4.4.2）
@@ -31,14 +32,13 @@ AstroのNode.jsサーバーで、画面の配信とバックエンド（CopilotK
 | 場所 | 内容 | 本との対応 |
 | --- | --- | --- |
 | [src/components/App.tsx](src/components/App.tsx) | 画面の入口です。`CopilotKitProvider` で、A2UIのカタログとOpen Generative UIのデザインのルールを渡します | 第3章3.1・3.5 |
-| [src/components/copilotkit/](src/components/copilotkit/CopilotKitIntegration.tsx) | CopilotKit連携用のフックをまとめて呼ぶコンポーネントです（表示は出しません） | 第3章3.2〜3.4 |
-| [src/hooks/copilotkit/](src/hooks/copilotkit/README.md) | 状態共有・コンテキスト・フロントエンドツール・Human-in-the-loopの登録フックです | 第3章3.2〜3.4、3.6 |
-| [src/components/generative-ui/](src/components/generative-ui/README.md) | A2UIの描画・カタログと、ツールの結果を表示するカードです | 第2章2.2〜2.4、第3章3.5・3.6 |
-| [src/components/human-in-the-loop/](src/components/human-in-the-loop/README.md) | ユーザーの回答を待つクイズ・選択肢のUIです | 第3章3.4・3.6.3 |
-| [src/components/quests/](src/components/quests/README.md) | ニュースの一覧・詳細画面です | 第3章3.6 |
-| [src/components/learning/](src/components/learning/README.md) | 通知と、学習内容のつながりの図です | 本にない追加機能 |
+| [src/hooks/useCopilotKitIntegration.ts](src/hooks/useCopilotKitIntegration.ts) | 状態共有・ツール登録・サジェストのフックをまとめて呼びます。`App.tsx`の`QuestWorkspace`で、`CopilotKitProvider`配下から呼びます | 第3章3.2〜3.4 |
+| [src/hooks/](src/hooks/README.md) | 画面の状態・API呼び出しと、AIエージェントとの連携を扱います。ツール登録と専用UIは、役割別のサブフォルダにまとめます | 第3章3.2〜3.4、3.6 |
+| [src/components/generative-ui/](src/components/generative-ui/README.md) | 詳細への追記を描画するA2UIレンダラーと、レポート用のカタログです | 第2章2.2〜2.4、第3章3.5・3.6 |
+| [src/components/human-in-the-loop/](src/components/human-in-the-loop/) | クイズと確認画面で共通に使う選択ボタンです | 第3章3.4・3.6.3 |
+| [src/components/quests/](src/components/quests/) | ニュースの一覧・詳細画面です | 第3章3.6 |
+| [src/components/learning/](src/components/learning/) | 通知と、学習内容のつながりの図です | 本にない追加機能 |
 | src/components/chat/・user-setting/ | チャット欄と、共通のチャット用カード枠、学習設定のダイアログです | － |
-| src/hooks/ | 画面の状態とAPI呼び出しをまとめたフックです | － |
 | src/lib/ | ブラウザーでも使う型・定数・純粋関数だけを置きます | － |
 
 ### 開発用
@@ -47,6 +47,8 @@ AstroのNode.jsサーバーで、画面の配信とバックエンド（CopilotK
 | --- | --- |
 | mock/ | mockモードのメモリ上の保存先とAIを置きます。モードのフラグが真のときだけ動的に読み込み、本番ビルドでは空のスタブに差し替えます（`astro.config.mjs` の `strip-mock`） |
 | tests/ | Node標準のテストランナーによるテストです |
+
+ツール専用の結果表示や回答待ち画面は、`src/hooks/frontend-tool/`・`src/hooks/human-in-the-loop/`の各フックと同じファイルに置きます。複数の画面で使う部品は`src/components/`に置きます。
 
 AWS用のビルドでは `aws-runtime` 条件でBlocksのAWS実装を選びます。Lambdaでモック実装を読み込んだ場合はエラーにし、ローカル保存へ書き込ませません。
 
@@ -121,7 +123,7 @@ npm run dev:backend
 npm run dev -- --background
 ```
 
-http://localhost:4321 を開き、ユーザー登録・ログインします。ローカルの確認コードはバックエンドのターミナルへ出ます。AWSのCognito、DynamoDBには接続しません。学習状態や通知は `.bb-data/` に保存します。
+http://localhost:4321 を開き、ユーザー登録・ログインします。ローカルの確認コードはバックエンドのターミナルへ出ます。AWSのCognito、DynamoDBには接続しません。学習状態や通知は `.cdk-blocks/local/data/` に保存します。
 
 AI応答だけをモックにし、Blocksの認証・保存を確認する場合は、Astroの起動を次へ置き換えます。
 

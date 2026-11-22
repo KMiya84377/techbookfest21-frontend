@@ -7,7 +7,7 @@ import type {
 import { collectConnections } from "./collectConnections";
 import { collectLearningUI } from "./collectUI";
 import type { LearningUI } from "../../../../lib/learning/openGenerativeUI";
-import { QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL } from "../../../../lib/generative-ui/openGenerativeUI";
+import designSkill from "../../../../lib/generative-ui/design-skill.md?raw";
 
 export interface GeneratedLearningDiagram {
   diagram: LearningConnections;
@@ -29,7 +29,7 @@ export async function generateConnections(
       await createConfiguredAgent(),
       diagram,
       history,
-      QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL,
+      designSkill.trim(),
     );
     return { diagram, ui };
   });

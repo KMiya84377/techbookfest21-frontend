@@ -9,7 +9,7 @@ uv run python -m chat.main
 uv run --with pytest python -m pytest tests
 ```
 
-AWSの構成(Runtime・記憶・IAM)は、`infra/stack.ts` のCDKで定義しています。CDKのアプリは `webapp/` にあり、`webapp/aws-blocks/index.cdk.ts` から呼ばれます(`npm run deploy:agent`)。
+AWSの構成(Runtime・記憶・IAM)は、`infra/stack.ts` のCDKで定義しています。CDKのアプリは `webapp/` にあり、`webapp/cdk-blocks/index.cdk.ts` から呼ばれます(`npm run deploy:agent`)。
 
 ## 本との対応
 

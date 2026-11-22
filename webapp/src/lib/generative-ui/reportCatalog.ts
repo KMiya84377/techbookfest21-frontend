@@ -36,7 +36,8 @@ const rawReportCatalogDefinitions = {
           binding,
         ])
         .describe(
-          "棒グラフの配列。各要素はlabel（文字列）とvalue（学習件数の数値）を持つ。データモデルの配列を参照する場合は{path: '/daily'}のように指定する。",
+          "棒グラフの配列。各要素はlabel（文字列）とvalue（学習件数の数値）を持つ。" +
+            "データモデルの配列を参照する場合は{path: '/daily'}のように指定する。",
         ),
       maxValue: dynamicNumber.optional(),
       unit: dynamicString.optional(),

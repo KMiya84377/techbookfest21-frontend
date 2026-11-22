@@ -1,7 +1,7 @@
 import { useAgentContext } from "@copilotkit/react-core/v2";
-import type { Quest } from "../../lib/quests/model";
-import { describeFilter, type QuestFilter } from "../../lib/quests/filter";
-import type { DetailSection } from "../../lib/quests/detailSections";
+import type { Quest } from "../lib/quests/model";
+import { describeFilter, type QuestFilter } from "../lib/quests/filter";
+import type { DetailSection } from "../lib/quests/detailSections";
 import { toSharedQuests } from "./useSharedAgentState";
 
 interface Options {
@@ -32,7 +32,8 @@ export function useScreenContext({
     // 先頭の [opened_quest] は、エージェントの UI ルーターが詳細を開いているかを見分ける目印
     // (chat-agent/chat/ui_router.py の OPENED_QUEST_CONTEXT_MARKER と合わせる)
     description:
-      "[opened_quest] ユーザーが、いま詳細を開いているクエスト(なければ null)。「このクエスト」は、これを指す",
+      "[opened_quest] ユーザーが、いま詳細を開いているクエスト(なければ null)。" +
+      "「このクエスト」は、これを指す",
     value: opened
       ? {
           // value は JSON の値の型。Quest の省略可能な項目(undefined)を落とすため、JSON を通す

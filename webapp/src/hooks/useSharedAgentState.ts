@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useAgent } from "@copilotkit/react-core/v2";
-import type { Quest } from "../../lib/quests/model";
-import type { UserSettings } from "../../lib/userSettings/model";
+import type { Quest } from "../lib/quests/model";
+import type { UserSettings } from "../lib/userSettings/model";
 
 // エージェントと共有するクエストの項目(本文などの長い項目は渡さない)
 type SharedQuest = Pick<

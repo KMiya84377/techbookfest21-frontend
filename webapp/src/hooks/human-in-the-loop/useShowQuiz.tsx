@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   UseAgentUpdate,
+  useHumanInTheLoop,
   useAgent,
   useCopilotKit,
 } from "@copilotkit/react-core/v2";
@@ -9,10 +10,10 @@ import {
   parseToolResult,
   type HumanInTheLoopProps,
 } from "../../lib/copilotkit/toolResult";
-import { Button } from "../ui/button";
-import { useQuestActions } from "../../hooks/useQuestActions";
-import ChatCard from "../chat/ChatCard";
-import OptionButtons from "./OptionButtons";
+import { Button } from "../../components/ui/button";
+import { useQuestActions } from "../useQuestActions";
+import ChatCard from "../../components/chat/ChatCard";
+import OptionButtons from "../../components/human-in-the-loop/OptionButtons";
 
 // 回答の結果の背景色
 const RESULT_CLASS = {
@@ -21,7 +22,7 @@ const RESULT_CLASS = {
 } as const;
 
 // エージェントが、ツール呼び出し(show_quiz)の引数として渡す、理解度チェックの問題
-export const quizSchema = z.object({
+const quizSchema = z.object({
   questId: z.string().describe("この問題の対象のクエストの ID"),
   question: z.string().describe("問題文"),
   options: z.array(z.string()).min(2).max(4).describe("選択肢(2〜4 個)"),
@@ -50,10 +51,25 @@ function readSubmittedOutcome(submittedAnswerJson?: string): Outcome {
   return submittedAnswer.correct ? "correct" : "wrong";
 }
 
+// F-03: クイズを表示し、ユーザーの初回回答を待ってエージェントへ返す。
+export function useShowQuiz() {
+  useHumanInTheLoop({
+    name: "show_quiz",
+    description:
+      "クエストの内容に合わせた、単一選択の理解度チェックの問題を、チャットに表示する。" +
+      "questId は、クエスト一覧の id を、そのまま使う。" +
+      "ユーザーが回答すると、その内容(選んだ選択肢と、正誤)が返る",
+    parameters: quizSchema,
+    render: ({ args, respond, result }) => (
+      <Quiz {...args} respond={respond} result={result} />
+    ),
+  });
+}
+
 // 引数は、ストリーミングで少しずつ届くため、届いていない項目は undefined になる
 // 単一選択の問題。回答するまで、正解は示さない。不正解なら、再回答できる
 // エージェントに返すのは、初回の回答だけ(再回答は、画面の中だけ)
-export default function Quiz(props: Props) {
+export function Quiz(props: Props) {
   const {
     questId,
     question,

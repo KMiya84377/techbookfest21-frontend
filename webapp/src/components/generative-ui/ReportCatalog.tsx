@@ -15,16 +15,18 @@ import {
   reportBarChartValuesSchema,
 } from "../../lib/generative-ui/reportCatalog";
 
-// A2UIの入力を検証し、棒・軸・ラベルの描画はRechartsへ任せる。
+
 export function ReportBarChart({ props }: { props: unknown }) {
   const result = reportBarChartValuesSchema.safeParse(props);
   if (!result.success) {
     return <p role="status">棒グラフのデータが揃っていません。</p>;
   }
+
   const { items, maxValue, unit = "", accessibleLabel } = result.data;
   if (!items.length) {
     return <p role="status">棒グラフに表示するデータがありません。</p>;
   }
+  
   const max = items.reduce(
     (highest, item) => Math.max(highest, item.value),
     maxValue ?? 1,

@@ -1,3 +1,4 @@
+import { clsx } from "cn";
 import { Button } from "../ui/button";
 
 // 状態の保存や再取得に失敗したときの通知
@@ -10,7 +11,10 @@ export function StateErrorBanner({
 }) {
   return (
     <div
-      className="mx-4 mb-3 flex items-start justify-between gap-3 border border-quest-error-line bg-quest-error-bg px-3 py-2.5 text-sm text-destructive"
+      className={clsx(
+        "mx-4 mb-3 flex items-start justify-between gap-3 border border-quest-error-line",
+        "bg-quest-error-bg px-3 py-2.5 text-sm text-destructive",
+      )}
       role="alert"
     >
       <p className="min-w-0 flex-1">{message}</p>
@@ -18,7 +22,10 @@ export function StateErrorBanner({
         type="button"
         variant="questOutline"
         size="icon-sm"
-        className="-mr-1 -mt-1 shrink-0 border-transparent px-0 text-xl leading-none text-destructive hover:border-quest-error-line hover:bg-quest-error-hover"
+        className={clsx(
+          "-mr-1 -mt-1 shrink-0 border-transparent px-0 text-xl leading-none text-destructive",
+          "hover:border-quest-error-line hover:bg-quest-error-hover",
+        )}
         aria-label="エラー通知を閉じる"
         onClick={onClose}
       >

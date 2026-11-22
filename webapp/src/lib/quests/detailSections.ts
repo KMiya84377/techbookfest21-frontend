@@ -73,7 +73,12 @@ const detailSectionFieldsSchema = z
       .array(messageSchema)
       .length(2)
       .describe(
-        "A2UI v0.9。createSurface、updateComponentsの順に2件。surfaceIdは追記のidと同じ。rootを起点にText/Column/Row/Card/Dividerを組み合わせ、全コンポーネントを参照で接続する。各部品は1箇所からだけ参照し、80部品・12階層まで。更新時も完全な2件を渡す。",
+        "A2UI v0.9。createSurface、updateComponentsの順に2件。" +
+          "surfaceIdは追記のidと同じ。" +
+          "rootを起点にText/Column/Row/Card/Dividerを組み合わせ、" +
+          "全コンポーネントを参照で接続する。" +
+          "各部品は1箇所からだけ参照し、80部品・12階層まで。" +
+          "更新時も完全な2件を渡す。",
       ),
   })
   .strict();

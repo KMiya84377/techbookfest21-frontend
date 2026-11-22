@@ -1,17 +1,17 @@
-import type { Quest } from "../../lib/quests/model";
+import type { Quest } from "../lib/quests/model";
 import type {
   FilterChange,
   FilterPatch,
   QuestFilter,
-} from "../../lib/quests/filter";
-import type { DetailSection } from "../../lib/quests/detailSections";
-import type { UpdateDetail } from "../../lib/quests/detailTools";
-import type { UserSettings } from "../../lib/userSettings/model";
-import { useShowQuiz } from "./useShowQuiz";
-import { useShowChoices } from "./useShowChoices";
-import { useUpdateQuestFilter } from "./useUpdateQuestFilter";
-import { useUpdateQuestDetail } from "./useUpdateQuestDetail";
-import { useReloadQuests } from "./useReloadQuests";
+} from "../lib/quests/filter";
+import type { DetailSection } from "../lib/quests/detailSections";
+import type { UpdateDetail } from "../lib/quests/detailTools";
+import type { UserSettings } from "../lib/userSettings/model";
+import { useShowQuiz } from "./human-in-the-loop/useShowQuiz";
+import { useShowChoices } from "./human-in-the-loop/useShowChoices";
+import { useUpdateQuestFilter } from "./frontend-tool/useUpdateQuestFilter";
+import { useUpdateQuestDetail } from "./frontend-tool/useUpdateQuestDetail";
+import { useReloadQuests } from "./frontend-tool/useReloadQuests";
 import { useScreenContext } from "./useScreenContext";
 import { useSharedAgentState } from "./useSharedAgentState";
 import { useChatSuggestions } from "./useChatSuggestions";

@@ -8,8 +8,8 @@ type SuggestionsConfig = NonNullable<Parameters<typeof useConfigureSuggestions>[
 async function configuredSuggestions() {
   const configs: SuggestionsConfig[] = [];
   const { useChatSuggestions } = await loadIsolatedModule<
-    typeof import("../src/hooks/copilotkit/useChatSuggestions")
-  >("src/hooks/copilotkit/useChatSuggestions.ts", {
+    typeof import("../src/hooks/useChatSuggestions")
+  >("src/hooks/useChatSuggestions.ts", {
     "@copilotkit/react-core/v2": {
       useConfigureSuggestions(config: SuggestionsConfig) {
         configs.push(config);

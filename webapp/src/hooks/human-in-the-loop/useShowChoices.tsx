@@ -1,12 +1,13 @@
 import { useState } from "react";
+import { useHumanInTheLoop } from "@copilotkit/react-core/v2";
 import { z } from "zod";
 import {
   parseToolResult,
   type HumanInTheLoopProps,
 } from "../../lib/copilotkit/toolResult";
-import { Button } from "../ui/button";
-import ChatCard from "../chat/ChatCard";
-import OptionButtons from "./OptionButtons";
+import { Button } from "../../components/ui/button";
+import ChatCard from "../../components/chat/ChatCard";
+import OptionButtons from "../../components/human-in-the-loop/OptionButtons";
 
 const optionSchema = z.object({
   id: z.string().min(1).describe("選択肢を識別する一意な ID"),
@@ -14,7 +15,7 @@ const optionSchema = z.object({
   description: z.string().optional().describe("選択肢の補足説明"),
 });
 
-export const choicePromptSchema = z.object({
+const choicePromptSchema = z.object({
   question: z.string().min(1).describe("ユーザーに選んでもらう質問"),
   options: z
     .array(optionSchema)
@@ -35,8 +36,24 @@ const choicePromptResultSchema = z.object({
 
 type Props = Partial<ChoicePromptArgs> & HumanInTheLoopProps;
 
+// 候補をボタンで表示し、ユーザーの選択を待ってエージェントへ返す。
+export function useShowChoices() {
+  useHumanInTheLoop({
+    name: "show_choices",
+    description:
+      "ユーザーに有限個の候補から選んでもらう必要があるとき、" +
+      "質問と2〜6個の選択肢をボタンでチャットに表示する。" +
+      "選択結果が返るまで待ち、その結果を使って会話を続ける。" +
+      "理解度クイズには show_quiz を使う",
+    parameters: choicePromptSchema,
+    render: ({ args, respond, result }) => (
+      <ChoicePrompt {...args} respond={respond} result={result} />
+    ),
+  });
+}
+
 // 固定レイアウトに、エージェントが渡した質問と選択肢だけを差し込む。
-export default function ChoicePrompt({
+export function ChoicePrompt({
   question,
   options,
   selectionMode,

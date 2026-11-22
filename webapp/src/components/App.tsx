@@ -1,3 +1,4 @@
+import { clsx } from "cn";
 import { useCallback, useRef, useState } from "react";
 import { CopilotKitProvider } from "@copilotkit/react-core/v2";
 import "@copilotkit/react-core/v2/styles.css";
@@ -14,7 +15,7 @@ import { useUserSettings } from "../hooks/useUserSettings";
 import AuthGate from "./auth/AuthGate";
 import ChatPanel from "./chat/ChatPanel";
 import MobileChatButton from "./chat/MobileChatButton";
-import { useCopilotKitIntegration } from "../hooks/copilotkit/useCopilotKitIntegration";
+import { useCopilotKitIntegration } from "../hooks/useCopilotKitIntegration";
 import { reportCatalog } from "./generative-ui/ReportCatalog";
 import {
   QuestActionsContext,
@@ -28,7 +29,7 @@ import {
 } from "./quests/QuestBoardStatus";
 import QuestDetail from "./quests/QuestDetail";
 import QuestLayout from "./quests/QuestLayout";
-import { QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL } from "../lib/generative-ui/openGenerativeUI";
+import designSkill from "../lib/generative-ui/design-skill.md?raw";
 import UserSettingsDialog from "./user-setting/UserSettingsDialog";
 import UserSettingsButton from "./user-setting/UserSettingsButton";
 import LearningNotifications from "./learning/LearningNotifications";
@@ -45,7 +46,7 @@ function Workspace({ getToken }: { getToken?: () => string }) {
       }
       a2ui={{ catalog: reportCatalog }}
       openGenerativeUI={{
-        designSkill: QUEST_OPEN_GENERATIVE_UI_DESIGN_SKILL,
+        designSkill: designSkill.trim(),
       }}
     >
       <QuestWorkspace getToken={getToken} />
@@ -153,7 +154,11 @@ function QuestWorkspace({ getToken }: { getToken?: () => string }) {
   return (
     <QuestActionsContext.Provider value={actions}>
       <QuestLayout>
-        <main className="board-area relative isolate min-w-0 overflow-hidden border-[11px] max-[520px]:border-[7px] max-[900px]:min-h-[660px]">
+        <main className={clsx(
+          "board-area relative isolate min-w-0 overflow-hidden border-[11px]",
+          "max-[520px]:border-[7px]",
+          "max-[900px]:min-h-[660px]",
+        )}>
           <UserSettingsButton onOpenSettings={() => setSettingsOpen(true)} />
           <LearningNotifications
             insights={learningInsights.insights}
@@ -180,7 +185,13 @@ function QuestWorkspace({ getToken }: { getToken?: () => string }) {
           <div
             aria-hidden={Boolean(opened)}
             inert={Boolean(opened)}
-            className="h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px] [scrollbar-color:var(--quest-scrollbar-thumb)_var(--quest-scrollbar-track)] [scrollbar-width:thin] max-[900px]:h-auto max-[900px]:overflow-visible max-[520px]:px-[19px]"
+            className={clsx(
+              "h-full min-w-0 overflow-auto px-[clamp(20px,3.1vw,54px)] pb-[38px]",
+              "[scrollbar-color:var(--quest-scrollbar-thumb)_var(--quest-scrollbar-track)]",
+              "[scrollbar-width:thin]",
+              "max-[900px]:h-auto max-[900px]:overflow-visible",
+              "max-[520px]:px-[19px]",
+            )}
           >
             {renderBoard()}
           </div>

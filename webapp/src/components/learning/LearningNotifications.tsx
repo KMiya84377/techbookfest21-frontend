@@ -1,3 +1,4 @@
+import { clsx } from "cn";
 import { useRef, useState } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { BellIcon } from "lucide-react";
@@ -134,7 +135,11 @@ export default function LearningNotifications({
             className="z-40"
           >
             <Popover.Popup
-              className="max-h-[min(70dvh,480px,var(--available-height))] w-[min(350px,calc(100vw-24px))] overflow-auto rounded border border-quest-frame bg-quest-card p-4 text-quest-card-ink shadow-xl outline-none"
+              className={clsx(
+                "max-h-[min(70dvh,480px,var(--available-height))] w-[min(350px,calc(100vw-24px))]",
+                "overflow-auto rounded border border-quest-frame bg-quest-card p-4 text-quest-card-ink",
+                "shadow-xl outline-none",
+              )}
               aria-label="通知一覧"
               finalFocus={returnFocusToTrigger}
             >
@@ -177,7 +182,12 @@ export default function LearningNotifications({
       >
         <DialogContent
           finalFocus={triggerRef}
-          className="fixed top-1/2 left-1/2 max-h-[88dvh] w-[min(980px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded border border-quest-frame bg-quest-card p-6 text-quest-card-ink shadow-xl max-[520px]:p-4"
+          className={clsx(
+            "fixed top-1/2 left-1/2 max-h-[88dvh] w-[min(980px,calc(100vw-24px))] -translate-x-1/2",
+            "-translate-y-1/2 overflow-y-auto rounded border border-quest-frame bg-quest-card p-6",
+            "text-quest-card-ink shadow-xl",
+            "max-[520px]:p-4",
+          )}
         >
           <DialogTitle className="mb-2 pr-8 text-xl font-semibold">
             {selectedInsight?.diagram.title ?? "学習内容のつながり"}

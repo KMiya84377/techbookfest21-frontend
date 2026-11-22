@@ -10,7 +10,7 @@ import { loadIsolatedModule } from "./helpers/loadIsolatedModule";
 test("登録フックは状態共有・画面情報・各ツール・サジェストを登録する", async () => {
   const calls: string[] = [];
   const shareQuestBoard = () => {};
-  const options: Parameters<typeof import("../src/hooks/copilotkit/useCopilotKitIntegration").useCopilotKitIntegration>[0] = {
+  const options: Parameters<typeof import("../src/hooks/useCopilotKitIntegration").useCopilotKitIntegration>[0] = {
     quests: [], openedId: null, filter: {}, detailExtras: {},
     reloadQuests: async () => [], onRefreshError() {},
     updateFilter: () => { throw new Error("このテストでは呼びません"); },
@@ -18,8 +18,8 @@ test("登録フックは状態共有・画面情報・各ツール・サジェ�
     userSettings: DEFAULT_USER_SETTINGS, userSettingsReady: true,
   };
   const { useCopilotKitIntegration } = await loadIsolatedModule<
-    typeof import("../src/hooks/copilotkit/useCopilotKitIntegration")
-  >("src/hooks/copilotkit/useCopilotKitIntegration.ts", {
+    typeof import("../src/hooks/useCopilotKitIntegration")
+  >("src/hooks/useCopilotKitIntegration.ts", {
     "./useSharedAgentState": { useSharedAgentState(value: unknown) {
       calls.push("state");
       assert.deepEqual(value, {
@@ -33,15 +33,15 @@ test("登録フックは状態共有・画面情報・各ツール・サジェ�
       calls.push("context");
       assert.deepEqual(value, { quests: options.quests, openedId: null, filter: options.filter, detailExtras: options.detailExtras });
     } },
-    "./useShowQuiz": { useShowQuiz: () => calls.push("quiz") },
-    "./useShowChoices": { useShowChoices: () => calls.push("choices") },
-    "./useUpdateQuestFilter": { useUpdateQuestFilter(handler: unknown) {
+    "./human-in-the-loop/useShowQuiz": { useShowQuiz: () => calls.push("quiz") },
+    "./human-in-the-loop/useShowChoices": { useShowChoices: () => calls.push("choices") },
+    "./frontend-tool/useUpdateQuestFilter": { useUpdateQuestFilter(handler: unknown) {
       calls.push("filter"); assert.equal(handler, options.updateFilter);
     } },
-    "./useUpdateQuestDetail": { useUpdateQuestDetail(handler: unknown) {
+    "./frontend-tool/useUpdateQuestDetail": { useUpdateQuestDetail(handler: unknown) {
       calls.push("detail"); assert.equal(handler, options.updateDetail);
     } },
-    "./useReloadQuests": { useReloadQuests(value: unknown) {
+    "./frontend-tool/useReloadQuests": { useReloadQuests(value: unknown) {
       calls.push("reload"); assert.deepEqual(value, { reloadQuests: options.reloadQuests, shareQuestBoard });
     } },
     "./useChatSuggestions": { useChatSuggestions: () => calls.push("suggestions") },

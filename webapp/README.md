@@ -32,14 +32,13 @@ AstroのNode.jsサーバーで、画面の配信とバックエンド（CopilotK
 | 場所 | 内容 | 本との対応 |
 | --- | --- | --- |
 | [src/components/App.tsx](src/components/App.tsx) | 画面の入口です。`CopilotKitProvider` で、A2UIのカタログとOpen Generative UIのデザインのルールを渡します | 第3章3.1・3.5 |
-| [src/components/copilotkit/](src/components/copilotkit/CopilotKitIntegration.tsx) | CopilotKit連携用のフックをまとめて呼ぶコンポーネントです（表示は出しません） | 第3章3.2〜3.4 |
-| [src/hooks/copilotkit/](src/hooks/copilotkit/README.md) | 状態共有・コンテキスト・フロントエンドツール・Human-in-the-loopの登録フックです | 第3章3.2〜3.4、3.6 |
-| [src/components/generative-ui/](src/components/generative-ui/README.md) | A2UIの描画・カタログと、ツールの結果を表示するカードです | 第2章2.2〜2.4、第3章3.5・3.6 |
-| [src/components/human-in-the-loop/](src/components/human-in-the-loop/README.md) | ユーザーの回答を待つクイズ・選択肢のUIです | 第3章3.4・3.6.3 |
-| [src/components/quests/](src/components/quests/README.md) | ニュースの一覧・詳細画面です | 第3章3.6 |
-| [src/components/learning/](src/components/learning/README.md) | 通知と、学習内容のつながりの図です | 本にない追加機能 |
+| [src/hooks/useCopilotKitIntegration.ts](src/hooks/useCopilotKitIntegration.ts) | 状態共有・ツール登録・サジェストのフックをまとめて呼びます。`App.tsx`の`QuestWorkspace`で、`CopilotKitProvider`配下から呼びます | 第3章3.2〜3.4 |
+| [src/hooks/](src/hooks/README.md) | 画面の状態・API呼び出しと、AIエージェントとの連携を扱います。ツール登録と専用UIは、役割別のサブフォルダにまとめます | 第3章3.2〜3.4、3.6 |
+| [src/components/generative-ui/](src/components/generative-ui/README.md) | 詳細への追記を描画するA2UIレンダラーと、レポート用のカタログです | 第2章2.2〜2.4、第3章3.5・3.6 |
+| [src/components/human-in-the-loop/](src/components/human-in-the-loop/) | クイズと確認画面で共通に使う選択ボタンです | 第3章3.4・3.6.3 |
+| [src/components/quests/](src/components/quests/) | ニュースの一覧・詳細画面です | 第3章3.6 |
+| [src/components/learning/](src/components/learning/) | 通知と、学習内容のつながりの図です | 本にない追加機能 |
 | src/components/chat/・user-setting/ | チャット欄と、共通のチャット用カード枠、学習設定のダイアログです | － |
-| src/hooks/ | 画面の状態とAPI呼び出しをまとめたフックです | － |
 | src/lib/ | ブラウザーでも使う型・定数・純粋関数だけを置きます | － |
 
 ### 開発用
@@ -48,6 +47,8 @@ AstroのNode.jsサーバーで、画面の配信とバックエンド（CopilotK
 | --- | --- |
 | mock/ | mockモードのメモリ上の保存先とAIを置きます。モードのフラグが真のときだけ動的に読み込み、本番ビルドでは空のスタブに差し替えます（`astro.config.mjs` の `strip-mock`） |
 | tests/ | Node標準のテストランナーによるテストです |
+
+ツール専用の結果表示や回答待ち画面は、`src/hooks/frontend-tool/`・`src/hooks/human-in-the-loop/`の各フックと同じファイルに置きます。複数の画面で使う部品は`src/components/`に置きます。
 
 AWS用のビルドでは `aws-runtime` 条件でBlocksのAWS実装を選びます。Lambdaでモック実装を読み込んだ場合はエラーにし、ローカル保存へ書き込ませません。
 

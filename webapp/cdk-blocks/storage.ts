@@ -11,7 +11,7 @@ import {
 
 export const scope = new Scope(BLOCKS_SCOPE);
 
-// ニュースの共通情報(ユーザーに依存しない)
+// ニュースの共通情報
 export const newsSchema = z
   .object({
     newsId: z.string().min(1).max(200),
@@ -32,7 +32,6 @@ export const newsSchema = z
       check: z.string(),
     }),
     checks: z.array(z.string()),
-    // エージェント(Python)が書き込む、使われていない項目
     status: z.literal("todo").optional(),
   })
   .strict();
@@ -41,13 +40,14 @@ export const news = new KVStore(scope, NEWS_TABLE_ID, {
   schema: newsSchema,
   key: { partitionKey: "newsId" },
   indexes: {
-    ByFeedPublishedAt: { partitionKey: "feed", sortKey: "publishedAt" },
+    ByFeedPublishedAt: {
+      partitionKey: "feed",
+      sortKey: "publishedAt"
+    },
   },
 });
 
-// 学習状態・通知・排他レコードを、これまでと同じキーで保存する。
-// 1つのテーブルに複数の種類を入れる(newsId の接頭辞で区別する)ため、キー以外の項目は絞らず、そのまま保存する。
-// 型は、キーとversionだけにする(KVStoreは、キーの項目を型から決める。余分な項目を許す型だと、決められない)。
+// ユーザー単位のニュース情報
 type UserQuestKeys = { userId: string; newsId: string; version?: number };
 const userQuestSchema = z
   .object({
@@ -62,7 +62,7 @@ export const userQuests = new KVStore(scope, USER_QUESTS_TABLE_ID, {
   key: { partitionKey: "userId", sortKey: "newsId" },
 });
 
-// 項目の意味と許される値は、src/lib/userSettings/model.ts で検証する。
+// ユーザー設定情報
 export const settings = new KVStore(scope, USER_SETTINGS_TABLE_ID, {
   schema: z
     .object({
@@ -77,7 +77,6 @@ export const settings = new KVStore(scope, USER_SETTINGS_TABLE_ID, {
   key: { partitionKey: "userId" },
 });
 
-// AWS用ビルドでmockエントリが選ばれていたら、保存処理を始める前に停止する。
 if (
   process.env.AWS_LAMBDA_FUNCTION_NAME &&
   getSdkIdentifiers(news).tableName.startsWith("mock-")
@@ -87,7 +86,6 @@ if (
   );
 }
 
-// AIエージェントは別のデプロイ単位。接続先はそのスタックが管理するSSMから読む。
 export const agentRuntimeSetting = AppSetting.fromExisting(
   scope,
   "chat-runtime",

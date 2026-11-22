@@ -1,12 +1,39 @@
-import { filterChangeSchema } from "../../lib/quests/filter";
+import { useFrontendTool } from "@copilotkit/react-core/v2";
+import {
+  filterPatchSchema,
+  filterChangeSchema,
+  type FilterChange,
+  type FilterPatch,
+} from "../../lib/quests/filter";
 import {
   parseToolResult,
   type ToolResultProps,
 } from "../../lib/copilotkit/toolResult";
-import { Alert, AlertTitle } from "../ui/alert";
+import { Alert, AlertTitle } from "../../components/ui/alert";
+
+// 検索条件を更新し、変更前後と件数をチャットに表示する。
+export function useUpdateQuestFilter(
+  updateFilter: (patch: FilterPatch) => FilterChange,
+) {
+  useFrontendTool({
+    name: "update_quest_filter",
+    description:
+      "クエストボードの検索条件を変える。" +
+      "ユーザーが、期間、AWS サービス、重要度、想定学習時間、状態で、" +
+      "クエストを絞り込みたいときに呼ぶ。" +
+      "指定した条件だけを変え、null で条件を解除する。" +
+      "すべて解除するときは reset を true にする。" +
+      "変更前後の条件と、表示される件数が返る",
+    parameters: filterPatchSchema,
+    handler: async (args) => updateFilter(args),
+    render: ({ status, result }) => (
+      <FilterChangeCard status={status} result={result} />
+    ),
+  });
+}
 
 // エージェントが、メイン領域の検索条件を変えたことを、チャットに示す
-export default function FilterChangeCard({ status, result }: ToolResultProps) {
+function FilterChangeCard({ status, result }: ToolResultProps) {
   const change = parseToolResult(result, filterChangeSchema);
 
   if (!change) {

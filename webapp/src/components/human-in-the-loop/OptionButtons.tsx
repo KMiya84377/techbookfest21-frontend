@@ -20,12 +20,14 @@ interface Props {
 
 const OPTION_CLASS =
   "h-auto w-full justify-start gap-2 whitespace-normal rounded-lg px-2.5 py-2 text-left font-normal text-inherit";
+
 // 選択中の選択肢(ホバーしても、色を変えない)
 const OPTION_SELECTED_CLASS = [
   "border-quest-brown",
   "bg-[color-mix(in_srgb,var(--quest-brown)_14%,transparent)]",
   "hover:bg-[color-mix(in_srgb,var(--quest-brown)_14%,transparent)]",
 ].join(" ");
+
 // 選択肢の左の丸(単一選択)・四角(複数選択)の印
 const MARK_CLASS =
   "mt-0.5 flex size-4 shrink-0 items-center justify-center border border-quest-option-mark-line text-[10px] leading-none";

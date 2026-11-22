@@ -41,7 +41,8 @@ htmlは文書全体ではなく本文用のHTML/SVGとし、外部通信・外�
     tool: {
       name: LEARNING_UI_TOOL,
       description:
-        "学習済みニュースの検証済みの関係を、sandboxで表示するHTML・CSS・必要に応じたJavaScriptとして生成する。",
+        "学習済みニュースの検証済みの関係を、" +
+        "sandboxで表示するHTML・CSS・必要に応じたJavaScriptとして生成する。",
       parameters: z.toJSONSchema(learningUIArgsSchema),
     },
     context: {

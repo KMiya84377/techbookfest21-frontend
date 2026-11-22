@@ -1,3 +1,4 @@
+import { clsx } from "cn";
 import { useEffect, useRef } from "react";
 import {
   IMPORTANCE_LABEL,
@@ -59,7 +60,11 @@ export default function QuestDetail({ quest, extras = [], onClose }: Props) {
 
   return (
     <section
-      className="detail-layer absolute inset-0 z-10 overflow-auto p-6 max-[600px]:fixed max-[600px]:w-screen max-[600px]:h-[100dvh] max-[600px]:max-h-[100dvh] max-[600px]:p-[17px] max-[600px]:[-webkit-overflow-scrolling:touch]"
+      className={clsx(
+        "detail-layer absolute inset-0 z-10 overflow-auto p-6",
+        "max-[600px]:fixed max-[600px]:w-screen max-[600px]:h-[100dvh] max-[600px]:max-h-[100dvh]",
+        "max-[600px]:p-[17px] max-[600px]:[-webkit-overflow-scrolling:touch]",
+      )}
       aria-label={`クエスト詳細: ${quest.title}`}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
@@ -73,7 +78,14 @@ export default function QuestDetail({ quest, extras = [], onClose }: Props) {
           ref={closeRef}
           type="button"
           variant="quest"
-          className="h-auto cursor-pointer rounded-[2px] border-quest-detail-back-line bg-quest-detail-back-bg px-3 py-[9px] font-quest-tavern text-xs text-[var(--board-text)] shadow-none hover:bg-quest-detail-back-hover focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--brass)]"
+          className={clsx(
+            "h-auto cursor-pointer rounded-[2px] border-quest-detail-back-line",
+            "bg-quest-detail-back-bg px-3 py-[9px] font-quest-tavern text-xs text-[var(--board-text)]",
+            "shadow-none",
+            "hover:bg-quest-detail-back-hover",
+            "focus-visible:outline-2 focus-visible:outline-offset-3",
+            "focus-visible:outline-[var(--brass)]",
+          )}
           onClick={onClose}
         >
           ← クエストボードへ戻る
@@ -85,7 +97,10 @@ export default function QuestDetail({ quest, extras = [], onClose }: Props) {
         </span>
       </div>
 
-      <article className="strategy-sheet mx-auto max-w-[820px] p-[clamp(20px,3vw,40px)] text-[var(--ink)] shadow-[3px_9px_18px_var(--shadow)]">
+      <article className={clsx(
+        "strategy-sheet mx-auto max-w-[820px] p-[clamp(20px,3vw,40px)] text-[var(--ink)]",
+        "shadow-[3px_9px_18px_var(--shadow)]",
+      )}>
         <div className="font-mono text-[11px] tracking-[0.08em] text-quest-detail-services">
           {quest.services.join(" / ")}
         </div>
